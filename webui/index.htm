@@ -1,0 +1,88 @@
+<html>
+
+<head>
+  <link rel="stylesheet" type="text/css" href="site.css" />
+  <script language="javascript" src="dist/bundle.js"></script>
+  <title>Streaming Remote</title>
+</head>
+
+<body>
+  <div id="connectionParameters" class="uninit">
+    <div id="error" class="uninit"></div>
+    <div id="savedConnections" class="needsLocalStorage">
+      <h1>Saved Connections</h1>
+      <div id="savedConnectionsList"></div>
+    </div>
+    <h1>New Connection</h1>
+    <div id="newConnectionForm">
+      <label for="host">Host</label>
+      <input type="text" id="host" name="host" value="localhost" />
+      <label for="port">Port</label>
+      <input type="number" min="1" max="65535" value="9002" name="port" id="port" />
+      <label for="password">Password</label>
+      <input type="password" name="password" id="password" />
+      <label for="name" class="needsLocalStorage">Save as</label>
+      <input type="text" name="name" placeholder="optional" id="name" class="needsLocalStorage" />
+    </div >
+    <button id="connectButton">Connect</button>
+  </div>
+  <div id="connecting" class="hide"></div>
+  <div id="outputContainer"></div>
+  <div id="templates">
+    <div id="recordingTemplate" class="output recording uninit" draggable="true">
+      <h1>RECORDING TEMPLATE</h1>
+      <svg height="200" width="200" class="button">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#ccc" stroke-width="10" />
+        <circle cx="100" cy="100" r="70" class="fillState" />
+      </svg>
+      <span class="state">UNKNOWN</span>
+      <a href='#' class="remove">remove this output</a>
+    </div>
+    <div id="streamingTemplate" class="output streaming uninit" draggable="true">
+      <h1>STREAMING TEMPLATE</h1>
+      <svg height="200" width="200" class="button">
+        <circle cx="100" cy="100" r="10" class="fillState" />
+        <!-- inner most -->
+        <path d="
+        M 87.5 78.35
+        A 25 25 0 0 0 87.5 121.65
+      " />
+        <path d="
+        M 87.5 78.35
+        A 25 25 0 0 0 87.5 121.65
+      " transform="rotate(180, 100, 100)" />
+        <!-- next ring -->
+        <path class="strokeState" d="
+        M 77.5 61.03
+        A 45 45 0 0 0 77.5 138.97
+      " />
+        <path class="strokeState" d="
+        M 77.5 61.03
+        A 45 45 0 0 0 77.5 138.97
+      " transform="rotate(180, 100, 100)" />
+        <!-- next ring -->
+        <path class="strokeState" d="
+        M 67.5 43.71
+        A 65 65 0 0 0 67.5 156.29
+      " />
+        <path class="strokeState" d="
+        M 67.5 43.71
+        A 65 65 0 0 0 67.5 156.29
+      " transform="rotate(180, 100, 100)" />
+        <!-- outer -->
+        <path d="
+        M 57.5 27.39
+        A 85 85 0 0 0 57.5 173.61
+      " />
+        <path d="
+        M 57.5 27.39
+        A 85 85 0 0 0 57.5 173.61
+      " transform="rotate(180, 100, 100)" />
+      </svg>
+      <span class="state">UNKNOWN</span>
+      <a href='#' class="remove">remove this output</a>
+    </div>
+  </div>
+</body>
+
+</html>

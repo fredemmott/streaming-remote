@@ -1,0 +1,31 @@
+<html>
+	<head>
+        <meta charset='utf-8' />
+        <link rel="stylesheet" type="text/css" href="index.css" />
+	</head>
+	<body>
+    <script src="dist/bundle.js"></script>
+    <p>
+      You must leave this window open, as XSplit does not currently allow windowless extensions
+      to offer configuration pages.
+    </p>
+
+    <p id="dllAccessWarning" class="uninit">
+      You must allow DLL access permissions for this extension to work or be configurable.
+    </p>
+
+    <table id="configTable" class="uninit">
+      <tr><th>Password</th><td><input type="password" id="password" /><a href="#" id="passwordShowHide">(reveal)</a></td></tr>
+      <tr><th>TCP port</th><td><input type="number" id="tcpPort" min="1" max="65535" /></td></tr>
+      <tr><th>WebSocket port</th><td><input type="number" id="webSocketPort" min="1" max="65535" /></td></tr>
+      <tr><th>Named pipe</th><td><input type="text" id="localSocket" /></td></tr>
+    </table>
+    <div class="spacer"></div>
+    <hr width="100%" />
+    <div class="buttonBox">
+      <div class="spacer"></div>
+      <button id="reset" type="reset" disabled>Undo Changes</button>
+      <button id="apply" type="submit" disabled>Apply</button>
+    </div>
+	</body>
+</html>

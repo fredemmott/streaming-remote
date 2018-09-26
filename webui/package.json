@@ -1,0 +1,22 @@
+{
+  "name": "streaming-remote-webui",
+  "version": "1.0.0",
+  "description": "JS client for streaming-remote",
+  "main": "index.js",
+  "author": "Fred Emmott",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "@types/libsodium-wrappers-sumo": "^0.7.0",
+    "babel-loader": "^8.0.4",
+    "libsodium-wrappers-sumo": "^0.7.3",
+    "regenerator": "^0.13.2",
+    "ts-loader": "^5.2.1",
+    "typescript": "^3.1.1",
+    "webpack": "^4.20.2"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.1.2"
+  }
+}

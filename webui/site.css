@@ -1,0 +1,199 @@
+body {
+  background-color: #555;
+  color: white;
+  font-family: sans-serif;
+  padding: 2em;
+  margin: 0;
+}
+
+#outputContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+#connectionParameters {
+  padding: 15px;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  background-color: black;
+  border-radius: 20px;
+}
+
+#connectionParameters h1 {
+  text-align: center;
+  margin-top: 0px;
+  font-size: 140%;
+  font-weight: bold;
+}
+
+#connectionParameters label {
+  color: #ccc;
+}
+
+#connectButton {
+  display: block;
+  margin-top: 15px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.output {
+  background-color: black;
+  border-radius: 5em;
+  text-align: center;
+  height: 100%;
+  flex: 1;
+  vertical-align: middle;
+  padding: 0px;
+  margin-left: 2em;
+  display: flex;
+  flex-direction: column;
+}
+
+.output h1 {
+  color: #777;
+}
+
+.remove {
+  color: #333;
+  font-size: x-small;
+  margin: 1em;
+}
+
+.removed {
+  display: none;
+}
+
+.output .state {
+  margin: 2em;
+  font-size: x-large;
+  color: #555;
+}
+
+.output svg {
+  margin: auto;
+}
+
+.output .button {
+  cursor: pointer;
+}
+
+.output:first-child {
+  margin-left: 0;
+}
+
+.uninit .output {
+  background: repeating-linear-gradient(
+    45deg,
+    black,
+    black 10px,
+    yellow 10px,
+    yellow 20px
+  ) !important;
+}
+
+.output .fillState {
+  fill: #ccc;
+}
+
+.output .strokeState {
+  stroke: #ccc;
+}
+
+.active .fillState {
+  fill: red !important;
+}
+
+.output.active .strokeState {
+  stroke: red !important;
+}
+
+.starting .fillState, .stopping .fillState {
+  fill: orange !important;
+}
+
+.starting .strokeState, .stopping .strokeState {
+  stroke: orange !important;
+}
+
+#templates {
+  display: none;
+}
+
+.streaming svg path {
+  stroke: #ccc;
+  stroke-width: 10;
+  fill: none;
+}
+
+input#name::placeholder {
+  font-style: italic;
+}
+
+#newConnectionForm {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  grid-column-gap: 0.5em;
+  grid-row-gap: 0.5ex;
+}
+
+#newConnectionForm label::after {
+  content: ':';
+}
+
+.hide {
+  display: none;
+}
+
+#connectionParameters.uninit {
+  display: none;
+}
+
+#savedConnectionsList {
+  color: #ccc;
+  margin-bottom: 15px;
+}
+
+#error {
+  color: #fff;
+  border: 1px solid #f00;
+  background-color: #900;
+  padding: 1em;
+  margin-bottom: 15px;
+  font-weight: bold;
+  border-radius: 10px;
+}
+
+#error.uninit {
+  display: none;
+}
+
+#savedConnectionsList {
+  display: grid;
+  grid-template-columns: 1fr max-content;
+  grid-column-gap: 0.5em;
+  grid-row-gap: 0.5ex;
+}
+
+#connecting {
+  width: 10em;
+  height: 10em;
+  border-radius: 10em;
+  border: 2em solid #777;
+  border-top: 2em solid #333;
+  animation: connectingSpin 2s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes connectingSpin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg) ;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

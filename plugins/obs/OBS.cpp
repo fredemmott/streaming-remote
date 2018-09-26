@@ -1,0 +1,190 @@
+/*
+ * Copyright (c) 2018-present, Frederick Emmott.
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the LICENSE file
+ * in the root directory of this source tree.
+ */
+
+#include "OBS.h"
+#include "OBSConfigDialog.h"
+
+#include <util/config-file.h>
+
+#include <QAction>
+#include <QMainWindow>
+
+namespace {
+  const QString s_recording("Recording");
+  const QString s_streaming("Streaming");
+
+  const char* CONFIG_SECTION = "streamingRemote";
+  const char* CONFIG_ID_PASSWORD = "password";
+  const char* CONFIG_ID_LOCAL_SOCKET = "localSocket";
+  const char* CONFIG_ID_TCP_PORT = "tcpPort";
+  const char* CONFIG_ID_WEBSOCKET_PORT = "webSocketPort";
+}
+
+OBS::OBS(QObject* parent): StreamingSoftware(parent) {
+  obs_frontend_add_event_callback(&OBS::frontendEventCallback, this);
+  this->config = getInitialConfiguration();
+
+  auto obsWindow = reinterpret_cast<QMainWindow*>(obs_frontend_get_main_window());
+  if (!obsWindow) {
+    return;
+  }
+
+  auto settingsAction = reinterpret_cast<QAction*>(
+    obs_frontend_add_tools_menu_qaction("Streaming Remote settings")
+  );
+
+  connect(settingsAction, &QAction::triggered, [this, obsWindow]() {
+    auto dialog = new OBSConfigDialog(this->config, obsWindow);
+    connect(dialog, &OBSConfigDialog::configChanged, this, &OBS::setConfiguration);
+    dialog->show();
+  });
+}
+
+OBS::~OBS() {
+  obs_frontend_remove_event_callback(&OBS::frontendEventCallback, this);
+}
+
+QList<Output> OBS::getOutputs() {
+  return QList<Output> {
+    Output {
+      s_recording,
+      s_recording,
+      obs_frontend_recording_active()
+        ? OutputState::ACTIVE
+        : OutputState::STOPPED,
+      OutputType::LOCAL_RECORDING
+    },
+    Output {
+      s_streaming,
+      s_streaming,
+      obs_frontend_streaming_active()
+        ? OutputState::ACTIVE
+        : OutputState::STOPPED,
+      OutputType::REMOTE_STREAM
+    }
+  };
+}
+
+void OBS::startOutput(const QString& id) {
+  if (id == s_recording) {
+    obs_frontend_recording_start();
+    return;
+  }
+  if (id == s_streaming) {
+    obs_frontend_streaming_start();
+    return;
+  }
+}
+
+void OBS::stopOutput(const QString& id) {
+  if (id == s_recording) {
+    obs_frontend_recording_stop();
+    return;
+  }
+  if (id == s_streaming) {
+    obs_frontend_streaming_stop();
+    return;
+  }
+}
+
+Config OBS::getConfiguration() const {
+  return config;
+}
+
+void OBS::setConfiguration(const Config& config) {
+  auto obs_config = obs_frontend_get_global_config();
+  assert(obs_config);
+  if (!obs_config) {
+    return;
+  }
+  this->config = config;
+  config_set_string(obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD, config.password.toUtf8());
+  config_set_string(obs_config, CONFIG_SECTION, CONFIG_ID_LOCAL_SOCKET, config.localSocket.isNull() ? nullptr : config.localSocket.toUtf8());
+  config_set_uint(obs_config, CONFIG_SECTION, CONFIG_ID_TCP_PORT, config.tcpPort);
+  config_set_uint(obs_config, CONFIG_SECTION, CONFIG_ID_WEBSOCKET_PORT, config.webSocketPort);
+  config_save(obs_config);
+
+  emit configurationChanged(config);
+}
+
+Config OBS::getInitialConfiguration() {
+  Config config = Config::getDefault();
+
+  config_t* obs_config = obs_frontend_get_global_config();
+  if (!obs_config) {
+    return config;
+  }
+
+  const auto password = config_get_string(obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD);
+  if (password) {
+    config.password = QString::fromUtf8(password);
+  } else {
+    config_set_string(obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD, config.password.toUtf8());
+  }
+
+
+  if (!config.localSocket.isNull()) {
+    config_set_default_string(
+      obs_config,
+      CONFIG_SECTION,
+      "Local Socket",
+      config.localSocket.toUtf8()
+    );
+    config_save(obs_config);
+  }
+
+  auto localSocket = config_get_string(obs_config, CONFIG_SECTION, "Local Socket");
+  if (localSocket == nullptr || strcmp(localSocket, "") == 0) {
+    config.localSocket = QString();
+  } else {
+    config.localSocket = QString::fromUtf8(localSocket);
+  }
+
+  config_set_default_uint(obs_config, CONFIG_SECTION, CONFIG_ID_TCP_PORT, config.tcpPort);
+  config.tcpPort = config_get_uint(obs_config, CONFIG_SECTION, CONFIG_ID_TCP_PORT);
+
+  config_set_default_uint(obs_config, CONFIG_SECTION, CONFIG_ID_WEBSOCKET_PORT, config.webSocketPort);
+  config.webSocketPort = config_get_uint(obs_config, CONFIG_SECTION, CONFIG_ID_WEBSOCKET_PORT);
+  return config;
+}
+
+void OBS::frontendEventCallback(
+  enum obs_frontend_event event,
+  void* data
+ ) {
+   OBS* obs = reinterpret_cast<OBS*>(data);
+   switch(event) {
+    case OBS_FRONTEND_EVENT_STREAMING_STARTING:
+      emit obs->outputStateChanged(s_streaming, OutputState::STARTING);
+      break;
+    case OBS_FRONTEND_EVENT_STREAMING_STARTED:
+      emit obs->outputStateChanged(s_streaming, OutputState::ACTIVE);
+      break;
+    case OBS_FRONTEND_EVENT_STREAMING_STOPPING:
+      emit obs->outputStateChanged(s_streaming, OutputState::STOPPING);
+      break;
+    case OBS_FRONTEND_EVENT_STREAMING_STOPPED:
+      emit obs->outputStateChanged(s_streaming, OutputState::STOPPED);
+      break;
+    case OBS_FRONTEND_EVENT_RECORDING_STARTING:
+      emit obs->outputStateChanged(s_recording, OutputState::STARTING);
+      break;
+    case OBS_FRONTEND_EVENT_RECORDING_STARTED:
+      emit obs->outputStateChanged(s_recording, OutputState::ACTIVE);
+      break;
+    case OBS_FRONTEND_EVENT_RECORDING_STOPPING:
+      emit obs->outputStateChanged(s_recording, OutputState::STOPPING);
+      break;
+    case OBS_FRONTEND_EVENT_RECORDING_STOPPED:
+      emit obs->outputStateChanged(s_recording, OutputState::STOPPED);
+      break;
+    case OBS_FRONTEND_EVENT_EXIT:
+      obs->deleteLater();
+      break;
+  }
+ }

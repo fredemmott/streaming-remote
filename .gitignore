@@ -1,0 +1,7 @@
+build/
+*.swp
+/.vs
+.vscode
+dist
+node_modules
+yarn-error.log

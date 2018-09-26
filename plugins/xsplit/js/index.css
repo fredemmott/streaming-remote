@@ -1,0 +1,40 @@
+body {
+  color: white;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+th {
+  font-weight: normal;
+  text-align: left;
+}
+
+#passwordShowHide {
+  color: #ccc;
+  font-size: x-small;
+  padding-left: 1em;
+  vertical-align: middle;
+}
+
+.uninit, .hide {
+  display: none;
+}
+
+#dllAccessWarning {
+  border-color: #f00;
+  background-color: 1px solid #550000;
+}
+
+.buttonBox {
+  display: flex;
+  flex-direction: row;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.buttonbox button {
+  margin: 2px;
+}

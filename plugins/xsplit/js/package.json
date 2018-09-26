@@ -1,0 +1,20 @@
+{
+  "name": "streaming-remote-xsplit-js",
+  "version": "1.0.0",
+  "description": "JS component of the XSplit plugin for streaming-remote",
+  "main": "index.js",
+  "author": "Fred Emmott",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "babel-loader": "^8.0.4",
+    "ts-loader": "^5.2.1",
+    "typescript": "^3.1.1",
+    "webpack": "^4.20.2",
+    "xjs-framework": "^2.8.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.1.2"
+  }
+}
