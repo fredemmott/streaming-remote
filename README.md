@@ -15,6 +15,19 @@ If local storage is available, the web UI will save connection settings; local
 storage is not available when opening the index.html file directly in Safari,
 but it works in Chrome.
 
+### Connection Screen
+
+![connection screen](connect.png)
+
+### OBS
+
+![OBS with no active outputs](obs-inactive.png)
+![OBS with active streaming and recording](obs-active.png)
+
+### XSplit
+
+![XSplit with 3 outputs, 1 active](xsplit.png)
+
 ## Capabilities
 
 - retrieve a list of outputs and states
