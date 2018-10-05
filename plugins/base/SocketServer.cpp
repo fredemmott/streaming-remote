@@ -113,25 +113,25 @@ void SocketServer::newLocalConnection() {
   auto socket = this->localServer->nextPendingConnection();
   auto mi = new SocketMessageInterface(socket, this);
   auto handler = new ClientHandler(this->software);
+  mi->setParent(handler);
   connect(mi, &MessageInterface::messageReceived, handler, &ClientHandler::messageReceived);
   connect(handler, &ClientHandler::sendMessage, mi, &MessageInterface::sendMessage);
-  connect(handler, &QObject::destroyed, [socket, mi]() { socket->close(); mi->deleteLater(); });
 }
 
 void SocketServer::newTcpConnection() {
 	auto socket = this->tcpServer->nextPendingConnection();
 	auto mi = new SocketMessageInterface(socket, this);
 	auto handler = new ClientHandler(this->software);
+  mi->setParent(handler);
 	connect(mi, &MessageInterface::messageReceived, handler, &ClientHandler::messageReceived);
 	connect(handler, &ClientHandler::sendMessage, mi, &MessageInterface::sendMessage);
-	connect(handler, &QObject::destroyed, [socket, mi]() { socket->close(); mi->deleteLater(); });
 }
 
 void SocketServer::newWebSocketConnection() {
   auto socket = this->webSocketServer->nextPendingConnection();
   auto mi = new WebSocketMessageInterface(socket, this);
   auto handler = new ClientHandler(this->software);
+  mi->setParent(handler);
   connect(mi, &MessageInterface::messageReceived, handler, &ClientHandler::messageReceived);
   connect(handler, &ClientHandler::sendMessage, mi, &MessageInterface::sendMessage);
-	connect(handler, &QObject::destroyed, [socket, mi]() { socket->close(); mi->deleteLater(); });
 }
