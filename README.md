@@ -15,6 +15,8 @@ If local storage is available, the web UI will save connection settings; local
 storage is not available when opening the index.html file directly in Safari,
 but it works in Chrome.
 
+The WebUI can also be accessed [online](https://streaming-remote.fredemmott.com) - all data transfer and storage is local to your browser.
+
 ### Connection Screen
 
 ![connection screen](connect.png)
