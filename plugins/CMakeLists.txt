@@ -24,7 +24,7 @@ find_package(Qt5Network CONFIG REQUIRED)
 find_package(Qt5WebSockets CONFIG REQUIRED)
 set(BASE_LIBS Qt5::Core Qt5::Network Qt5::WebSockets sodium)
 
-set(WITH_OBS_PLUGIN OFF CACHE STRING "Build the OBS plugin")
+set(WITH_OBS_PLUGIN OFF CACHE BOOL "Build the OBS plugin")
 if(WITH_OBS_PLUGIN)
   set(OBS_SOURCES
     ${BASE_SOURCES}
@@ -32,6 +32,9 @@ if(WITH_OBS_PLUGIN)
     obs/OBS.cpp
     obs/OBSConfigDialog.cpp
   )
+
+  set(OBS_SOURCE_DIR "" CACHE PATH "Path to OBS source directory")
+  set(OBS_BUILD_DIR "${OBS_SOURCE_DIR}/build" CACHE PATH "Path to OBS build directory")
 
   find_path(
     LIBOBS_INCLUDE_DIR
@@ -52,10 +55,11 @@ if(WITH_OBS_PLUGIN)
 
   find_library(
     LIBOBS_LIB
-    obs
+    NAMES
+    obs 
     HINTS
     "${OBS_SOURCE_DIR}/libobs/"
-    "${OBS_SOURCE_DIR}/build/libobs/"
+    "${OBS_BUILD_DIR}/libobs/"
   )
 
   find_library(
@@ -63,7 +67,9 @@ if(WITH_OBS_PLUGIN)
     obs-frontend-api
     HINTS
     "${OBS_SOURCE_DIR}/UI/obs-frontend-api/"
-    "${OBS_SOURCE_DIR}/build/ui/obs-frontend-api/"
+    "${OBS_BUILD_DIR}/UI/obs-frontend-api/"
+    "${OBS_DEPENDENCIES_DIR}/win32/bin/"
+    "${OBS_DEPENDENCIES_DIR}/win64/bin/"
   )
 
   find_package(Qt5Widgets CONFIG REQUIRED)
@@ -74,10 +80,12 @@ if(WITH_OBS_PLUGIN)
     ${LIBOBS_LIB}
     ${OBS_FRONTEND_API_LIB}
   )
-set_target_properties(obs-streaming-remote PROPERTIES PREFIX "" SUFFIX ".so")
+  if (NOT WIN32)
+    set_target_properties(obs-streaming-remote PROPERTIES PREFIX "" SUFFIX ".so")
+  endif()
 endif()
 
-set(WITH_XSPLIT_PLUGIN OFF CACHE STRING "Build the XSplit plugin")
+set(WITH_XSPLIT_PLUGIN OFF CACHE BOOL "Build the XSplit plugin")
 if(WITH_XSPLIT_PLUGIN)
 
   set(XSPLIT_SOURCES
