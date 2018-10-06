@@ -14,7 +14,7 @@
 #include <QJsonObject>
 
 #include <sodium.h>
-
+#include <cassert>
 #include <memory>
 
 #define clean_and_return() \

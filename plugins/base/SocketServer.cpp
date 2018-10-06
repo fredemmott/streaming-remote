@@ -24,6 +24,7 @@
 #include <QWebSocket>
 #include <QWebSocketServer>
 
+#include <cassert>
 #include <sodium.h>
 
 #include <QLoggingCategory>
