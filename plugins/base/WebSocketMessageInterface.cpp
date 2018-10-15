@@ -8,7 +8,7 @@
 
 #include "WebSocketMessageInterface.h"
 
-#include <QWebSOcket>
+#include <QWebSocket>
 
 #define clean_and_return() \
     this->socket->close(); \
