@@ -6,9 +6,21 @@ body {
   margin: 0;
 }
 
-#outputContainer {
+#outputContainer, #outputContainer > div {
   display: flex;
   flex-direction: row;
+}
+
+#outputContainer > div:nth-child(1n+2) {
+  margin-left: 2em;
+}
+
+#outputContainer > div {
+  flex: 1;
+}
+
+#outputContainer > div:only-child h2 {
+  display: none;
 }
 
 #connectionParameters {
@@ -18,6 +30,7 @@ body {
   width: fit-content;
   background-color: black;
   border-radius: 20px;
+  margin-bottom: 20px;
 }
 
 #connectionParameters h1 {
@@ -55,6 +68,11 @@ body {
   color: #777;
 }
 
+.output h2 {
+  font-size: 100%;
+  color: #555;
+}
+
 .remove {
   color: #333;
   font-size: x-small;
@@ -75,7 +93,7 @@ body {
   margin: auto;
 }
 
-.output .button {
+.output .button, #addConnection {
   cursor: pointer;
 }
 
@@ -196,4 +214,19 @@ input#name::placeholder {
   100% {
     transform: translate(-50%, -50%) rotate(360deg);
   }
+}
+
+#addConnection {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  right: 5px;
+  top: 0px;
+  font-size: 200%;
+  font-weight: bold;
+  color: #333;
+}
+
+#addConnection:hover {
+  color: #fff;
 }

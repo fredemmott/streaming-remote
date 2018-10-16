@@ -42,8 +42,10 @@ function handleOutputDragOver(e) {
 class WebUIClient {
   private ws: WebSocket;
   private rpc: RPCClient;
-  constructor(ws: WebSocket) {
+  private config: ClientConfig;
+  constructor(ws: WebSocket, config: ClientConfig) {
     this.ws = ws;
+    this.config = config;
   }
 
   public async start(password: string): Promise<void> {
@@ -76,21 +78,25 @@ class WebUIClient {
 
   private async updateOutputs(): Promise<void> {
     const outputs = await this.rpc.getOutputs();
-    const container = document.querySelector('#outputContainer');
-    while (container.hasChildNodes()) {
-      container.removeChild(container.firstChild);
+    const rootContainer = document.querySelector('#outputContainer');
+    const oldContainer = document.querySelector('#outputContainer > div[data-host="' + this.config.host + '"]');
+    const newContainer = document.createElement('div');
+    newContainer.dataset.host = this.config.host;
+    if (oldContainer) {
+      rootContainer.replaceChild(oldContainer, newContainer);
+    } else {
+      rootContainer.appendChild(newContainer);
     }
 
     for (const id in outputs) {
-      this.addOutputElement(outputs[id]);
+      this.addOutputElement(newContainer, outputs[id]);
     }
     document.querySelector('#outputContainer').classList.remove('uninit');
   }
 
-  private addOutputElement(output: Output): void {
+  private addOutputElement(container: HTMLDivElement, output: Output): void {
     const recordingTemplate = document.querySelector('#recordingTemplate');
     const streamingTemplate = document.querySelector('#streamingTemplate');
-    const container = document.querySelector('#outputContainer');
     const { id, name, type, state } = output;
     const template = (type === OutputType.LOCAL_RECORDING)
       ? recordingTemplate : streamingTemplate;
@@ -103,6 +109,7 @@ class WebUIClient {
       this.toggleState(id, elem);
     });
     elem.querySelector('h1').textContent = name;
+    elem.querySelector('h2').textContent = this.config.host;
     elem.addEventListener('drag', e => handleOutputDrag(e));
     elem.addEventListener('drop', e => handleOutputDrop(e));
     elem.querySelector('.remove').addEventListener('click', e => {
@@ -142,7 +149,7 @@ async function connect(config: ClientConfig) {
   ws.binaryType = 'arraybuffer';
 
   ws.addEventListener('open', async () => {
-    const client = (new WebUIClient(ws));
+    const client = (new WebUIClient(ws, config));
     await client.start(password);
     ws.addEventListener('close', function () {
       reset(ws, config);
@@ -208,4 +215,7 @@ function initializeConnectionForm(): void {
 window.addEventListener('load', async function () {
   initializeConnectionForm();
   document.querySelector('#outputContainer').addEventListener('dragover', e => handleOutputDragOver(e));
+  document.querySelector('#addConnection').addEventListener('click', e => {
+    this.document.querySelector('#connectionParameters').classList.remove('hide');
+  });
 });
