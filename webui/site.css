@@ -59,6 +59,11 @@ body {
 .output h2 {
   font-size: 100%;
   color: #555;
+  display: none;
+}
+
+.multihost .output h2 {
+  display: block;
 }
 
 .remove {

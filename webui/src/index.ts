@@ -40,6 +40,7 @@ function handleOutputDragOver(e) {
 }
 
 class WebUIClient {
+  static allHosts: { [host: string]: boolean } = {};
   private ws: WebSocket;
   private rpc: RPCClient;
   private config: ClientConfig;
@@ -78,6 +79,11 @@ class WebUIClient {
 
   private async updateOutputs(): Promise<void> {
     const outputs = await this.rpc.getOutputs();
+    WebUIClient.allHosts[this.config.host] = true;
+    if (Object.keys(WebUIClient.allHosts).length > 1) {
+      document.querySelector('body').classList.add('multihost');
+    }
+
     const container = document.querySelector('#outputContainer') as HTMLDivElement;
     for (const key in this.outputs) {
       container.removeChild(this.outputs[key]);
