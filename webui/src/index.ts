@@ -43,9 +43,11 @@ class WebUIClient {
   private ws: WebSocket;
   private rpc: RPCClient;
   private config: ClientConfig;
+  private outputs: { [id: string]: HTMLDivElement };
   constructor(ws: WebSocket, config: ClientConfig) {
     this.ws = ws;
     this.config = config;
+    this.outputs = {};
   }
 
   public async start(password: string): Promise<void> {
@@ -69,27 +71,21 @@ class WebUIClient {
       this.updateOutputs();
     });
     this.rpc.onOutputStateChanged((id: string, state: OutputState) => {
-      const element = document.querySelector(
-        '.output[data-output-id="' + id + '"]'
-      ) as HTMLElement;
+      const element = this.outputs[id];
       this.setOutputElementState(element, state);
     });
   }
 
   private async updateOutputs(): Promise<void> {
     const outputs = await this.rpc.getOutputs();
-    const rootContainer = document.querySelector('#outputContainer');
-    const oldContainer = document.querySelector('#outputContainer > div[data-host="' + this.config.host + '"]');
-    const newContainer = document.createElement('div');
-    newContainer.dataset.host = this.config.host;
-    if (oldContainer) {
-      rootContainer.replaceChild(oldContainer, newContainer);
-    } else {
-      rootContainer.appendChild(newContainer);
+    const container = document.querySelector('#outputContainer') as HTMLDivElement;
+    for (const key in this.outputs) {
+      container.removeChild(this.outputs[key]);
+      delete this.outputs[key];
     }
 
     for (const id in outputs) {
-      this.addOutputElement(newContainer, outputs[id]);
+      this.addOutputElement(container, outputs[id]);
     }
     document.querySelector('#outputContainer').classList.remove('uninit');
   }
@@ -100,9 +96,11 @@ class WebUIClient {
     const { id, name, type, state } = output;
     const template = (type === OutputType.LOCAL_RECORDING)
       ? recordingTemplate : streamingTemplate;
-    const elem = template.cloneNode(/* deep = */ true) as HTMLElement;
-    elem.dataset.outputId = id;
+    const elem = template.cloneNode(/* deep = */ true) as HTMLDivElement;
     elem.removeAttribute('id');
+    elem.dataset.outputId = id;
+    elem.dataset.host = this.config.host;
+    this.outputs[id] = elem;
     this.setOutputElementState(elem, state);
     elem.querySelector('.button').addEventListener('click', e => {
       e.preventDefault();

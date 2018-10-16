@@ -6,21 +6,9 @@ body {
   margin: 0;
 }
 
-#outputContainer, #outputContainer > div {
+#outputContainer {
   display: flex;
   flex-direction: row;
-}
-
-#outputContainer > div:nth-child(1n+2) {
-  margin-left: 2em;
-}
-
-#outputContainer > div {
-  flex: 1;
-}
-
-#outputContainer > div:only-child h2 {
-  display: none;
 }
 
 #connectionParameters {
