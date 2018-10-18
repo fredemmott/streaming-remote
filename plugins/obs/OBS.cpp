@@ -50,6 +50,9 @@ OBS::~OBS() {
 }
 
 QList<Output> OBS::getOutputs() {
+  auto profile = obs_frontend_get_profile_config();
+  const bool delayEnabled = config_get_bool(profile, "Output", "DelayEnable");
+  const int delaySeconds = delayEnabled ? config_get_int(profile, "Output", "DelaySec") : 0;
   return QList<Output> {
     Output {
       s_recording,
@@ -67,7 +70,7 @@ QList<Output> OBS::getOutputs() {
         ? OutputState::ACTIVE
         : OutputState::STOPPED,
       OutputType::REMOTE_STREAM,
-      obs_output_get_delay(obs_frontend_get_streaming_output())
+      delaySeconds
     }
   };
 }
