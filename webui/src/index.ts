@@ -87,8 +87,8 @@ class WebUIClient {
     const container = document.querySelector('#outputContainer') as HTMLDivElement;
     for (const key in this.outputs) {
       container.removeChild(this.outputs[key]);
-      delete this.outputs[key];
     }
+    this.outputs = {};
 
     for (const id in outputs) {
       this.addOutputElement(container, outputs[id]);
@@ -99,14 +99,43 @@ class WebUIClient {
   private addOutputElement(container: HTMLDivElement, output: Output): void {
     const recordingTemplate = document.querySelector('#recordingTemplate');
     const streamingTemplate = document.querySelector('#streamingTemplate');
-    const { id, name, type, state } = output;
+    const { id, name, type, state, delaySeconds } = output;
     const template = (type === OutputType.LOCAL_RECORDING)
       ? recordingTemplate : streamingTemplate;
     const elem = template.cloneNode(/* deep = */ true) as HTMLDivElement;
+    this.outputs[id] = elem;
     elem.removeAttribute('id');
     elem.dataset.outputId = id;
     elem.dataset.host = this.config.host;
-    this.outputs[id] = elem;
+    if (delaySeconds != undefined) {
+      const delayMsg = elem.querySelector('.delay') as HTMLSpanElement;
+      if (delaySeconds == 0) {
+        delayMsg.innerText = 'no delay';
+      } else {
+        delayMsg.innerText = delaySeconds.toString() + 's delay';
+      }
+      delayMsg.addEventListener(
+        'click',
+        async e => {
+          e.preventDefault();
+          const input = window.prompt(
+            "Enter the number of seconds to delay the stream, or '0' to " +
+            "disable delay",
+            '0'
+          );
+          const seconds = parseInt(input);
+          if (isNaN(seconds) || seconds < 0) {
+            return;
+          }
+          await this.rpc.setDelay(output.id, seconds);
+          if (seconds == 0) {
+            delayMsg.innerText = 'no delay';
+          } else {
+            delayMsg.innerText = input + 's delay';
+          }
+        }
+      );
+    }
     this.setOutputElementState(elem, state);
     elem.querySelector('.button').addEventListener('click', e => {
       e.preventDefault();

@@ -119,6 +119,28 @@ void ClientHandler::plaintextRpcMessageReceived(const QByteArray& message) {
     encryptThenSendMessage(doc.toJson());
     return;
   }
+
+  if (method == "outputs/setDelay") {
+    const bool success = software->setOutputDelay(
+      jsonrpc["params"].toObject()["id"].toString(),
+      jsonrpc["params"].toObject()["seconds"].toInt()
+    );
+    QJsonObject json {
+      { "jsonrpc", "2.0" },
+      { "id", jsonrpc["id"] },
+    };
+    if (success) {
+      json["result"] = QJsonObject {};
+    } else {
+      json["error"] = QJsonObject {
+        { "code", 0 },
+        { "message", "The software failed to set the delay" }
+      };
+    }
+    encryptThenSendMessage(QJsonDocument(json).toJson());
+    return;
+  }
+
 }
 
 namespace {

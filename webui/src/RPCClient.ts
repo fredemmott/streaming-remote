@@ -151,6 +151,10 @@ export default class RPCClient {
     return await this.sendRequest('outputs/get', null);
   }
 
+  public async setDelay(id: string, seconds: number): Promise<void> {
+    await this.sendRequest('outputs/setDelay', { id, seconds });
+  }
+
   public async startOutput(id: string): Promise<void> {
     await this.sendRequest("outputs/start", { id });
   }

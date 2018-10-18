@@ -26,4 +26,5 @@ export interface Output {
   name: string,
   type: OutputType,
   state: OutputState,
+  delaySeconds?: number,
 }

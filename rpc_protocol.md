@@ -289,3 +289,32 @@ Example response and notifications:
 ```
 
 There is likely to be a significant amount of time between receiving success and receiving the notifications.
+
+### `outputs/setDelay`
+
+This method is sent by the client when it wants to set a delay on an output.
+
+This method takes `{ id: string; seconds: int}` for its' parameters. If 0, the
+delay is disabled.
+
+Clients *should not* send this message unless the output is stopped.
+
+Example request:
+
+```
+{
+  "jsonrpc": "2.0",
+  "method": "outputs/setDelay",
+  "id": "setDelay/1",
+  "params": { "id": "twitch://fredemmott", "seconds": 300 }
+}
+```
+
+Example response:
+
+```
+{
+  "jsonrpc": "2.0",
+  "id": "setDelay/1",
+  "result": { "seconds": 300 }
+}

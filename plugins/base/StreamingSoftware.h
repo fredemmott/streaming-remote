@@ -24,6 +24,7 @@ class StreamingSoftware: public QObject {
   public slots:
     virtual void startOutput(const QString& id) = 0;
     virtual void stopOutput(const QString& id) = 0;
+    virtual bool setOutputDelay(const QString& id, int64_t seconds);
   signals:
     void outputStateChanged(const QString& id, OutputState newState);
     void configurationChanged(const Config& config);

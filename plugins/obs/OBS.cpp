@@ -108,6 +108,19 @@ Config OBS::getConfiguration() const {
   return config;
 }
 
+bool OBS::setOutputDelay(const QString& id, int64_t seconds) {
+  if (id != s_streaming) {
+    return false;
+  }
+  auto config = obs_frontend_get_profile_config();
+  config_set_bool(config, "Output", "DelayEnable", seconds > 0);
+  if (seconds <= 0) {
+    return true;
+  }
+  config_set_int(config, "Output", "DelaySec", seconds);
+  return true;
+}
+
 void OBS::setConfiguration(const Config& config) {
   auto obs_config = obs_frontend_get_global_config();
   assert(obs_config);
