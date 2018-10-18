@@ -85,7 +85,7 @@ QJsonObject Output::toJson() const {
     { "state", stateToString(state) }
   };
   if (delaySeconds >= 0) {
-    obj["delaySeconds"] = delaySeconds;
+    obj["delaySeconds"] = static_cast<qint64>(delaySeconds);
   }
   return obj;
 }
