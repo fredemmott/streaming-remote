@@ -78,12 +78,16 @@ QString Output::stateToString(OutputState state) {
 
 
 QJsonObject Output::toJson() const {
-  return QJsonObject {
+  QJsonObject obj {
     { "id", id },
     { "name", name },
     { "type", typeToString(type) },
     { "state", stateToString(state) }
   };
+  if (delaySeconds >= 0) {
+    obj["delaySeconds"] = delaySeconds;
+  }
+  return obj;
 }
 
 Output Output::fromJson(const QJsonObject& json) {
@@ -92,5 +96,6 @@ Output Output::fromJson(const QJsonObject& json) {
   ret.name = json["name"].toString();
   ret.type = typeFromString(json["type"].toString());
   ret.state = stateFromString(json["state"].toString());
+  ret.delaySeconds = json.contains("delaySeconds") ? json["delaySeconds"].toInt() : -1;
   return ret;
 }

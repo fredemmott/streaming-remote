@@ -92,10 +92,15 @@ Output = {
   name: string,
   type: OutputType,
   state: OutputState,
+  delaySeconds ?: int,
 }
 ```
 
 The 'id' is an opaque string to uniquely identify the output. The `name` is suitable for displaying to the end user.
+
+If `delaySeconds` is 0, there is no delay. If `delaySeconds` is negative or absent,
+delay is not supported. Implementations *should* omit `delaySeconds` for outputs
+where it is not supported.
 
 ## Server-To-Client Notifications
 
@@ -174,7 +179,8 @@ Example response:
       "id": "twitch://fredemmott",
       "name": "Twitch",
       "type": "remote_stream",
-      "state": "stopped"
+      "state": "stopped",
+      "delaySeconds": 0
     },
     "ndi" {
       "id": "ndi",

@@ -32,6 +32,8 @@ struct Output {
   OutputState state;
   OutputType type;
 
+  int64_t delaySeconds;
+
   QJsonObject toJson() const;
   static Output fromJson(const QJsonObject&);
 

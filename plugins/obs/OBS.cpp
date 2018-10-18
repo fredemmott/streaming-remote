@@ -57,7 +57,8 @@ QList<Output> OBS::getOutputs() {
       obs_frontend_recording_active()
         ? OutputState::ACTIVE
         : OutputState::STOPPED,
-      OutputType::LOCAL_RECORDING
+      OutputType::LOCAL_RECORDING,
+      -1 // delays not supported
     },
     Output {
       s_streaming,
@@ -65,7 +66,8 @@ QList<Output> OBS::getOutputs() {
       obs_frontend_streaming_active()
         ? OutputState::ACTIVE
         : OutputState::STOPPED,
-      OutputType::REMOTE_STREAM
+      OutputType::REMOTE_STREAM,
+      obs_output_get_delay(obs_frontend_get_streaming_output())
     }
   };
 }
