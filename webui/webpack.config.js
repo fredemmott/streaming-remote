@@ -9,10 +9,13 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/index.ts',
+  entry: {
+    bundle: './src/index.ts',
+    jslib: './src/jslib.ts',
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js'
+    filename: '[name].js'
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js"],
