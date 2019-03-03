@@ -10,12 +10,12 @@
 <body>
 	<script>
 		async function getOutputs(uri, password) {
-			const {rpc, ws} = await createClient(uri, password);
+			const { rpc, ws } = await createClient(uri, password);
 			const outputs = await rpc.getOutputs();
 			ws.close();
 			return outputs;
 		}
-		
+
 		function createClient(uri, password) {
 			const ws = new WebSocket(uri);
 			ws.binaryType = 'arraybuffer';
@@ -23,7 +23,7 @@
 				ws.addEventListener('open', async () => {
 					const handshakeState = await StreamingRemote.handshake(ws, password);
 					const rpc = new StreamingRemote.RPCClient(ws, handshakeState);
-					rpc.onHelloNotification(() => resolve({rpc, ws}));
+					rpc.onHelloNotification(() => resolve({ rpc, ws }));
 				});
 				ws.addEventListener('close', () => {
 					reject();
@@ -48,7 +48,7 @@
 			},
 
 			onKeyUp: function (context, settings, coordinates, userDesiredState) {
-				const {rpc} = rpcStore[context];
+				const { rpc } = rpcStore[context];
 				const state = outputStore[context].state;
 				if (state == 'stopped') {
 					rpc.startOutput(settings.output);
@@ -56,18 +56,18 @@
 					rpc.stopOutput(settings.output);
 				}
 			},
-			
+
 			updateImage: async function (context, settings) {
-				const {rpc} = rpcStore[context];
+				const { rpc } = rpcStore[context];
 				const outputs = await rpc.getOutputs();
 				outputStore[context] = outputs[settings.output];
-				const {type, state} = outputs[settings.output];
+				const { type, state } = outputs[settings.output];
 				if (!type) {
 					return;
 				}
 				this.setImage(context, type, state);
 			},
-			
+
 			setImage: function (context, type, state) {
 				var suffix;
 				switch (state) {
@@ -82,7 +82,7 @@
 						suffix = 'Active';
 						break;
 				}
-				const key = (type == 'local_recording' ? 'recording' : 'streaming')+suffix;
+				const key = (type == 'local_recording' ? 'recording' : 'streaming') + suffix;
 				const image = images[key];
 				websocket.send(JSON.stringify({
 					event: 'setImage',
@@ -92,6 +92,14 @@
 			},
 
 			onWillAppear: async function (context, settings, coordinates) {
+				const oldSettings = settingsStore[context];
+				if (oldSettings && settings.output == oldSettings.output && settings.password == oldSettings.password && settings.uri == oldSettings.uri) {
+					const output = outputStore[context];
+					if (output && output.type && output.state) {
+						this.setImage(context, output.type, output.state);
+					}
+					return;
+				}
 				settingsStore[context] = settings;
 				websocket.send(JSON.stringify({
 					event: 'showAlert',
@@ -102,10 +110,10 @@
 					await this.updateImage(context, settings);
 				}
 			},
-			
+
 			connectRemote: async function (context, settings) {
-				const {rpc, ws} = await createClient(settings.uri, settings.password);
-				rpcStore[context] = {rpc, ws};
+				const { rpc, ws } = await createClient(settings.uri, settings.password);
+				rpcStore[context] = { rpc, ws };
 				outputStore[context] = undefined;
 				ws.addEventListener('close', () => {
 					websocket.send(JSON.stringify({
@@ -124,14 +132,14 @@
 					outputStore[context] = undefined;
 				});
 				rpc.onOutputStateChanged((id, state) => {
+					outputStore[context].state = state;
 					if (id == settings.output) {
 						this.setImage(context, outputStore[context].type, state);
 					}
-					outputStore[context].state = state;
 				});
 			},
-			
-			displayAndRetryBadConnections: async function() {
+
+			displayAndRetryBadConnections: async function () {
 				Object.keys(settingsStore).map(async context => {
 					if (rpcStore[context] && outputStore[context]) {
 						return;
@@ -151,7 +159,7 @@
 					}
 				});
 			},
-			
+
 			onSendToPlugin: async function (context, jsonPayload) {
 				const event = jsonPayload.event;
 				if (event == "getData") {
@@ -162,7 +170,7 @@
 					} catch (e) {
 						outputs = {};
 					}
-					
+
 					const json = {
 						event: "sendToPropertyInspector",
 						context: context,
@@ -197,7 +205,7 @@
 				}
 			}
 		};
-		
+
 		setInterval(() => myPlugin.displayAndRetryBadConnections(), 1000);
 
 		function connectSocket(inPort, inPluginUUID, inRegisterEvent, inInfo) {
@@ -275,7 +283,7 @@
 				image.src = url;
 			});
 		};
-		
+
 		async function loadImages() {
 			const [
 				streamingStopped,
