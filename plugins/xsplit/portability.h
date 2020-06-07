@@ -18,13 +18,15 @@
 #include <windows.h>
 #define STREAMINGREMOTE_EXPORT __declspec(dllexport)
 
-#else // WIN32
+#else// WIN32
 
 typedef wchar_t* BSTR;
 typedef unsigned int UINT;
 typedef bool BOOL;
 #define DECLARE_INTERFACE_(NAME, COMBASE_IGNORED) class NAME
-#define STDMETHOD(NAME) public: virtual void NAME
+#define STDMETHOD(NAME) \
+ public: \
+  virtual void NAME
 #define PURE = 0
 #define WINAPI
 #include <cwchar>

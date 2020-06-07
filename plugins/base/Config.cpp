@@ -11,24 +11,22 @@
 #include <sodium.h>
 
 namespace {
-  QString s_defaultPassword;
+QString s_defaultPassword;
 }
 
 Config Config::getDefault() {
   if (s_defaultPassword.isNull()) {
     uint8_t buf[8];
     randombytes_buf(buf, sizeof(buf));
-    s_defaultPassword = QByteArray(
-      reinterpret_cast<const char*>(buf),
-      sizeof(buf)
-    ).toHex();
+    s_defaultPassword
+      = QByteArray(reinterpret_cast<const char*>(buf), sizeof(buf)).toHex();
     sodium_memzero(buf, sizeof(buf));
   }
 
-  return Config {
-    s_defaultPassword, // password
-    QString(), // local socket
-    9001, // tcp port
-    9002 // websocket port
+  return Config{
+    s_defaultPassword,// password
+    QString(),// local socket
+    9001,// tcp port
+    9002// websocket port
   };
 };

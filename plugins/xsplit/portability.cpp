@@ -30,18 +30,17 @@ void DELETE_BSTR(BSTR str) {
 #else
 
 namespace {
-  // Windows BSTRs have a similar struct, though two size fields: one in chars,
-  // one in bytes. We just use chars here.
-  struct BSTRImpl {
-    size_t size;
-    wchar_t data;
-  };
-}
+// Windows BSTRs have a similar struct, though two size fields: one in chars,
+// one in bytes. We just use chars here.
+struct BSTRImpl {
+  size_t size;
+  wchar_t data;
+};
+}// namespace
 
 BSTR NEW_BSTR_FROM_QSTRING(const QString& str) {
   BSTRImpl* impl = reinterpret_cast<BSTRImpl*>(
-    malloc(offsetof(BSTRImpl, data) + (str.size() * sizeof(wchar_t)))
-  );
+    malloc(offsetof(BSTRImpl, data) + (str.size() * sizeof(wchar_t))));
   impl->size = str.size();
   str.toWCharArray(&impl->data);
   return &impl->data;
@@ -49,14 +48,12 @@ BSTR NEW_BSTR_FROM_QSTRING(const QString& str) {
 
 QString QSTRING_FROM_BSTR(BSTR str) {
   BSTRImpl* impl = reinterpret_cast<BSTRImpl*>(
-    reinterpret_cast<intptr_t>(str) - offsetof(BSTRImpl, data)
-  );
+    reinterpret_cast<intptr_t>(str) - offsetof(BSTRImpl, data));
   return QString::fromWCharArray(str, impl->size);
 }
 void DELETE_BSTR(BSTR str) {
   BSTRImpl* impl = reinterpret_cast<BSTRImpl*>(
-    reinterpret_cast<intptr_t>(str) - offsetof(BSTRImpl, data)
-  );
+    reinterpret_cast<intptr_t>(str) - offsetof(BSTRImpl, data));
   delete impl;
 }
 #endif

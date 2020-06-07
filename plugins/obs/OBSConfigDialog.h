@@ -8,17 +8,18 @@
 
 #pragma once
 
-#include "base/Config.h"
 #include <QDialog>
+#include "base/Config.h"
 
 class OBSConfigDialog : public QDialog {
   Q_OBJECT
 
-  public:
-    OBSConfigDialog(const Config& config, QWidget* parent = nullptr);
+ public:
+  OBSConfigDialog(const Config& config, QWidget* parent = nullptr);
 
-  signals:
-    void configChanged(const Config&);
-  private:
-    Config config;
+ signals:
+  void configChanged(const Config&);
+
+ private:
+  Config config;
 };

@@ -11,18 +11,12 @@
 #include <QJsonObject>
 #include <QString>
 
-enum class OutputState {
-  UNKNOWN,
-  STARTING,
-  ACTIVE,
-  STOPPING,
-  STOPPED
-};
+enum class OutputState { UNKNOWN, STARTING, ACTIVE, STOPPING, STOPPED };
 
 enum class OutputType {
   UNKNOWN,
   LOCAL_RECORDING,
-  LOCAL_STREAM, // e.g. NDI
+  LOCAL_STREAM,// e.g. NDI
   REMOTE_STREAM
 };
 

@@ -17,31 +17,30 @@ class QJsonDocument;
 class XSplit : public StreamingSoftware {
   Q_OBJECT;
 
-  public:
-    XSplit(QObject* parent = nullptr);
-    ~XSplit();
+ public:
+  XSplit(QObject* parent = nullptr);
+  ~XSplit();
 
-    Config getConfiguration() const;
-    QList<Output> getOutputs();
+  Config getConfiguration() const;
+  QList<Output> getOutputs();
 
-    bool handleCall(
-      IXSplitScriptDllContext* context,
-      BSTR functionName,
-      BSTR* argv,
-      UINT argc,
-      BSTR* retv
-    );
-  signals:
-    void initialized();
+  bool handleCall(
+    IXSplitScriptDllContext* context,
+    BSTR functionName,
+    BSTR* argv,
+    UINT argc,
+    BSTR* retv);
+ signals:
+  void initialized();
 
-  public slots:
-    void startOutput(const QString& id);
-    void stopOutput(const QString& id);
+ public slots:
+  void startOutput(const QString& id);
+  void stopOutput(const QString& id);
 
-  private:
-    Config config;
-    IXSplitScriptDllContext* eventHandlerContext;
-    QList<Output> outputs;
-    void debugLog(const QString&);
-    void setJsonConfig(const QJsonDocument& jsonConfig);
+ private:
+  Config config;
+  IXSplitScriptDllContext* eventHandlerContext;
+  QList<Output> outputs;
+  void debugLog(const QString&);
+  void setJsonConfig(const QJsonDocument& jsonConfig);
 };

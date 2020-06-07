@@ -14,9 +14,6 @@ StreamingSoftware::StreamingSoftware(QObject* parent) : QObject(parent) {
 StreamingSoftware::~StreamingSoftware() {
 }
 
-bool StreamingSoftware::setOutputDelay(
-  const QString& name,
-  int64_t seconds
-) {
+bool StreamingSoftware::setOutputDelay(const QString& name, int64_t seconds) {
   return false;
 }

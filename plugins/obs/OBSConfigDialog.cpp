@@ -8,20 +8,18 @@
 
 #include "OBSConfigDialog.h"
 
-#include <QtGlobal>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QtGlobal>
 
 #include <limits>
 
-OBSConfigDialog::OBSConfigDialog(
-  const Config& config,
-  QWidget* parent
-): config(config), QDialog(parent) {
+OBSConfigDialog::OBSConfigDialog(const Config& config, QWidget* parent)
+  : config(config), QDialog(parent) {
   setWindowTitle(tr("Streaming Remote Settings"));
   setAttribute(Qt::WA_DeleteOnClose, true);
   setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -50,10 +48,7 @@ OBSConfigDialog::OBSConfigDialog(
   webSocketPort->setValue(config.webSocketPort);
 
   auto buttonBox = new QDialogButtonBox(
-    QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-    Qt::Horizontal,
-    this
-  );
+    QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
 
   auto layout = new QGridLayout(this);
   layout->addWidget(passwordLabel, 0, 0);
@@ -89,15 +84,12 @@ OBSConfigDialog::OBSConfigDialog(
     this->config.localSocket = str.isEmpty() ? QString() : str;
   });
   connect(
-    tcpPort,
-    static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-    [this](int val) { this->config.tcpPort = val; }
-  );
+    tcpPort, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+    [this](int val) { this->config.tcpPort = val; });
   connect(
     webSocketPort,
     static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-    [this](int val) { this->config.webSocketPort = val; }
-  );
+    [this](int val) { this->config.webSocketPort = val; });
 
   connect(this, &OBSConfigDialog::accepted, [this]() {
     emit configChanged(this->config);

@@ -12,15 +12,16 @@
 
 class QIODevice;
 
-class SocketMessageInterface : public MessageInterface{
+class SocketMessageInterface : public MessageInterface {
   Q_OBJECT
 
-  public:
-    explicit SocketMessageInterface(QIODevice* socket, QObject* parent = nullptr);
-  public slots:
-    void sendMessage(const QByteArray& message);
-  private slots:
-    void readyRead();
-  private:
-    QIODevice* socket;
+ public:
+  explicit SocketMessageInterface(QIODevice* socket, QObject* parent = nullptr);
+ public slots:
+  void sendMessage(const QByteArray& message);
+ private slots:
+  void readyRead();
+
+ private:
+  QIODevice* socket;
 };

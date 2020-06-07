@@ -14,10 +14,10 @@
 class MessageInterface : public QObject {
   Q_OBJECT
 
-  protected:
-    MessageInterface(QObject* parent = nullptr);
-  public slots:
-    virtual void sendMessage(const QByteArray& message) = 0;
-  signals:
-    void messageReceived(const QByteArray& message);
+ protected:
+  MessageInterface(QObject* parent = nullptr);
+ public slots:
+  virtual void sendMessage(const QByteArray& message) = 0;
+ signals:
+  void messageReceived(const QByteArray& message);
 };

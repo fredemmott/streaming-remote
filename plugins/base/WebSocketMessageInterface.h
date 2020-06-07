@@ -12,13 +12,16 @@
 
 class QWebSocket;
 
-class WebSocketMessageInterface : public MessageInterface{
+class WebSocketMessageInterface : public MessageInterface {
   Q_OBJECT
 
-  public:
-    explicit WebSocketMessageInterface(QWebSocket* socket, QObject* parent = nullptr);
-  public slots:
-    void sendMessage(const QByteArray& message);
-  private:
-    QWebSocket* socket;
+ public:
+  explicit WebSocketMessageInterface(
+    QWebSocket* socket,
+    QObject* parent = nullptr);
+ public slots:
+  void sendMessage(const QByteArray& message);
+
+ private:
+  QWebSocket* socket;
 };

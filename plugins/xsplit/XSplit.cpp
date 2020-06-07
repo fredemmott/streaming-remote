@@ -10,8 +10,8 @@
 
 #include "base/Config.h"
 
-#include <QCoreApplication>
 #include <QAbstractEventDispatcher>
+#include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -19,12 +19,15 @@
 
 #define CHECK(x) \
   if (!(x)) { \
-    this->debugLog(QString("Assertion failed at %1:%2: %3").arg(__FILE__).arg(__LINE__).arg(#x)); \
+    this->debugLog(QString("Assertion failed at %1:%2: %3") \
+                     .arg(__FILE__) \
+                     .arg(__LINE__) \
+                     .arg(#x)); \
     return false; \
   }
 
-XSplit::XSplit(QObject* parent) : StreamingSoftware(parent),
-eventHandlerContext(nullptr) {
+XSplit::XSplit(QObject* parent)
+  : StreamingSoftware(parent), eventHandlerContext(nullptr) {
 }
 
 XSplit::~XSplit() {
@@ -59,12 +62,19 @@ void XSplit::setJsonConfig(const QJsonDocument& doc) {
   config.webSocketPort = doc["webSocketPort"].toInt();
 }
 
-bool XSplit::handleCall(IXSplitScriptDllContext* context, BSTR functionName, BSTR* argv, UINT argc, BSTR* retv) {
+bool XSplit::handleCall(
+  IXSplitScriptDllContext* context,
+  BSTR functionName,
+  BSTR* argv,
+  UINT argc,
+  BSTR* retv) {
   if (wcscmp(functionName, L"StreamingRemote.init") == 0) {
     CHECK(argc == 2);
     this->eventHandlerContext = context;
-    QJsonDocument configJson  = QJsonDocument::fromJson(QSTRING_FROM_BSTR(argv[0]).toUtf8());
-    QJsonDocument outputsJson = QJsonDocument::fromJson(QSTRING_FROM_BSTR(argv[1]).toUtf8());
+    QJsonDocument configJson
+      = QJsonDocument::fromJson(QSTRING_FROM_BSTR(argv[0]).toUtf8());
+    QJsonDocument outputsJson
+      = QJsonDocument::fromJson(QSTRING_FROM_BSTR(argv[1]).toUtf8());
 
     setJsonConfig(configJson);
 
@@ -82,8 +92,11 @@ bool XSplit::handleCall(IXSplitScriptDllContext* context, BSTR functionName, BST
     const QString id(QSTRING_FROM_BSTR(argv[0]));
     const QString stateStr = QSTRING_FROM_BSTR(argv[1]);
     const OutputState state(Output::stateFromString(stateStr));
-    this->debugLog(QString("State changed: %1 => %2 (%3)").arg(id).arg(stateStr).arg(Output::stateToString(state)));
-    for (auto& output: this->outputs) {
+    this->debugLog(QString("State changed: %1 => %2 (%3)")
+                     .arg(id)
+                     .arg(stateStr)
+                     .arg(Output::stateToString(state)));
+    for (auto& output : this->outputs) {
       if (output.id == id) {
         output.state = state;
         break;
@@ -96,12 +109,10 @@ bool XSplit::handleCall(IXSplitScriptDllContext* context, BSTR functionName, BST
   if (wcscmp(functionName, L"StreamingRemote.getDefaultConfiguration") == 0) {
     CHECK(argc == 0);
     auto config = Config::getDefault();
-    QJsonDocument doc(QJsonObject {
-      { "password", config.password },
-      { "localSocket", config.localSocket },
-      { "tcpPort", config.tcpPort },
-      { "webSocketPort", config.webSocketPort }
-    });
+    QJsonDocument doc(QJsonObject{{"password", config.password},
+                                  {"localSocket", config.localSocket},
+                                  {"tcpPort", config.tcpPort},
+                                  {"webSocketPort", config.webSocketPort}});
     *retv = NEW_BSTR_FROM_QSTRING(QString::fromUtf8(doc.toJson()));
     return true;
   }
@@ -122,7 +133,7 @@ bool XSplit::handleCall(IXSplitScriptDllContext* context, BSTR functionName, BST
 void XSplit::startOutput(const QString& id) {
   this->debugLog("starting output: " + id);
   BSTR id_bstr = NEW_BSTR_FROM_QSTRING(id);
-  BSTR params[1] = { id_bstr };
+  BSTR params[1] = {id_bstr};
   this->eventHandlerContext->Callback(L"streamingRemoteStartOutput", params, 1);
   DELETE_BSTR(id_bstr);
   this->debugLog("stopped output: " + id);
@@ -131,7 +142,7 @@ void XSplit::startOutput(const QString& id) {
 void XSplit::stopOutput(const QString& id) {
   this->debugLog("stopping output: " + id);
   BSTR id_bstr = NEW_BSTR_FROM_QSTRING(id);
-  BSTR params[1] = { id_bstr };
+  BSTR params[1] = {id_bstr};
   this->eventHandlerContext->Callback(L"streamingRemoteStopOutput", params, 1);
   DELETE_BSTR(id_bstr);
   this->debugLog("stopped output: " + id);
@@ -139,7 +150,7 @@ void XSplit::stopOutput(const QString& id) {
 
 void XSplit::debugLog(const QString& what) {
   BSTR what_bstr = NEW_BSTR_FROM_QSTRING(what);
-  BSTR params[1] = { what_bstr };
+  BSTR params[1] = {what_bstr};
   this->eventHandlerContext->Callback(L"streamingRemoteDebugLog", params, 1);
   DELETE_BSTR(what_bstr);
 }

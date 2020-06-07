@@ -8,5 +8,5 @@
 
 #include "MessageInterface.h"
 
-MessageInterface::MessageInterface(QObject* parent): QObject(parent) {
+MessageInterface::MessageInterface(QObject* parent) : QObject(parent) {
 }

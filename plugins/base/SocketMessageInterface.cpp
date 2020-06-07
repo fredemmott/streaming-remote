@@ -11,16 +11,17 @@
 #include <QIODevice>
 
 #define clean_and_return() \
-    this->socket->close(); \
-    this->deleteLater(); \
-    return;
+  this->socket->close(); \
+  this->deleteLater(); \
+  return;
 
 SocketMessageInterface::SocketMessageInterface(
   QIODevice* socket,
-  QObject* parent
-) : socket(socket), MessageInterface(parent) {
+  QObject* parent)
+  : socket(socket), MessageInterface(parent) {
   socket->setParent(this);
-  connect(socket, &QIODevice::readyRead, this, &SocketMessageInterface::readyRead);
+  connect(
+    socket, &QIODevice::readyRead, this, &SocketMessageInterface::readyRead);
   this->socket = socket;
 }
 
@@ -36,7 +37,8 @@ void SocketMessageInterface::readyRead() {
     clean_and_return();
   }
 
-  auto message_len = line.mid(16 /* "Content-Length: */, line.length() - 18).toInt();
+  auto message_len
+    = line.mid(16 /* "Content-Length: */, line.length() - 18).toInt();
   QByteArray message;
   while (message_len > 0) {
     auto chunk = s->read(message_len);
@@ -48,5 +50,7 @@ void SocketMessageInterface::readyRead() {
 }
 
 void SocketMessageInterface::sendMessage(const QByteArray& message) {
-  this->socket->write(QString("Content-Length: %1\r\n\r\n").arg(message.length()).toUtf8() + message);
+  this->socket->write(
+    QString("Content-Length: %1\r\n\r\n").arg(message.length()).toUtf8()
+    + message);
 }

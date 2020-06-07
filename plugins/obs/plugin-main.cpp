@@ -12,20 +12,20 @@
 #include "obs/OBS.h"
 
 extern "C" {
-  OBS_DECLARE_MODULE();
-  OBS_MODULE_AUTHOR("Fred Emmott")
-  OBS_MODULE_USE_DEFAULT_LOCALE("obs-streaming-remote", "en-US");
+OBS_DECLARE_MODULE();
+OBS_MODULE_AUTHOR("Fred Emmott")
+OBS_MODULE_USE_DEFAULT_LOCALE("obs-streaming-remote", "en-US");
 
-  bool obs_module_load() {
-    (new SocketServer(new OBS()))->startListening();
-    return true;
-  }
+bool obs_module_load() {
+  (new SocketServer(new OBS()))->startListening();
+  return true;
+}
 
-  const char* obs_module_name() {
-    return "streaming-remote";
-  }
+const char* obs_module_name() {
+  return "streaming-remote";
+}
 
-  const char* obs_module_description() {
-    return "Remote control of OBS via sockets and websockets";
-  }
+const char* obs_module_description() {
+  return "Remote control of OBS via sockets and websockets";
+}
 }

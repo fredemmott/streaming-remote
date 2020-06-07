@@ -15,26 +15,24 @@
 class OBS : public StreamingSoftware {
   Q_OBJECT;
 
-  public:
-    OBS(QObject* parent = nullptr);
-    ~OBS();
+ public:
+  OBS(QObject* parent = nullptr);
+  ~OBS();
 
-    QList<Output> getOutputs();
-    Config getConfiguration() const;
-  public slots:
-    void startOutput(const QString& id);
-    void stopOutput(const QString& id);
-    bool setOutputDelay(const QString& id, int64_t seconds);
-  private:
-    Config getInitialConfiguration();
-    void setConfiguration(const Config& config);
+  QList<Output> getOutputs();
+  Config getConfiguration() const;
+ public slots:
+  void startOutput(const QString& id);
+  void stopOutput(const QString& id);
+  bool setOutputDelay(const QString& id, int64_t seconds);
 
-    void dispatchFrontendEvent(enum obs_frontend_event event);
+ private:
+  Config getInitialConfiguration();
+  void setConfiguration(const Config& config);
 
-    static void frontendEventCallback(
-      enum obs_frontend_event event,
-      void* data
-    );
+  void dispatchFrontendEvent(enum obs_frontend_event event);
 
-    Config config;
+  static void frontendEventCallback(enum obs_frontend_event event, void* data);
+
+  Config config;
 };

@@ -24,22 +24,23 @@
 #include <QWebSocket>
 #include <QWebSocketServer>
 
-#include <cassert>
 #include <sodium.h>
+#include <cassert>
 
 #include <QLoggingCategory>
 
-SocketServer::SocketServer(StreamingSoftware* parent):
-  QObject(parent),
-  software(parent),
-  localServer(nullptr),
-  tcpServer(nullptr),
-  webSocketServer(nullptr) {
-
+SocketServer::SocketServer(StreamingSoftware* parent)
+  : QObject(parent),
+    software(parent),
+    localServer(nullptr),
+    tcpServer(nullptr),
+    webSocketServer(nullptr) {
   const auto result = sodium_init();
   assert(result == 0);
 
-  connect(software, &StreamingSoftware::configurationChanged, this, &SocketServer::startListening);
+  connect(
+    software, &StreamingSoftware::configurationChanged, this,
+    &SocketServer::startListening);
 }
 
 void SocketServer::startListening() {
@@ -54,10 +55,12 @@ void SocketServer::startListening() {
       }
     } else {
       localServer = new QLocalServer(this);
-      connect(localServer, &QLocalServer::newConnection, this, &SocketServer::newLocalConnection);
-      #ifndef WIN32
-        QFile::remove(config.localSocket);
-      #endif
+      connect(
+        localServer, &QLocalServer::newConnection, this,
+        &SocketServer::newLocalConnection);
+#ifndef WIN32
+      QFile::remove(config.localSocket);
+#endif
       localServer->listen(config.localSocket);
     }
   } else if (localServer) {
@@ -74,7 +77,9 @@ void SocketServer::startListening() {
       }
     } else {
       tcpServer = new QTcpServer(this);
-      connect(this->tcpServer, &QTcpServer::newConnection, this, &SocketServer::newTcpConnection);
+      connect(
+        this->tcpServer, &QTcpServer::newConnection, this,
+        &SocketServer::newTcpConnection);
       tcpServer->listen(QHostAddress::Any, config.tcpPort);
     }
   } else if (tcpServer) {
@@ -90,8 +95,11 @@ void SocketServer::startListening() {
         webSocketServer->listen(QHostAddress::Any, config.webSocketPort);
       }
     } else {
-      webSocketServer = new QWebSocketServer("", QWebSocketServer::NonSecureMode, this);
-      connect(this->webSocketServer, &QWebSocketServer::newConnection, this, &SocketServer::newWebSocketConnection);
+      webSocketServer
+        = new QWebSocketServer("", QWebSocketServer::NonSecureMode, this);
+      connect(
+        this->webSocketServer, &QWebSocketServer::newConnection, this,
+        &SocketServer::newWebSocketConnection);
       webSocketServer->listen(QHostAddress::Any, config.webSocketPort);
     }
   } else if (webSocketServer) {
@@ -115,17 +123,23 @@ void SocketServer::newLocalConnection() {
   auto mi = new SocketMessageInterface(socket, this);
   auto handler = new ClientHandler(this->software);
   mi->setParent(handler);
-  connect(mi, &MessageInterface::messageReceived, handler, &ClientHandler::messageReceived);
-  connect(handler, &ClientHandler::sendMessage, mi, &MessageInterface::sendMessage);
+  connect(
+    mi, &MessageInterface::messageReceived, handler,
+    &ClientHandler::messageReceived);
+  connect(
+    handler, &ClientHandler::sendMessage, mi, &MessageInterface::sendMessage);
 }
 
 void SocketServer::newTcpConnection() {
-	auto socket = this->tcpServer->nextPendingConnection();
-	auto mi = new SocketMessageInterface(socket, this);
-	auto handler = new ClientHandler(this->software);
+  auto socket = this->tcpServer->nextPendingConnection();
+  auto mi = new SocketMessageInterface(socket, this);
+  auto handler = new ClientHandler(this->software);
   mi->setParent(handler);
-	connect(mi, &MessageInterface::messageReceived, handler, &ClientHandler::messageReceived);
-	connect(handler, &ClientHandler::sendMessage, mi, &MessageInterface::sendMessage);
+  connect(
+    mi, &MessageInterface::messageReceived, handler,
+    &ClientHandler::messageReceived);
+  connect(
+    handler, &ClientHandler::sendMessage, mi, &MessageInterface::sendMessage);
 }
 
 void SocketServer::newWebSocketConnection() {
@@ -133,6 +147,9 @@ void SocketServer::newWebSocketConnection() {
   auto mi = new WebSocketMessageInterface(socket, this);
   auto handler = new ClientHandler(this->software);
   mi->setParent(handler);
-  connect(mi, &MessageInterface::messageReceived, handler, &ClientHandler::messageReceived);
-  connect(handler, &ClientHandler::sendMessage, mi, &MessageInterface::sendMessage);
+  connect(
+    mi, &MessageInterface::messageReceived, handler,
+    &ClientHandler::messageReceived);
+  connect(
+    handler, &ClientHandler::sendMessage, mi, &MessageInterface::sendMessage);
 }

@@ -57,33 +57,30 @@ OutputState Output::stateFromString(const QString& state) {
 }
 
 QString Output::stateToString(OutputState state) {
-    switch (state) {
-      case OutputState::UNKNOWN:
-        return "unknown";
-        break;
-      case OutputState::STARTING:
-        return "starting";
-        break;
-      case OutputState::ACTIVE:
-        return "active";
-        break;
-      case OutputState::STOPPING:
-        return "stopping";
-        break;
-      case OutputState::STOPPED:
-        return "stopped";
-        break;
-    }
+  switch (state) {
+    case OutputState::UNKNOWN:
+      return "unknown";
+      break;
+    case OutputState::STARTING:
+      return "starting";
+      break;
+    case OutputState::ACTIVE:
+      return "active";
+      break;
+    case OutputState::STOPPING:
+      return "stopping";
+      break;
+    case OutputState::STOPPED:
+      return "stopped";
+      break;
   }
-
+}
 
 QJsonObject Output::toJson() const {
-  QJsonObject obj {
-    { "id", id },
-    { "name", name },
-    { "type", typeToString(type) },
-    { "state", stateToString(state) }
-  };
+  QJsonObject obj{{"id", id},
+                  {"name", name},
+                  {"type", typeToString(type)},
+                  {"state", stateToString(state)}};
   if (delaySeconds >= 0) {
     obj["delaySeconds"] = static_cast<qint64>(delaySeconds);
   }
@@ -96,6 +93,7 @@ Output Output::fromJson(const QJsonObject& json) {
   ret.name = json["name"].toString();
   ret.type = typeFromString(json["type"].toString());
   ret.state = stateFromString(json["state"].toString());
-  ret.delaySeconds = json.contains("delaySeconds") ? json["delaySeconds"].toInt() : -1;
+  ret.delaySeconds
+    = json.contains("delaySeconds") ? json["delaySeconds"].toInt() : -1;
   return ret;
 }

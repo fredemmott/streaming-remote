@@ -11,16 +11,18 @@
 #include <QWebSocket>
 
 #define clean_and_return() \
-    this->socket->close(); \
-    this->deleteLater(); \
-    return;
+  this->socket->close(); \
+  this->deleteLater(); \
+  return;
 
 WebSocketMessageInterface::WebSocketMessageInterface(
   QWebSocket* socket,
-  QObject* parent
-) : socket(socket), MessageInterface(parent) {
+  QObject* parent)
+  : socket(socket), MessageInterface(parent) {
   socket->setParent(this);
-  connect(socket, &QWebSocket::binaryMessageReceived, this, &MessageInterface::messageReceived);
+  connect(
+    socket, &QWebSocket::binaryMessageReceived, this,
+    &MessageInterface::messageReceived);
   this->socket = socket;
 }
 

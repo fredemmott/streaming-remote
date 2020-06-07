@@ -25,19 +25,20 @@ class StreamingSoftware;
 class SocketServer : public QObject {
   Q_OBJECT
 
-  public:
-    explicit SocketServer(StreamingSoftware* parent);
-  public slots:
-    void startListening();
-    void stopListening();
-  private slots:
-    void newLocalConnection();
-    void newTcpConnection();
-    void newWebSocketConnection();
-  private:
-    QLocalServer* localServer = nullptr;
-    QTcpServer* tcpServer = nullptr;
-    QWebSocketServer* webSocketServer = nullptr;
+ public:
+  explicit SocketServer(StreamingSoftware* parent);
+ public slots:
+  void startListening();
+  void stopListening();
+ private slots:
+  void newLocalConnection();
+  void newTcpConnection();
+  void newWebSocketConnection();
 
-    StreamingSoftware* software;
+ private:
+  QLocalServer* localServer = nullptr;
+  QTcpServer* tcpServer = nullptr;
+  QWebSocketServer* webSocketServer = nullptr;
+
+  StreamingSoftware* software;
 };
