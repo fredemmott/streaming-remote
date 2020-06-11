@@ -27,11 +27,12 @@ using json = nlohmann::json;
   }
 
 XSplit::XSplit(IXSplitScriptDllContext* context)
-  : StreamingSoftware(), mCallbackImpl(context) {
+  : StreamingSoftware(),
+    mCallbackImpl(context),
+    mLoggerImpl([this](const std::string& message) {
+      this->sendToXSplitDebugLog(message);
+    }) {
   LOG_FUNCTION();
-  Logger::addImpl([this](const std::string& message) {
-    this->sendToXSplitDebugLog(message);
-  });
 }
 
 XSplit::~XSplit() {

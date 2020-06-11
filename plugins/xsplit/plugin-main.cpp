@@ -6,14 +6,11 @@
  * in the root directory of this source tree.
  */
 
+#include "Core/Logger.h"
+#include "Core/Plugin.h"
 #include "IXSplitScriptDllContext.h"
 #include "XSplit.h"
-#include "base/SocketServer.h"
 #include "portability.h"
-
-#include <QCoreApplication>
-#include <QObject>
-#include <QThread>
 
 #ifdef WIN32
 BOOL APIENTRY
@@ -30,30 +27,14 @@ DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
 #endif
 
 namespace {
-XSplit* xsplit = nullptr;
-SocketServer* server = nullptr;
-QThread* appThread = nullptr;
-int argc = 0;
-char* argv[1] = {"HelloXSplit"};
+Plugin<XSplit>* sPlugin = nullptr;
 }// namespace
 
 extern "C" {
 
 STREAMINGREMOTE_EXPORT
 BOOL WINAPI XSplitScriptPluginInit() {
-  appThread = QThread::create([] {
-    auto app = new QCoreApplication(argc, argv);
-    xsplit = new XSplit(app);
-    server = new SocketServer(xsplit);
-    QObject::connect(
-      xsplit, &XSplit::initialized, server, &SocketServer::startListening);
-    QCoreApplication::exec();
-    delete server;
-    server = nullptr;
-    delete xsplit;
-    xsplit = nullptr;
-  });
-  appThread->start();
+  LOG_FUNCTION();
   return true;
 }
 
@@ -64,25 +45,34 @@ BOOL WINAPI XSplitScriptPluginCall(
   BSTR* argv,
   UINT argc,
   BSTR* retv) {
-  if (xsplit) {
-    bool success;
-    // Execute in the worker thread, but block on it succeeding
-    QMetaObject::invokeMethod(
-      xsplit,
-      [=, &success] {
-        success = xsplit->handleCall(pContext, functionName, argv, argc, retv);
-      },
-      Qt::BlockingQueuedConnection);
-    return success;
+  LOG_FUNCTION();
+  Logger::debug("Context: {}", (void*)pContext);
+  if (!sPlugin) {
+    // XJS DLL Developer docs:$
+    // - recommend initializing here instead of in the init function
+    // - note that the context can be stored and re-used
+    //
+    // So, init here, and store the context as a member :)
+    sPlugin = new Plugin(new XSplit(pContext));
   }
-  return false;
+  std::promise<bool> success;
+  // Execute in the worker thread, but block on it succeeding
+  asio::post(sPlugin->getContext(), [=, &success]() {
+    success.set_value(sPlugin->getSoftware()->handleCall(
+      pContext, functionName, argv, argc, retv));
+  });
+  auto f = success.get_future();
+  Logger::debug("{}() - waiting for future", __FUNCTION__);
+  f.wait();
+  auto result = f.get();
+  Logger::debug("{}() - future finished with result {}", __FUNCTION__, result);
+  return result;
 }
 
 STREAMINGREMOTE_EXPORT
 void WINAPI XSplitScriptPluginDestroy() {
-  QCoreApplication::instance()->quit();
-  appThread->wait();
-  delete appThread;
-  appThread = nullptr;
+  ScopeLogger _log(__FUNCTION__);
+  delete sPlugin;
+  sPlugin = nullptr;
 }
 }

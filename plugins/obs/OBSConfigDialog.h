@@ -9,7 +9,8 @@
 #pragma once
 
 #include <QDialog>
-#include "base/Config.h"
+
+#include "Core/Config.h"
 
 class OBSConfigDialog : public QDialog {
   Q_OBJECT
@@ -21,5 +22,5 @@ class OBSConfigDialog : public QDialog {
   void configChanged(const Config&);
 
  private:
-  Config config;
+  Config mConfig;
 };

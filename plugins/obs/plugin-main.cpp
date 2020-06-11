@@ -8,8 +8,13 @@
 
 #include <obs-module.h>
 
-#include "base/SocketServer.h"
-#include "obs/OBS.h"
+#include "Core/Logger.h"
+#include "Core/Plugin.h"
+#include "OBS.h"
+
+namespace {
+Plugin<OBS>* sPlugin = nullptr;
+}
 
 extern "C" {
 OBS_DECLARE_MODULE();
@@ -17,8 +22,15 @@ OBS_MODULE_AUTHOR("Fred Emmott")
 OBS_MODULE_USE_DEFAULT_LOCALE("obs-streaming-remote", "en-US");
 
 bool obs_module_load() {
-  (new SocketServer(new OBS()))->startListening();
+  LOG_FUNCTION();
+  sPlugin = new Plugin<OBS>();
   return true;
+}
+
+void obs_module_unload() {
+  LOG_FUNCTION();
+  delete sPlugin;
+  sPlugin = nullptr;
 }
 
 const char* obs_module_name() {

@@ -8,23 +8,25 @@
 
 #pragma once
 
-#include "base/StreamingSoftware.h"
+#include "Core/Logger.h"
+#include "Core/StreamingSoftware.h"
 
 #include <obs-frontend-api.h>
+#include <QObject>
 
-class OBS : public StreamingSoftware {
-  Q_OBJECT;
-
+class OBS : public QObject, public StreamingSoftware {
+  Q_OBJECT
  public:
-  OBS(QObject* parent = nullptr);
+  OBS();
   ~OBS();
 
-  QList<Output> getOutputs();
+  std::vector<Output> getOutputs();
   Config getConfiguration() const;
- public slots:
-  void startOutput(const QString& id);
-  void stopOutput(const QString& id);
-  bool setOutputDelay(const QString& id, int64_t seconds);
+
+ public:
+  void startOutput(const std::string& id);
+  void stopOutput(const std::string& id);
+  bool setOutputDelay(const std::string& id, int64_t seconds);
 
  private:
   Config getInitialConfiguration();
@@ -34,5 +36,6 @@ class OBS : public StreamingSoftware {
 
   static void frontendEventCallback(enum obs_frontend_event event, void* data);
 
-  Config config;
+  Config mConfig;
+  Logger::ImplRegistration mLoggerImpl;
 };

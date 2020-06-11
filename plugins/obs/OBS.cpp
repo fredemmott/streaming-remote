@@ -13,10 +13,11 @@
 
 #include <QAction>
 #include <QMainWindow>
+#include <QObject>
 
 namespace {
-const QString s_recording("Recording");
-const QString s_streaming("Streaming");
+const std::string s_recording("Recording");
+const std::string s_streaming("Streaming");
 
 const char* CONFIG_SECTION = "streamingRemote";
 const char* CONFIG_ID_PASSWORD = "password";
@@ -25,9 +26,14 @@ const char* CONFIG_ID_TCP_PORT = "tcpPort";
 const char* CONFIG_ID_WEBSOCKET_PORT = "webSocketPort";
 }// namespace
 
-OBS::OBS(QObject* parent) : StreamingSoftware(parent) {
+OBS::OBS() : QObject(), StreamingSoftware(), mLoggerImpl(
+  [=](const std::string& message) {
+    blog(LOG_INFO, "[obs-streaming-remote] %s", message.c_str());
+  }
+) {
+  LOG_FUNCTION();
   obs_frontend_add_event_callback(&OBS::frontendEventCallback, this);
-  this->config = getInitialConfiguration();
+  mConfig = getInitialConfiguration();
 
   auto obsWindow
     = reinterpret_cast<QMainWindow*>(obs_frontend_get_main_window());
@@ -39,23 +45,27 @@ OBS::OBS(QObject* parent) : StreamingSoftware(parent) {
     obs_frontend_add_tools_menu_qaction("Streaming Remote settings"));
 
   connect(settingsAction, &QAction::triggered, [this, obsWindow]() {
-    auto dialog = new OBSConfigDialog(this->config, obsWindow);
+    auto dialog = new OBSConfigDialog(mConfig, obsWindow);
     connect(
       dialog, &OBSConfigDialog::configChanged, this, &OBS::setConfiguration);
     dialog->show();
   });
+
+  emit initialized(mConfig);
 }
 
 OBS::~OBS() {
+  LOG_FUNCTION();
   obs_frontend_remove_event_callback(&OBS::frontendEventCallback, this);
 }
 
-QList<Output> OBS::getOutputs() {
+std::vector<Output> OBS::getOutputs() {
+  LOG_FUNCTION();
   auto profile = obs_frontend_get_profile_config();
   const bool delayEnabled = config_get_bool(profile, "Output", "DelayEnable");
   const int delaySeconds
     = delayEnabled ? config_get_int(profile, "Output", "DelaySec") : 0;
-  return QList<Output>{
+  return std::vector<Output>{
     Output{
       s_recording, s_recording,
       obs_frontend_recording_active() ? OutputState::ACTIVE
@@ -69,7 +79,9 @@ QList<Output> OBS::getOutputs() {
            OutputType::REMOTE_STREAM, delaySeconds}};
 }
 
-void OBS::startOutput(const QString& id) {
+void OBS::startOutput(const std::string& id) {
+  LOG_FUNCTION();
+  Logger::debug("Starting output '{}'", id);
   if (id == s_recording) {
     obs_frontend_recording_start();
     return;
@@ -80,7 +92,9 @@ void OBS::startOutput(const QString& id) {
   }
 }
 
-void OBS::stopOutput(const QString& id) {
+void OBS::stopOutput(const std::string& id) {
+  LOG_FUNCTION();
+  Logger::debug("Starting output '{}'", id);
   if (id == s_recording) {
     obs_frontend_recording_stop();
     return;
@@ -99,10 +113,12 @@ void OBS::stopOutput(const QString& id) {
 }
 
 Config OBS::getConfiguration() const {
-  return config;
+  LOG_FUNCTION();
+  return mConfig;
 }
 
-bool OBS::setOutputDelay(const QString& id, int64_t seconds) {
+bool OBS::setOutputDelay(const std::string& id, int64_t seconds) {
+  LOG_FUNCTION();
   if (id != s_streaming) {
     return false;
   }
@@ -116,17 +132,18 @@ bool OBS::setOutputDelay(const QString& id, int64_t seconds) {
 }
 
 void OBS::setConfiguration(const Config& config) {
+  LOG_FUNCTION();
   auto obs_config = obs_frontend_get_global_config();
   assert(obs_config);
   if (!obs_config) {
     return;
   }
-  this->config = config;
+  mConfig = config;
   config_set_string(
-    obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD, config.password.toUtf8());
+    obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD, config.password.c_str());
   config_set_string(
     obs_config, CONFIG_SECTION, CONFIG_ID_LOCAL_SOCKET,
-    config.localSocket.isNull() ? nullptr : config.localSocket.toUtf8());
+    config.localSocket.empty() ? nullptr : config.localSocket.c_str());
   config_set_uint(
     obs_config, CONFIG_SECTION, CONFIG_ID_TCP_PORT, config.tcpPort);
   config_set_uint(
@@ -137,6 +154,7 @@ void OBS::setConfiguration(const Config& config) {
 }
 
 Config OBS::getInitialConfiguration() {
+  LOG_FUNCTION();
   Config config = Config::getDefault();
 
   config_t* obs_config = obs_frontend_get_global_config();
@@ -147,24 +165,24 @@ Config OBS::getInitialConfiguration() {
   const auto password
     = config_get_string(obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD);
   if (password) {
-    config.password = QString::fromUtf8(password);
+    config.password = password;
   } else {
     config_set_string(
-      obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD, config.password.toUtf8());
+      obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD, config.password.c_str());
   }
 
-  if (!config.localSocket.isNull()) {
+  if (!config.localSocket.empty()) {
     config_set_default_string(
-      obs_config, CONFIG_SECTION, "Local Socket", config.localSocket.toUtf8());
+      obs_config, CONFIG_SECTION, "Local Socket", config.localSocket.c_str());
     config_save(obs_config);
   }
 
   auto localSocket
     = config_get_string(obs_config, CONFIG_SECTION, "Local Socket");
   if (localSocket == nullptr || strcmp(localSocket, "") == 0) {
-    config.localSocket = QString();
+    config.localSocket = std::string();
   } else {
-    config.localSocket = QString::fromUtf8(localSocket);
+    config.localSocket = localSocket;
   }
 
   config_set_default_uint(
@@ -205,9 +223,6 @@ void OBS::frontendEventCallback(enum obs_frontend_event event, void* data) {
       break;
     case OBS_FRONTEND_EVENT_RECORDING_STOPPED:
       emit obs->outputStateChanged(s_recording, OutputState::STOPPED);
-      break;
-    case OBS_FRONTEND_EVENT_EXIT:
-      obs->deleteLater();
       break;
   }
 }

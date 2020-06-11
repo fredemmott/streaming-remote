@@ -11,6 +11,7 @@
 #include <asio.hpp>
 
 #include "Core/Config.h"
+#include "Core/Logger.h"
 #include "Core/Signal.h"
 #include "Core/StreamingSoftware.h"
 #include "IXSplitScriptDllContext.h"
@@ -42,6 +43,7 @@ class XSplit : public StreamingSoftware {
   Config mConfig;
   CComPtr<IXSplitScriptDllContext> mCallbackImpl;
   std::vector<Output> mOutputs;
+  Logger::ImplRegistration mLoggerImpl;
 
   template <class... Targs>
   void callJSPlugin(const char* func, Targs... args) {

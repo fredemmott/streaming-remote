@@ -19,19 +19,21 @@
 #include <limits>
 
 OBSConfigDialog::OBSConfigDialog(const Config& config, QWidget* parent)
-  : config(config), QDialog(parent) {
+  : mConfig(config), QDialog(parent) {
   setWindowTitle(tr("Streaming Remote Settings"));
   setAttribute(Qt::WA_DeleteOnClose, true);
   setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   auto passwordLabel = new QLabel(tr("Password"), this);
-  auto password = new QLineEdit(config.password, this);
+  auto password
+    = new QLineEdit(QString::fromUtf8(config.password.c_str()), this);
   password->setMinimumWidth(2 * password->sizeHint().width());
   password->setEchoMode(QLineEdit::Password);
   auto passwordShowHide = new QPushButton(tr("Show"), this);
 
   auto localSocketLabel = new QLabel(tr("Local Socket"), this);
-  auto localSocket = new QLineEdit(config.localSocket, this);
+  auto localSocket
+    = new QLineEdit(QString::fromUtf8(config.localSocket.c_str()), this);
 
   const uint16_t maxPort = std::numeric_limits<uint16_t>::max();
 
@@ -78,20 +80,21 @@ OBSConfigDialog::OBSConfigDialog(const Config& config, QWidget* parent)
   });
 
   connect(password, &QLineEdit::textChanged, [this](const QString& str) {
-    this->config.password = str;
+    this->mConfig.password = str.toUtf8().toStdString();
   });
   connect(localSocket, &QLineEdit::textChanged, [this](const QString& str) {
-    this->config.localSocket = str.isEmpty() ? QString() : str;
+    this->mConfig.localSocket
+      = (str.isEmpty() ? QString() : str).toUtf8().toStdString();
   });
   connect(
     tcpPort, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-    [this](int val) { this->config.tcpPort = val; });
+    [this](int val) { this->mConfig.tcpPort = val; });
   connect(
     webSocketPort,
     static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-    [this](int val) { this->config.webSocketPort = val; });
+    [this](int val) { this->mConfig.webSocketPort = val; });
 
   connect(this, &OBSConfigDialog::accepted, [this]() {
-    emit configChanged(this->config);
+    emit configChanged(this->mConfig);
   });
 }
