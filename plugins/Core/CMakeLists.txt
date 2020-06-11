@@ -1,0 +1,25 @@
+add_library(
+  streaming-remote-plugin-core
+  STATIC
+  ClientHandler.cpp
+  Config.cpp
+  Logger.cpp
+  MessageInterface.cpp
+  Output.cpp
+  Server.cpp
+  StreamingSoftware.cpp
+  TCPConnection.cpp
+  TCPServer.cpp
+  WebSocketConnection.cpp
+  WebSocketServer.cpp
+)
+
+target_link_libraries(
+  streaming-remote-plugin-core
+  PUBLIC
+  asio
+  fmt
+  json
+  libsodium
+  websocketpp
+)

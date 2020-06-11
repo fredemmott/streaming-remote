@@ -8,17 +8,18 @@
 
 #include "ClientHandler.h"
 
-#include "StreamingSoftware.h"
-
-#include <QJsonDocument>
-#include <QJsonObject>
-
 #include <sodium.h>
+
 #include <cassert>
 #include <memory>
 
+#include "MessageInterface.h"
+#include "StreamingSoftware.h"
+
+using json = nlohmann::json;
+
 #define clean_and_return() \
-  this->deleteLater(); \
+  delete this; \
   return;
 
 #define clean_and_return_unless(x) \
@@ -26,19 +27,28 @@
     clean_and_return(); \
   }
 
-ClientHandler::ClientHandler(StreamingSoftware* parent)
-  : QObject(parent), software(parent), state(ClientState::UNINITIALIZED) {
-  connect(
-    parent, &StreamingSoftware::outputStateChanged, this,
-    &ClientHandler::outputStateChanged);
+ClientHandler::ClientHandler(
+  StreamingSoftware* software,
+  MessageInterface* connection)
+  : mSoftware(software),
+    mConnection(connection),
+    mState(ClientState::UNINITIALIZED) {
+  mSoftware->outputStateChanged.connect(
+    this, &ClientHandler::outputStateChanged);
+  mConnection->messageReceived.connect(this, &ClientHandler::messageReceived);
+  mConnection->disconnected.connect([this]() {
+    mConnection = nullptr;
+    delete this;
+  });
 }
 
 ClientHandler::~ClientHandler() {
+  delete mConnection;
   cleanCrypto();
 }
 
-void ClientHandler::messageReceived(const QByteArray& message) {
-  switch (state) {
+void ClientHandler::messageReceived(const std::string& message) {
+  switch (mState) {
     case ClientState::UNINITIALIZED:
       handshakeClientHelloMessageReceived(message);
       return;
@@ -51,77 +61,70 @@ void ClientHandler::messageReceived(const QByteArray& message) {
   }
 }
 
-void ClientHandler::encryptedRpcMessageReceived(const QByteArray& c) {
+void ClientHandler::encryptedRpcMessageReceived(const std::string& c) {
   // No variable length arrays on MSVC :'(
   const size_t psize = c.size() - crypto_secretstream_xchacha20poly1305_ABYTES;
   auto p = std::unique_ptr<unsigned char>(new unsigned char[psize]);
   unsigned long long plen;
   unsigned char tag;
   const auto result = crypto_secretstream_xchacha20poly1305_pull(
-    &this->cryptoPullState, p.get(), &plen, &tag,
+    &this->mCryptoPullState, p.get(), &plen, &tag,
     reinterpret_cast<const unsigned char*>(c.data()), c.size(), nullptr, 0);
   clean_and_return_unless(result == 0);
   assert(plen <= psize);
   plaintextRpcMessageReceived(
-    QByteArray(reinterpret_cast<const char*>(p.get()), plen));
+    std::string(reinterpret_cast<const char*>(p.get()), plen));
 }
 
-void ClientHandler::plaintextRpcMessageReceived(const QByteArray& message) {
-  auto doc = QJsonDocument::fromJson(message);
-  if (doc.isNull()) {
-    clean_and_return();
-  }
-  auto jsonrpc = doc.object();
+void ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
+  auto jsonrpc = json::parse(message);
   if (jsonrpc["jsonrpc"] != "2.0") {
     clean_and_return();
   }
 
-  auto method = jsonrpc["method"].toString();
+  std::string method = jsonrpc["method"];
 
   if (method == "outputs/get") {
-    const auto outputs = software->getOutputs();
-    QJsonObject outputsJson;
+    const auto outputs = mSoftware->getOutputs();
+    json outputsJson;
     for (const auto& output : outputs) {
       outputsJson[output.id] = output.toJson();
     }
 
-    QJsonDocument doc(QJsonObject{
-      {"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", outputsJson}});
-    encryptThenSendMessage(doc.toJson());
+    encryptThenSendMessage(
+      (json{{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", outputsJson}})
+        .dump());
     return;
   }
 
   if (method == "outputs/start") {
-    software->startOutput(jsonrpc["params"].toObject()["id"].toString());
-    QJsonDocument doc(QJsonObject{
-      {"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", QJsonObject{}}});
-    encryptThenSendMessage(doc.toJson());
+    mSoftware->startOutput(jsonrpc["params"]["id"]);
+    encryptThenSendMessage(
+      {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", {}}});
     return;
   }
 
   if (method == "outputs/stop") {
-    software->stopOutput(jsonrpc["params"].toObject()["id"].toString());
-    QJsonDocument doc(QJsonObject{
-      {"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", QJsonObject{}}});
-    encryptThenSendMessage(doc.toJson());
+    mSoftware->stopOutput(jsonrpc["params"]["id"]);
+    encryptThenSendMessage(
+      {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", {}}});
     return;
   }
 
   if (method == "outputs/setDelay") {
-    const bool success = software->setOutputDelay(
-      jsonrpc["params"].toObject()["id"].toString(),
-      jsonrpc["params"].toObject()["seconds"].toInt());
-    QJsonObject json{
+    const bool success = mSoftware->setOutputDelay(
+      jsonrpc["params"]["id"], jsonrpc["params"]["seconds"]);
+    json response{
       {"jsonrpc", "2.0"},
       {"id", jsonrpc["id"]},
     };
     if (success) {
-      json["result"] = QJsonObject{};
+      response["result"] = json{};
     } else {
-      json["error"] = QJsonObject{
+      response["error"] = json{
         {"code", 0}, {"message", "The software failed to set the delay"}};
     }
-    encryptThenSendMessage(QJsonDocument(json).toJson());
+    encryptThenSendMessage(response);
     return;
   }
 }
@@ -150,7 +153,7 @@ struct ServerHelloMessage {
 }// namespace
 
 void ClientHandler::handshakeClientHelloMessageReceived(
-  const QByteArray& blob) {
+  const std::string& blob) {
   clean_and_return_unless(blob.size() == sizeof(ClientHelloMessage));
   const ClientHelloMessage* request
     = reinterpret_cast<const ClientHelloMessage*>(blob.data());
@@ -159,7 +162,7 @@ void ClientHandler::handshakeClientHelloMessageReceived(
   ServerHelloMessage response;
 
   // Open the box!
-  const auto password = software->getConfiguration().password.toUtf8();
+  const auto password = mSoftware->getConfiguration().password;
   uint8_t psk[crypto_secretbox_KEYBYTES];
   {
     const auto result = crypto_pwhash(
@@ -178,7 +181,7 @@ void ClientHandler::handshakeClientHelloMessageReceived(
   // Process and respond
   {
     const auto result = crypto_secretstream_xchacha20poly1305_init_push(
-      &this->cryptoPushState, response.serverToClientHeader,
+      &this->mCryptoPushState, response.serverToClientHeader,
       requestBox.serverToClientKey);
     clean_and_return_unless(result == 0);
   }
@@ -186,16 +189,16 @@ void ClientHandler::handshakeClientHelloMessageReceived(
   crypto_secretstream_xchacha20poly1305_keygen(responseBox.clientToServerKey);
   crypto_auth_keygen(responseBox.authenticationKey);
   static_assert(
-    sizeof(responseBox.clientToServerKey) == sizeof(this->pullKey),
+    sizeof(responseBox.clientToServerKey) == sizeof(this->mPullKey),
     "differenting pull key sizes");
   memcpy(
-    this->pullKey, responseBox.clientToServerKey,
+    this->mPullKey, responseBox.clientToServerKey,
     sizeof(responseBox.clientToServerKey));
   static_assert(
-    sizeof(responseBox.authenticationKey) == sizeof(this->authenticationKey),
+    sizeof(responseBox.authenticationKey) == sizeof(this->mAuthenticationKey),
     "differing authentication key sizes");
   memcpy(
-    this->authenticationKey, responseBox.authenticationKey,
+    this->mAuthenticationKey, responseBox.authenticationKey,
     sizeof(responseBox.authenticationKey));
 
   randombytes_buf(response.secretBoxNonce, sizeof(response.secretBoxNonce));
@@ -205,18 +208,18 @@ void ClientHandler::handshakeClientHelloMessageReceived(
       sizeof(responseBox), response.secretBoxNonce, psk);
     clean_and_return_unless(result == 0);
   }
-  this->state = ClientState::WAITING_FOR_CLIENT_READY;
-  emit sendMessage(
-    QByteArray(reinterpret_cast<const char*>(&response), sizeof(response)));
+  this->mState = ClientState::WAITING_FOR_CLIENT_READY;
+  this->mConnection->sendMessage(
+    std::string(reinterpret_cast<const char*>(&response), sizeof(response)));
 }
 
-void ClientHandler::outputStateChanged(const QString& id, OutputState state) {
-  QJsonDocument doc(QJsonObject{
-    {"jsonrpc", "2.0"},
-    {"method", "outputs/stateChanged"},
-    {"params",
-     QJsonObject{{"id", id}, {"state", Output::stateToString(state)}}}});
-  encryptThenSendMessage(doc.toJson());
+void ClientHandler::outputStateChanged(
+  const std::string& id,
+  OutputState state) {
+  encryptThenSendMessage(
+    {{"jsonrpc", "2.0"},
+     {"method", "outputs/stateChanged"},
+     {"params", json{{"id", id}, {"state", Output::stateToString(state)}}}});
 }
 
 namespace {
@@ -230,36 +233,38 @@ struct ClientReadyMessage {
 }// namespace
 
 void ClientHandler::handshakeClientReadyMessageReceived(
-  const QByteArray& blob) {
+  const std::string& blob) {
   clean_and_return_unless(blob.size() == sizeof(ClientReadyMessage));
   const ClientReadyMessage* request
     = reinterpret_cast<const ClientReadyMessage*>(blob.data());
   {
     const int result = crypto_auth_verify(
       request->authenticationMac, request->clientToServerHeader,
-      sizeof(request->clientToServerHeader), this->authenticationKey);
+      sizeof(request->clientToServerHeader), this->mAuthenticationKey);
     clean_and_return_unless(result == 0);
   }
   {
     const int result = crypto_secretstream_xchacha20poly1305_init_pull(
-      &this->cryptoPullState, request->clientToServerHeader, this->pullKey);
+      &this->mCryptoPullState, request->clientToServerHeader, this->mPullKey);
     clean_and_return_unless(result == 0);
   }
 
-  this->state = ClientState::AUTHENTICATED;
+  this->mState = ClientState::AUTHENTICATED;
 
-  const QJsonDocument json(
-    QJsonObject{{"jsonrpc", "2.0"}, {"method", "hello"}});
-  this->encryptThenSendMessage(json.toJson());
+  this->encryptThenSendMessage({{"jsonrpc", "2.0"}, {"method", "hello"}});
 }
 
 void ClientHandler::cleanCrypto() {
-  sodium_memzero(&this->cryptoPullState, sizeof(this->cryptoPullState));
-  sodium_memzero(&this->cryptoPushState, sizeof(this->cryptoPushState));
+  sodium_memzero(&this->mCryptoPullState, sizeof(this->mCryptoPullState));
+  sodium_memzero(&this->mCryptoPushState, sizeof(this->mCryptoPushState));
 }
 
-void ClientHandler::encryptThenSendMessage(const QByteArray& p) {
-  if (this->state != ClientState::AUTHENTICATED) {
+void ClientHandler::encryptThenSendMessage(const json& message) {
+  encryptThenSendMessage(message.dump());
+}
+
+void ClientHandler::encryptThenSendMessage(const std::string& p) {
+  if (this->mState != ClientState::AUTHENTICATED) {
     return;
   }
 
@@ -267,9 +272,10 @@ void ClientHandler::encryptThenSendMessage(const QByteArray& p) {
   auto c = std::unique_ptr<unsigned char>(new unsigned char[csize]);
   unsigned long long clen;
   const auto result = crypto_secretstream_xchacha20poly1305_push(
-    &this->cryptoPushState, c.get(), &clen,
+    &this->mCryptoPushState, c.get(), &clen,
     reinterpret_cast<const unsigned char*>(p.data()), p.size(), nullptr, 0, 0);
   assert(clen <= csize);
   clean_and_return_unless(result == 0);
-  emit sendMessage(QByteArray(reinterpret_cast<const char*>(c.get()), clen));
+  mConnection->sendMessage(
+    std::string(reinterpret_cast<const char*>(c.get()), clen));
 }

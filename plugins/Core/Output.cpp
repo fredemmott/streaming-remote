@@ -8,9 +8,9 @@
 
 #include "Output.h"
 
-#include <QJsonValue>
+using json = nlohmann::json;
 
-QString Output::typeToString(OutputType type) {
+std::string Output::typeToString(OutputType type) {
   switch (type) {
     case OutputType::UNKNOWN:
       return "unknown";
@@ -27,7 +27,7 @@ QString Output::typeToString(OutputType type) {
   }
 }
 
-OutputType Output::typeFromString(const QString& type) {
+OutputType Output::typeFromString(const std::string& type) {
   if (type == "local_recording") {
     return OutputType::LOCAL_RECORDING;
   }
@@ -40,7 +40,7 @@ OutputType Output::typeFromString(const QString& type) {
   return OutputType::UNKNOWN;
 }
 
-OutputState Output::stateFromString(const QString& state) {
+OutputState Output::stateFromString(const std::string& state) {
   if (state == "starting") {
     return OutputState::STARTING;
   }
@@ -56,7 +56,7 @@ OutputState Output::stateFromString(const QString& state) {
   return OutputState::UNKNOWN;
 }
 
-QString Output::stateToString(OutputState state) {
+std::string Output::stateToString(OutputState state) {
   switch (state) {
     case OutputState::UNKNOWN:
       return "unknown";
@@ -76,24 +76,23 @@ QString Output::stateToString(OutputState state) {
   }
 }
 
-QJsonObject Output::toJson() const {
-  QJsonObject obj{{"id", id},
-                  {"name", name},
-                  {"type", typeToString(type)},
-                  {"state", stateToString(state)}};
+json Output::toJson() const {
+  json obj{{"id", id},
+           {"name", name},
+           {"type", typeToString(type)},
+           {"state", stateToString(state)}};
   if (delaySeconds >= 0) {
-    obj["delaySeconds"] = static_cast<qint64>(delaySeconds);
+    obj["delaySeconds"] = static_cast<int64_t>(delaySeconds);
   }
   return obj;
 }
 
-Output Output::fromJson(const QJsonObject& json) {
-  Output ret;
-  ret.id = json["id"].toString();
-  ret.name = json["name"].toString();
-  ret.type = typeFromString(json["type"].toString());
-  ret.state = stateFromString(json["state"].toString());
-  ret.delaySeconds
-    = json.contains("delaySeconds") ? json["delaySeconds"].toInt() : -1;
-  return ret;
+Output Output::fromJson(const json& json) {
+  return {.id = json["id"],
+          .name = json["name"],
+          .state = stateFromString(json["state"]),
+          .type = typeFromString(json["type"]),
+          .delaySeconds = json.find("delaySeconds") != json.end()
+                            ? int(json["delaySeconds"])
+                            : -1};
 }

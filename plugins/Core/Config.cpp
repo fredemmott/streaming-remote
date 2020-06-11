@@ -10,22 +10,39 @@
 
 #include <sodium.h>
 
+#include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <sstream>
+#include <string>
+
+#include "Logger.h"
+
 namespace {
-QString s_defaultPassword;
+std::string s_defaultPassword;
+
+std::string to_hex(const std::string& other) {
+  std::string out;
+  out.reserve(other.size() * 2);
+  for (const char c : other) {
+    out += fmt::format("{:02x}", (uint8_t)c);
+  }
+  return out;
 }
+}// namespace
 
 Config Config::getDefault() {
-  if (s_defaultPassword.isNull()) {
+  if (s_defaultPassword.empty()) {
     uint8_t buf[8];
     randombytes_buf(buf, sizeof(buf));
     s_defaultPassword
-      = QByteArray(reinterpret_cast<const char*>(buf), sizeof(buf)).toHex();
+      = to_hex(std::string(reinterpret_cast<const char*>(buf), sizeof(buf)));
     sodium_memzero(buf, sizeof(buf));
   }
 
   return Config{
     s_defaultPassword,// password
-    QString(),// local socket
+    std::string(),// local socket
     9001,// tcp port
     9002// websocket port
   };

@@ -6,7 +6,15 @@
  * in the root directory of this source tree.
  */
 
-#include "MessageInterface.h"
+#pragma once
 
-MessageInterface::MessageInterface(QObject* parent) : QObject(parent) {
-}
+#include <string>
+
+struct Config {
+  std::string password;
+  std::string localSocket;
+  uint16_t tcpPort;
+  uint16_t webSocketPort;
+
+  static Config getDefault();
+};

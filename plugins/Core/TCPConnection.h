@@ -10,18 +10,18 @@
 
 #include "MessageInterface.h"
 
-class QWebSocket;
+#include <asio.hpp>
 
-class WebSocketMessageInterface : public MessageInterface {
-  Q_OBJECT
-
+class TCPConnection : public MessageInterface {
  public:
-  explicit WebSocketMessageInterface(
-    QWebSocket* socket,
-    QObject* parent = nullptr);
- public slots:
-  void sendMessage(const QByteArray& message);
+  TCPConnection(asio::io_context* ctx);
+
+  void startWaitingForMessage();
+
+  void sendMessage(const std::string& message);
+  asio::ip::tcp::socket& socket();
 
  private:
-  QWebSocket* socket;
+  void readyRead();
+  asio::ip::tcp::socket mSocket;
 };

@@ -8,13 +8,11 @@
 
 #pragma once
 
-#include <QString>
+#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/server.hpp>
 
-struct Config {
-  QString password;
-  QString localSocket;
-  uint16_t tcpPort;
-  uint16_t webSocketPort;
+namespace {
+typedef websocketpp::config::asio WebSocketConfig;
+}
 
-  static Config getDefault();
-};
+typedef websocketpp::server<WebSocketConfig> WebSocketServerImpl;
