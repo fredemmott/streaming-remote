@@ -26,7 +26,7 @@ struct Output {
   OutputState state = OutputState::UNKNOWN;
   OutputType type = OutputType::UNKNOWN;
 
-  int64_t delaySeconds;
+  int64_t delaySeconds = -1;
 
   nlohmann::json toJson() const;
   static Output fromJson(const nlohmann::json&);
