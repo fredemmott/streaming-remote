@@ -119,13 +119,14 @@ async function sendOutputListToDll() {
 
 async function loadDll(): Promise<void> {
   await XJS.ready();
+  const handle = XJS.Dll.load(["ScriptDlls\\Local\\xsplit-streaming-remote.dll"]);
   const haveDll = await XJS.Dll.isAccessGranted();
   if (!haveDll) {
     await new Promise((resolve, _) => {
       XJS.Dll.on('access-granted', resolve);
     });
   }
-  await XJS.Dll.load(["ScriptDlls\\Local\\xsplit-streaming-remote.dll"]);
+  await handle;
   dllReadyState.resolve(null);
 }
 
