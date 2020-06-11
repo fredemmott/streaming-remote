@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Build binaries
 on: [push, pull_request]
 jobs:
   build:
@@ -6,6 +6,7 @@ jobs:
     runs-on: ${{matrix.os}}-latest
     env:
       OBS_VERSION: 25.0.5
+      OBS_BUILD_TYPE: Release
     steps:
       - name: Cache Qt
         id: cache-qt
@@ -57,13 +58,34 @@ jobs:
           mkdir build
           cd build
           cmake .. \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=${OBS_BUILD_TYPE} \
             -DDepsPath=$(echo "${{runner.temp}}/obs-deps/win64" | tr "\\\\" /)
         shell: bash
       - name: Build OBS
         if: steps.cache-obs.outputs.cache-hit != 'true'
         working-directory: obs-studio/build
-        run: cmake --build . --parallel --target libobs --target obs-frontend-api
+        run: cmake --build . --parallel --config ${OBS_BUILD_TYPE} --target libobs --target obs-frontend-api
+      - name: Install dependencies (MacOS)
+        if: matrix.os == 'macos'
+        run: brew install libsodium
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: streaming-remote
+      - name: Configure
+        working-directory: streaming-remote
+        run: |
+          export QTDIR=${Qt5_DIR}
+          export Qt5Widgets_DIR=${Qt5_DIR}
+          mkdir build
+          cd build
+          cmake ../plugins \
+            -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
+            -DWITH_XSPLIT=ON
+        shell: bash
+      - name: Build
+        working-directory: streaming-remote/build
+        run: cmake --build . --parallel --config ${{matrix.build-type}}
     strategy:
       matrix:
         os: [macos, windows]
