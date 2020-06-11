@@ -40,6 +40,7 @@ endfunction()
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 add_subdirectory(Core)
+add_subdirectory(Dummy)
 option(WITH_OBS "Build the OBS plugin" OFF)
 if (WITH_OBS)
   add_subdirectory(obs)
