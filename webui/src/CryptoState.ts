@@ -6,9 +6,9 @@
  * in the root directory of this source tree.
  */
 
-import { state_address } from 'libsodium-wrappers-sumo';
+import { StateAddress } from 'libsodium-wrappers-sumo';
 
 export default interface CryptoState {
-  pushState: state_address;
-  pullState: state_address;
+  pushState: StateAddress;
+  pullState: StateAddress;
 }
