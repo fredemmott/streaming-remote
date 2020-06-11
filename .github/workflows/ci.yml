@@ -77,6 +77,8 @@ jobs:
           cd build
           cmake ../plugins \
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
+            -DCMAKE_INSTALL_BINDIR=$(echo "${{runner.temp}}/artifacts" | tr "\\\\" / ) \
+            -DCMAKE_INSTALL_LIBDIR=$(echo "${{runner.temp}}/artifacts" | tr "\\\\" / ) \
             -DWITH_XSPLIT=ON \
             -DWITH_OBS=ON \
             -DOBS_SOURCE_DIR=$(echo "${{github.workspace}}/obs-studio/" | tr "\\\\" /) \
@@ -85,6 +87,14 @@ jobs:
       - name: Build
         working-directory: streaming-remote/build
         run: cmake --build . --parallel --config ${{matrix.build-type}}
+      - name: Install
+        working-directory: streaming-remote/build
+        run: cmake --install . --config ${{matrix.build-type}}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: streaming-remote-binaries-${{matrix.os}}-${{matrix.build-type}}
+          path: ${{runner.temp}}/artifacts
     strategy:
       matrix:
         os: [macos, windows]

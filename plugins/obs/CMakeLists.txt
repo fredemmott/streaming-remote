@@ -21,6 +21,7 @@ set_target_properties(
   AUTOMOC ON
   CXX_STANDARD 17
 )
+install(TARGETS obs-streaming-remote)
 
 if(APPLE)
   set_target_properties(obs-streaming-remote PROPERTIES PREFIX "" SUFFIX ".so")

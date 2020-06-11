@@ -18,6 +18,7 @@ add_library(
   ${SOURCES}
 )
 set_target_properties(xsplit-streaming-remote PROPERTIES CXX_STANDARD 17)
+install(TARGETS xsplit-streaming-remote)
 target_link_libraries(
   xsplit-streaming-remote
   PRIVATE
