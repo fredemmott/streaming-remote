@@ -1,0 +1,75 @@
+name: Continuous Integration
+on: [push, pull_request]
+jobs:
+  build:
+    name: ${{matrix.os}}/${{matrix.build-type}}
+    runs-on: ${{matrix.os}}-latest
+    env:
+      OBS_VERSION: 25.0.5
+    steps:
+      - name: Cache Qt
+        id: cache-qt
+        uses: actions/cache@v1
+        with:
+          path: ${{runner.temp}}/Qt
+          key: Qt-${{matrix.qt-version}}-${{ matrix.os }}
+      - uses: jurplel/install-qt-action@v2
+        with:
+          version: '5.10.1'
+          dir: ${{runner.temp}}/Qt
+          cached: ${{ steps.cache-qt.outputs.cache-hit }}
+      - name: Cache OBS
+        id: cache-obs
+        uses: actions/cache@v1
+        with:
+          path: obs-studio
+          key: OBS-${{env.OBS_VERSION}}-${{ matrix.os }}
+      - name: Install OBS dependencies (MacOS)
+        if: matrix.os == 'macos' && steps.cache-obs.outputs.cache-hit != 'true'
+        run: brew install ffmpeg x264 mbedtls swig
+      - name: Install OBS dependencies (Windows)
+        if: matrix.os == 'windows' && steps.cache-obs.outputs.cache-hit != 'true'
+        run: |
+          Invoke-WebRequest `
+            -Uri https://obsproject.com/downloads/dependencies2017.zip `
+            -OutFile dependencies2017.zip
+          Expand-Archive `
+            -Path dependencies2017.zip `
+            -DestinationPath ${{runner.temp}}/obs-deps
+        shell: powershell
+      - name: Checkout OBS
+        uses: actions/checkout@v2
+        if: steps.cache-obs.outputs.cache-hit != 'true'
+        with:
+          repository: obsproject/obs-studio
+          path: obs-studio
+          ref: ${{env.OBS_VERSION}}
+          submodules: recursive
+      - name: Set build architecture (Windows)
+        if: matrix.os == 'windows'
+        run: echo "::set-env name=CMAKE_PLATFORM_GENERATOR::x64"
+      - name: Configure OBS
+        if: steps.cache-obs.outputs.cache-hit != 'true'
+        working-directory: obs-studio
+        run: |
+          export QTDIR=${Qt5_DIR}
+          export Qt5Widgets_DIR=${Qt5_DIR}
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDepsPath=$(echo "${{runner.temp}}/obs-deps/win64" | tr "\\\\" /)
+        shell: bash
+      - name: Build OBS
+        if: steps.cache-obs.outputs.cache-hit != 'true'
+        working-directory: obs-studio/build
+        run: cmake --build . --parallel --target libobs --target obs-frontend-api
+    strategy:
+      matrix:
+        os: [macos, windows]
+        build-type: [Release, Debug]
+        include:
+          - os: windows
+            qt-version: 5.10.1
+          - os: macos
+            qt-version: 5.14.1
