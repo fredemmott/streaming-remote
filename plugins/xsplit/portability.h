@@ -8,33 +8,17 @@
 
 #pragma once
 
-#include <QString>
-
 /* XSplit only works on Windows, but it's handy to build the plugin
  * on other platforms to make sure you don't break it when
  * developing */
-#ifdef WIN32
-
-#include <windows.h>
-#define STREAMINGREMOTE_EXPORT __declspec(dllexport)
-
-#else// WIN32
-
-typedef wchar_t* BSTR;
-typedef unsigned int UINT;
-typedef bool BOOL;
-#define DECLARE_INTERFACE_(NAME, COMBASE_IGNORED) class NAME
-#define STDMETHOD(NAME) \
- public: \
-  virtual void NAME
-#define PURE = 0
-#define WINAPI
-#include <cwchar>
-
-#define STREAMINGREMOTE_EXPORT
-
+#ifdef _MSC_VER
+#include "portability-windows.h"
+#else
+#include "portability-stdcpp.h"
 #endif
 
-BSTR NEW_BSTR_FROM_QSTRING(const QString& x);
-QString QSTRING_FROM_BSTR(BSTR str);
+#include <string>
+
+BSTR NEW_BSTR_FROM_STDSTRING(const std::string& x);
+std::string STDSTRING_FROM_BSTR(BSTR str);
 void DELETE_BSTR(BSTR);

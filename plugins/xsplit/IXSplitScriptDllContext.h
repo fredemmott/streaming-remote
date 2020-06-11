@@ -10,10 +10,10 @@
 
 #include "portability.h"
 
-#ifdef WIN32
-__declspec(uuid("9A554D8A-912F-4F1E-9A26-CC002B3B99BD"))
-#endif
-  DECLARE_INTERFACE_(IXSplitScriptDllContext, IUnknown) {
+interface DECLSPEC_UUID("9A554D8A-912F-4F1E-9A26-CC002B3B99BD")
+  IXSplitScriptDllContext;
+
+interface IXSplitScriptDllContext : public IUnknown {
   STDMETHOD(Callback)
   (BSTR functionName, BSTR * argumentsArray, UINT argumentsCount) PURE;
 };

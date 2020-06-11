@@ -8,27 +8,6 @@
 
 #include "portability.h"
 
-#ifdef WIN32
-#include <cwchar>
-
-// BSTR is supposed to be an unsigned long length followed by wchar_t[] - but
-// XSplit is just giving us wchar_t[] and calling it a BSTR
-BSTR NEW_BSTR_FROM_QSTRING(const QString& str) {
-  BSTR ret = ::SysAllocStringLen(nullptr, str.size());
-  str.toWCharArray(ret);
-  ret[str.length()] = 0;
-  return ret;
-}
-
-QString QSTRING_FROM_BSTR(BSTR str) {
-  return QString::fromWCharArray(str, ::SysStringLen(str));
-}
-
-void DELETE_BSTR(BSTR str) {
-  ::SysFreeString(str);
-}
-#else
-
 namespace {
 // Windows BSTRs have a similar struct, though two size fields: one in chars,
 // one in bytes. We just use chars here.
@@ -38,22 +17,31 @@ struct BSTRImpl {
 };
 }// namespace
 
-BSTR NEW_BSTR_FROM_QSTRING(const QString& str) {
+BSTR NEW_BSTR_FROM_STDSTRING(const std::string& str) {
+  mbstate_t state = mbstate_t();
+  const char* src = str.data();
+  size_t wlen = 1 + mbsrtowcs(nullptr, &src, 0, &state);
   BSTRImpl* impl = reinterpret_cast<BSTRImpl*>(
-    malloc(offsetof(BSTRImpl, data) + (str.size() * sizeof(wchar_t))));
+    malloc(offsetof(BSTRImpl, data) + (wlen * sizeof(wchar_t))));
   impl->size = str.size();
-  str.toWCharArray(&impl->data);
+  mbsrtowcs(&impl->data, &src, wlen, &state);
   return &impl->data;
 }
 
-QString QSTRING_FROM_BSTR(BSTR str) {
+std::string STDSTRING_FROM_BSTR(BSTR str) {
   BSTRImpl* impl = reinterpret_cast<BSTRImpl*>(
     reinterpret_cast<intptr_t>(str) - offsetof(BSTRImpl, data));
-  return QString::fromWCharArray(str, impl->size);
+  mbstate_t state = mbstate_t();
+  const wchar_t* src = &impl->data;
+  size_t len = 1 + wcsrtombs(nullptr, &src, 0, &state);
+  std::string out;
+  out.reserve(len);
+  wcsrtombs(&out.data()[0], &src, len, &state);
+  out.resize(len - 1);
+  return out;
 }
 void DELETE_BSTR(BSTR str) {
   BSTRImpl* impl = reinterpret_cast<BSTRImpl*>(
     reinterpret_cast<intptr_t>(str) - offsetof(BSTRImpl, data));
   delete impl;
 }
-#endif

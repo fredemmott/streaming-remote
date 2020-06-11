@@ -8,21 +8,21 @@
 
 #pragma once
 
-#include "IXSplitScriptDllContext.h"
-#include "base/Config.h"
-#include "base/StreamingSoftware.h"
+#include <asio.hpp>
 
-class QJsonDocument;
+#include "Core/Config.h"
+#include "Core/Signal.h"
+#include "Core/StreamingSoftware.h"
+#include "IXSplitScriptDllContext.h"
+#include "portability.h"
 
 class XSplit : public StreamingSoftware {
-  Q_OBJECT;
-
  public:
-  XSplit(QObject* parent = nullptr);
+  XSplit(IXSplitScriptDllContext* context);
   ~XSplit();
 
-  Config getConfiguration() const;
-  QList<Output> getOutputs();
+  Config getConfiguration() const override;
+  std::vector<Output> getOutputs() override;
 
   bool handleCall(
     IXSplitScriptDllContext* context,
@@ -30,17 +30,29 @@ class XSplit : public StreamingSoftware {
     BSTR* argv,
     UINT argc,
     BSTR* retv);
- signals:
-  void initialized();
 
- public slots:
-  void startOutput(const QString& id);
-  void stopOutput(const QString& id);
+  // slots:
+  void startOutput(const std::string& id) override;
+  void stopOutput(const std::string& id) override;
 
  private:
-  Config config;
-  IXSplitScriptDllContext* eventHandlerContext;
-  QList<Output> outputs;
-  void debugLog(const QString&);
-  void setJsonConfig(const QJsonDocument& jsonConfig);
+  void sendToXSplitDebugLog(const std::string&);
+  void setJsonConfig(const nlohmann::json& jsonConfig);
+
+  Config mConfig;
+  CComPtr<IXSplitScriptDllContext> mCallbackImpl;
+  std::vector<Output> mOutputs;
+
+  template <class... Targs>
+  void callJSPlugin(const char* func, Targs... args) {
+    BSTR com_func = NEW_BSTR_FROM_STDSTRING(func);
+    std::vector<std::string> argv{args...};
+    asio::post([=]() {
+      BSTR* com_args = (BSTR*)malloc(sizeof(BSTR) * sizeof...(Targs));
+      for (size_t i = 0; i < sizeof...(Targs); ++i) {
+        com_args[i] = NEW_BSTR_FROM_STDSTRING(argv[i]);
+      }
+      mCallbackImpl->Callback(com_func, com_args, sizeof...(Targs));
+    });
+  }
 };

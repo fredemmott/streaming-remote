@@ -8,95 +8,98 @@
 
 #include "XSplit.h"
 
-#include "base/Config.h"
+#include <fmt/format.h>
 
-#include <QAbstractEventDispatcher>
-#include <QCoreApplication>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QThread>
+#include <set>
+#include <thread>
+
+#include "Core/Config.h"
+#include "Core/Logger.h"
+
+#define DebugPrint(...) Logger::debug(__VA_ARGS__)
+
+using json = nlohmann::json;
 
 #define CHECK(x) \
   if (!(x)) { \
-    this->debugLog(QString("Assertion failed at %1:%2: %3") \
-                     .arg(__FILE__) \
-                     .arg(__LINE__) \
-                     .arg(#x)); \
+    DebugPrint("Assertion failed at {}:{}: {}" __FILE__, __LINE__, #x); \
     return false; \
   }
 
-XSplit::XSplit(QObject* parent)
-  : StreamingSoftware(parent), eventHandlerContext(nullptr) {
+XSplit::XSplit(IXSplitScriptDllContext* context)
+  : StreamingSoftware(), mCallbackImpl(context) {
+  LOG_FUNCTION();
+  Logger::addImpl([this](const std::string& message) {
+    this->sendToXSplitDebugLog(message);
+  });
 }
 
 XSplit::~XSplit() {
+  LOG_FUNCTION();
 }
 
 Config XSplit::getConfiguration() const {
-  return config;
+  LOG_FUNCTION();
+  return mConfig;
 }
 
-QList<Output> XSplit::getOutputs() {
-  return this->outputs;
+std::vector<Output> XSplit::getOutputs() {
+  LOG_FUNCTION();
+  return mOutputs;
 }
 
-void XSplit::setJsonConfig(const QJsonDocument& doc) {
-  {
-    const auto v = doc["password"];
-    if (v.isNull() || (v.isString() && v == "")) {
-      config.password = QString();
-    } else {
-      config.password = v.toString();
-    }
-  }
-  {
-    const auto v = doc["localSocket"];
-    if (v.isNull() || (v.isString() && v == "")) {
-      config.localSocket = QString();
-    } else {
-      config.localSocket = v.toString();
-    }
-  }
-  config.tcpPort = doc["tcpPort"].toInt();
-  config.webSocketPort = doc["webSocketPort"].toInt();
+void XSplit::setJsonConfig(const nlohmann::json& doc) {
+  mConfig.password = doc["password"].is_null() ? "" : doc["password"];
+  mConfig.localSocket = doc["localSocket"].is_null() ? "" : doc["localSocket"];
+  mConfig.tcpPort = doc["tcpPort"];
+  mConfig.webSocketPort = doc["webSocketPort"];
 }
 
 bool XSplit::handleCall(
   IXSplitScriptDllContext* context,
-  BSTR functionName,
-  BSTR* argv,
+  BSTR wideFunctionName,
+  BSTR* bargv,
   UINT argc,
   BSTR* retv) {
-  if (wcscmp(functionName, L"StreamingRemote.init") == 0) {
+  LOG_FUNCTION();
+  if (context != mCallbackImpl) {
+    mCallbackImpl = context;
+  }
+
+  const auto fun = STDSTRING_FROM_BSTR(wideFunctionName);
+  std::vector<std::string> argv;
+  DebugPrint("Call: {}", fun);
+  for (UINT i = 0; i < argc; ++i) {
+    const auto arg = STDSTRING_FROM_BSTR(bargv[i]);
+    DebugPrint("- argv[{}]: {}", i, arg);
+    argv.push_back(arg);
+  }
+
+  if (fun == "StreamingRemote.init") {
     CHECK(argc == 2);
-    this->eventHandlerContext = context;
-    QJsonDocument configJson
-      = QJsonDocument::fromJson(QSTRING_FROM_BSTR(argv[0]).toUtf8());
-    QJsonDocument outputsJson
-      = QJsonDocument::fromJson(QSTRING_FROM_BSTR(argv[1]).toUtf8());
+    const auto config = json::parse(argv[0]);
+    const auto outputs = json::parse(argv[1]);
+    DebugPrint("Setting config to {}", config.dump());
+    setJsonConfig(config);
 
-    setJsonConfig(configJson);
-
-    outputs.clear();
-    for (const auto& output : outputsJson.array()) {
-      outputs.push_back(Output::fromJson(output.toObject()));
+    DebugPrint("Setting outputs to {}", outputs.dump());
+    mOutputs.clear();
+    for (const auto& output : outputs) {
+      mOutputs.push_back(Output::fromJson(output));
     }
-    emit initialized();
-    this->debugLog("Initialized");
+    emit initialized(mConfig);
     return true;
   }
 
-  if (wcscmp(functionName, L"StreamingRemote.outputStateChanged") == 0) {
+  if (fun == "StreamingRemote.outputStateChanged") {
     CHECK(argc == 2);
-    const QString id(QSTRING_FROM_BSTR(argv[0]));
-    const QString stateStr = QSTRING_FROM_BSTR(argv[1]);
-    const OutputState state(Output::stateFromString(stateStr));
-    this->debugLog(QString("State changed: %1 => %2 (%3)")
-                     .arg(id)
-                     .arg(stateStr)
-                     .arg(Output::stateToString(state)));
-    for (auto& output : this->outputs) {
+    const auto id = argv[0];
+    const auto stateStr = argv[1];
+    const auto state = Output::stateFromString(stateStr);
+    DebugPrint(
+      "State changed: {} => {} ({})", id, stateStr,
+      Output::stateToString(state));
+    for (auto& output : mOutputs) {
       if (output.id == id) {
         output.state = state;
         break;
@@ -106,51 +109,42 @@ bool XSplit::handleCall(
     return true;
   }
 
-  if (wcscmp(functionName, L"StreamingRemote.getDefaultConfiguration") == 0) {
+  if (fun == "StreamingRemote.getDefaultConfiguration") {
     CHECK(argc == 0);
     auto config = Config::getDefault();
-    QJsonDocument doc(QJsonObject{{"password", config.password},
-                                  {"localSocket", config.localSocket},
-                                  {"tcpPort", config.tcpPort},
-                                  {"webSocketPort", config.webSocketPort}});
-    *retv = NEW_BSTR_FROM_QSTRING(QString::fromUtf8(doc.toJson()));
+    json doc({{"password", config.password},
+              {"localSocket", config.localSocket},
+              {"tcpPort", config.tcpPort},
+              {"webSocketPort", config.webSocketPort}});
+    DebugPrint("Returning default config: {}", doc.dump());
+    *retv = NEW_BSTR_FROM_STDSTRING(doc.dump());
     return true;
   }
 
-  if (wcscmp(functionName, L"StreamingRemote.setConfiguration") == 0) {
+  if (fun == "StreamingRemote.setConfiguration") {
     CHECK(argc == 1);
-    const QString json(QSTRING_FROM_BSTR(argv[0]));
-    const auto doc = QJsonDocument::fromJson(json.toUtf8());
-    setJsonConfig(doc);
-    this->debugLog("Set new configuration");
-    emit configurationChanged(config);
+    const auto config = json::parse(argv[0]);
+    setJsonConfig(config);
+    DebugPrint("new configuration: {}", config.dump());
+    emit configurationChanged(mConfig);
     return true;
   }
+
+  DebugPrint("No matching function.");
 
   return false;
 }
 
-void XSplit::startOutput(const QString& id) {
-  this->debugLog("starting output: " + id);
-  BSTR id_bstr = NEW_BSTR_FROM_QSTRING(id);
-  BSTR params[1] = {id_bstr};
-  this->eventHandlerContext->Callback(L"streamingRemoteStartOutput", params, 1);
-  DELETE_BSTR(id_bstr);
-  this->debugLog("stopped output: " + id);
+void XSplit::startOutput(const std::string& id) {
+  LOG_FUNCTION(id);
+  callJSPlugin("streamingRemoteStartOutput", id);
 }
 
-void XSplit::stopOutput(const QString& id) {
-  this->debugLog("stopping output: " + id);
-  BSTR id_bstr = NEW_BSTR_FROM_QSTRING(id);
-  BSTR params[1] = {id_bstr};
-  this->eventHandlerContext->Callback(L"streamingRemoteStopOutput", params, 1);
-  DELETE_BSTR(id_bstr);
-  this->debugLog("stopped output: " + id);
+void XSplit::stopOutput(const std::string& id) {
+  LOG_FUNCTION(id);
+  callJSPlugin("streamingRemoteStopOutput", id);
 }
 
-void XSplit::debugLog(const QString& what) {
-  BSTR what_bstr = NEW_BSTR_FROM_QSTRING(what);
-  BSTR params[1] = {what_bstr};
-  this->eventHandlerContext->Callback(L"streamingRemoteDebugLog", params, 1);
-  DELETE_BSTR(what_bstr);
+void XSplit::sendToXSplitDebugLog(const std::string& what) {
+  callJSPlugin("streamingRemoteDebugLog", what);
 }
