@@ -4,5 +4,5 @@ project(streaming-remote VERSION 2.0)
 
 option(WITHOUT_NATIVE_PLUGINS "Only build version information for JS, no C++ code" OFF)
 if(NOT WITHOUT_NATIVE_PLUGINS)
-  add_subdirectory(plugins)
+  add_subdirectory(native)
 endif()
