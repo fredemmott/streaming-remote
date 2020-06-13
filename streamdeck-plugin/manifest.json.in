@@ -22,6 +22,10 @@
   "Icon": "keys/streaming-changing",
   "URL": "https://github.com/fredemmott/streaming-remote/",
   "Version": "${CMAKE_PROJECT_VERSION}",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "4.1"
+  },
   "PropertyInspectorPath": "pi.html",
   "OS": [
     {
