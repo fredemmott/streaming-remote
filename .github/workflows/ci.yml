@@ -217,9 +217,9 @@ jobs:
         working-directory: ${{runner.temp}}/prefix
         run: |
           mkdir ../artifacts
-          zip ../artifacts/obs-streaming-remote-${{matrix.os}}-${{matrix.build-type}}.zip LICENSE LICENSE.OBS_COMBINED_WORK obs*
+          7z a ../artifacts/obs-streaming-remote-${{matrix.os}}-${{matrix.build-type}}.zip LICENSE LICENSE.OBS_COMBINED_WORK obs*
           if [ "${{matrix.os}}" == "windows" ]; then
-            zip ../artifacts/xsplit-streaming-remote-${{matrix.os}}-${{matrix.build-type}}.zip LICENSE xsplit*
+            7z a ../artifacts/xsplit-streaming-remote-${{matrix.os}}-${{matrix.build-type}}.zip LICENSE xsplit*
           fi
         shell: bash
       - name: Upload artifacts
