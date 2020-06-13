@@ -1,8 +1,17 @@
-name: Build binaries
+name: Continuous Integration
 on: [push, pull_request]
 jobs:
-  build:
-    name: ${{matrix.os}}/${{matrix.build-type}}
+  check-generated-versions:
+    name: Check version files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Generate version files"
+        run: mkdir build && cd build && cmake .. -DWITH_NATIVE_PLUGINS=OFF
+      - name: "Check for changes"
+        run: git diff --exit-code
+  native:
+    name: Build ${{matrix.os}}/${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
     env:
       OBS_VERSION: 25.0.5
@@ -21,7 +30,7 @@ jobs:
           dir: ${{runner.temp}}/Qt
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
           arch: ${{matrix.qt-platform}}
-          aqtversion: ==0.9.0
+          aqtversion: =0.9.0
           extra: --archives qtbase
       - name: Cache OBS
         id: cache-obs
