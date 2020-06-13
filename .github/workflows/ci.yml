@@ -10,6 +10,34 @@ jobs:
         run: mkdir build && cd build && cmake .. -DWITH_NATIVE_PLUGINS=OFF
       - name: "Check for changes"
         run: git diff --exit-code
+  webui:
+    name: Build Web UI - ${{matrix.build-type}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check tool versions
+        run: |
+          echo "Yarn: $(yarn --version)"
+          echo "TSC: $(tsc --version)"
+      - name: Build lib
+        working-directory: js-client-lib
+        run: yarn install && tsc
+      - name: Build web UI
+        working-directory: webui
+        run: yarn install && yarn run webpack --mode ${{matrix.build-type}}
+      - name: Build zip
+        working-directory: webui
+        run: |
+          rm -rf node_modules
+          cp ../LICENSE .
+          zip streaming-remote-webui-${{matrix.build-type}}.zip ./
+      - uses: actions/upload-artifact@v2
+        with:
+          name: streaming-remote-webui-${{matrix.build-type}}
+          path: webui/streaming-remote-webui-${{matrix.build-type}}.zip
+    strategy:
+      matrix:
+        build-type: [ "production", "development" ]
   native:
     name: Build ${{matrix.os}}/${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
