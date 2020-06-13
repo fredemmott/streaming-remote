@@ -64,8 +64,8 @@
       });
       outputSelect.disabled = false;
 
-      document.getElementById('uri').value = settings.uri;
-      document.getElementById('password').value = settings.password;
+      document.getElementById('uri').value = typeof settings.uri == 'string' ? settings.uri : '';
+      document.getElementById('password').value = typeof settings.password == 'string' ? settings.password : '';
 
       if (settings.output == "" && outputSelect.value != settings.output) {
         saveSettings();
