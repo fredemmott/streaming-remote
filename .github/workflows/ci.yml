@@ -2,7 +2,7 @@ name: Continuous Integration
 on: [push, pull_request]
 jobs:
   check-generated-versions:
-    name: Check version files
+    name: Generated version files
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -11,7 +11,8 @@ jobs:
       - name: "Check for changes"
         run: git diff --exit-code
   webui:
-    name: Build Web UI - ${{matrix.build-type}}
+    name: Web UI - ${{matrix.build-type}}
+    needs: [check-generated-versions]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -37,8 +38,33 @@ jobs:
     strategy:
       matrix:
         build-type: [ "production", "development" ]
+  xsplit:
+    name: XSplit plugin - ${{matrix.build-type}}
+    needs: [check-generated-versions]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check tool versions
+        run: |
+          echo "Yarn: $(yarn --version)"
+          echo "TSC: $(tsc --version)"
+      - name: Build XSplit plugin
+        working-directory: xsplit-js-plugin
+        run: yarn install && yarn run webpack --mode ${{matrix.build-type}}
+      - name: Build zip
+        working-directory: xsplit-js-plugin
+        run: |
+          cp ../LICENSE .
+          zip streaming-remote-webui-${{matrix.build-type}}.zip index.html index.xml index.css dist/*
+      - uses: actions/upload-artifact@v2
+        with:
+          name: streaming-remote-webui-${{matrix.build-type}}
+          path: webui/streaming-remote-webui-${{matrix.build-type}}.zip
+    strategy:
+      matrix:
+        build-type: [ "production", "development" ]
   native:
-    name: Build ${{matrix.os}} - ${{matrix.build-type}}
+    name: Native - ${{matrix.os}} - ${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
     env:
       OBS_VERSION: 25.0.5
