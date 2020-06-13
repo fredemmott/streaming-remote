@@ -30,7 +30,7 @@ jobs:
         working-directory: webui
         run: |
           cp ../LICENSE .
-          zip streaming-remote-webui-${{matrix.build-type}}.zip index.html site.css dist/*
+          zip streaming-remote-webui-${{matrix.build-type}}.zip index.html site.css dist/bundle.js
       - uses: actions/upload-artifact@v2
         with:
           name: streaming-remote-webui-${{matrix.build-type}}
@@ -110,7 +110,7 @@ jobs:
         working-directory: xsplit-js-plugin
         run: |
           cp ../LICENSE .
-          zip streaming-remote-webui-${{matrix.build-type}}.zip index.html index.xml index.css dist/*
+          zip streaming-remote-webui-${{matrix.build-type}}.zip LICENSE index.html index.xml index.css dist/bundle.js
       - uses: actions/upload-artifact@v2
         with:
           name: streaming-remote-webui-${{matrix.build-type}}
