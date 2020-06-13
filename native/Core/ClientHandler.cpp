@@ -100,14 +100,14 @@ void ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
   if (method == "outputs/start") {
     mSoftware->startOutput(jsonrpc["params"]["id"]);
     encryptThenSendMessage(
-      {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", {}}});
+      {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", json::object()}});
     return;
   }
 
   if (method == "outputs/stop") {
     mSoftware->stopOutput(jsonrpc["params"]["id"]);
     encryptThenSendMessage(
-      {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", {}}});
+      {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", json::object()}});
     return;
   }
 
@@ -119,7 +119,7 @@ void ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
       {"id", jsonrpc["id"]},
     };
     if (success) {
-      response["result"] = json{};
+      response["result"] = json::object();
     } else {
       response["error"] = json{
         {"code", 0}, {"message", "The software failed to set the delay"}};
