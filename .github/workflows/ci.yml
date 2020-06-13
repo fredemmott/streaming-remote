@@ -212,7 +212,7 @@ jobs:
         working-directory: streaming-remote/build
         run: |
           cmake --install . --config ${{matrix.build-type}}
-          install LICENSE LICENSE.OBS_COMBINED_WORK ${{runner.temp}}/prefix/
+          install ../LICENSE ../LICENSE.OBS_COMBINED_WORK ${{runner.temp}}/prefix/
       - name: Make zips
         working-directory: ${{runner.temp}}/build
         run: |
