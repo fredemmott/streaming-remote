@@ -124,7 +124,7 @@ jobs:
     env:
       OBS_VERSION: 25.0.5
       OBS_BUILD_TYPE: Release
-      QT_CACHE_VERSION: 4
+      QT_CACHE_VERSION: 5
     steps:
       - name: Cache Qt
         id: cache-qt
@@ -134,7 +134,7 @@ jobs:
           key: Qt-${{matrix.qt-version}}-${{matrix.os}}-${{env.QT_CACHE_VERSION}}
       - uses: jurplel/install-qt-action@v2
         with:
-          version: 5.10.1
+          version: ${{matrix.qt-version}}
           dir: ${{runner.temp}}/Qt
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
           arch: ${{matrix.qt-platform}}
