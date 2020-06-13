@@ -34,6 +34,13 @@ XSplit::XSplit(IXSplitScriptDllContext* context)
       this->sendToXSplitDebugLog(message);
     }) {
   LOG_FUNCTION();
+  registerPluginFunc("init", &XSplit::pluginfunc_init);
+  registerPluginFunc("setConfig", &XSplit::pluginfunc_setConfig);
+  registerPluginFunc(
+    "outputStateChanged", &XSplit::pluginfunc_outputStateChanged);
+  registerPluginFunc(
+    "getDefaultConfiguration", &XSplit::pluginfunc_getDefaultConfiguration);
+  registerPluginFunc("setConfiguration", &XSplit::pluginfunc_setConfiguration);
 }
 
 XSplit::~XSplit() {
@@ -60,101 +67,28 @@ void XSplit::setJsonConfig(const nlohmann::json& doc) {
 bool XSplit::handleCall(
   IXSplitScriptDllContext* context,
   BSTR wideFunctionName,
-  BSTR* bargv,
+  BSTR* argv,
   UINT argc,
-  BSTR* retv) {
+  BSTR* ret) {
   LOG_FUNCTION();
   if (context != mCallbackImpl) {
     mCallbackImpl = context;
   }
 
   const auto fun = STDSTRING_FROM_BSTR(wideFunctionName);
-  const auto fun_id = [](const char* name) {
-    return fmt::format("com.fredemmott.streaming-remote/cpp/{}", name);
-  };
-  std::vector<std::string> argv;
+
   DebugPrint("Call: {}", fun);
   for (UINT i = 0; i < argc; ++i) {
-    const auto arg = STDSTRING_FROM_BSTR(bargv[i]);
-    DebugPrint("- argv[{}]: {}", i, arg);
-    argv.push_back(arg);
+    DebugPrint("- argv[{}]: {}", i, STDSTRING_FROM_BSTR(argv[i]));
   }
 
-  if (fun == fun_id("init")) {
-    DebugPrint("init handler - {}", __LINE__);
-    XSPLIT_CHECK(argc == 1);
-    DebugPrint("init handler - {}", __LINE__);
-    const auto proto = argv[0];
-    DebugPrint("init handler - {}", __LINE__);
-    if (proto != XSPLIT_JS_CPP_PROTO_VERSION) {
-      DebugPrint(
-        "Protocol version mismatch - JS v{}, DLL v{}", proto,
-        XSPLIT_JS_CPP_PROTO_VERSION);
-    }
-    DebugPrint("init handler - {}", __LINE__);
-    callJSPlugin("init", XSPLIT_JS_CPP_PROTO_VERSION);
-    DebugPrint("init handler - {}", __LINE__);
-    DebugPrint("end init handler");
-    return true;
-  }
-
-  if (fun == fun_id("setConfig")) {
-    XSPLIT_CHECK(argc == 2);
-    const auto config = json::parse(argv[0]);
-    const auto outputs = json::parse(argv[1]);
-    DebugPrint("Setting config to {}", config.dump());
-    setJsonConfig(config);
-
-    DebugPrint("Setting outputs to {}", outputs.dump());
-    mOutputs.clear();
-    for (const auto& output : outputs) {
-      mOutputs.push_back(Output::fromJson(output));
-    }
-    emit initialized(mConfig);
-    return true;
-  }
-
-  if (fun == fun_id("outputStateChanged")) {
-    XSPLIT_CHECK(argc == 2);
-    const auto id = argv[0];
-    const auto stateStr = argv[1];
-    const auto state = Output::stateFromString(stateStr);
-    DebugPrint(
-      "State changed: {} => {} ({})", id, stateStr,
-      Output::stateToString(state));
-    for (auto& output : mOutputs) {
-      if (output.id == id) {
-        output.state = state;
-        break;
-      }
-    }
-    emit outputStateChanged(id, state);
-    return true;
-  }
-
-  if (fun == fun_id("getDefaultConfiguration")) {
-    XSPLIT_CHECK(argc == 0);
-    auto config = Config::getDefault();
-    json doc({{"password", config.password},
-              {"localSocket", config.localSocket},
-              {"tcpPort", config.tcpPort},
-              {"webSocketPort", config.webSocketPort}});
-    DebugPrint("Returning default config: {}", doc.dump());
-    *retv = NEW_BSTR_FROM_STDSTRING(doc.dump());
-    return true;
-  }
-
-  if (fun == fun_id("setConfiguration")) {
-    XSPLIT_CHECK(argc == 1);
-    const auto config = json::parse(argv[0]);
-    setJsonConfig(config);
-    DebugPrint("new configuration: {}", config.dump());
-    emit configurationChanged(mConfig);
+  auto it = mPluginFuncs.find(fun);
+  if (it != mPluginFuncs.end()) {
+    it->second(ret, argc, argv);
     return true;
   }
 
   DebugPrint("No matching function.");
-
   return false;
 }
 
@@ -170,4 +104,64 @@ void XSplit::stopOutput(const std::string& id) {
 
 void XSplit::sendToXSplitDebugLog(const std::string& what) {
   callJSPlugin("debugLog", what);
+}
+
+void XSplit::pluginfunc_init(const std::string& proto_version) {
+  LOG_FUNCTION();
+  if (proto_version != XSPLIT_JS_CPP_PROTO_VERSION) {
+    DebugPrint(
+      "Protocol version mismatch - JS v{}, DLL v{}", proto_version,
+      XSPLIT_JS_CPP_PROTO_VERSION);
+    // intentionally not leaving early - tell the JS plugin what's going on.
+  }
+  callJSPlugin("init", XSPLIT_JS_CPP_PROTO_VERSION);
+}
+
+void XSplit::pluginfunc_setConfig(
+  const nlohmann::json& config,
+  const nlohmann::json& outputs) {
+  LOG_FUNCTION();
+  DebugPrint("Setting config to {}", config.dump());
+  setJsonConfig(config);
+
+  DebugPrint("Setting outputs to {}", outputs.dump());
+  mOutputs.clear();
+  for (const auto& output : outputs) {
+    mOutputs.push_back(Output::fromJson(output));
+  }
+  emit initialized(mConfig);
+}
+
+void XSplit::pluginfunc_outputStateChanged(
+  const std::string& id,
+  const std::string& stateStr) {
+  LOG_FUNCTION();
+  DebugPrint("State changed: {} => {}", id, stateStr);
+
+  const auto state = Output::stateFromString(stateStr);
+  for (auto& output : mOutputs) {
+    if (output.id == id) {
+      output.state = state;
+      break;
+    }
+  }
+  emit outputStateChanged(id, state);
+}
+
+nlohmann::json XSplit::pluginfunc_getDefaultConfiguration() {
+  LOG_FUNCTION();
+  auto config = Config::getDefault();
+  json doc({{"password", config.password},
+            {"localSocket", config.localSocket},
+            {"tcpPort", config.tcpPort},
+            {"webSocketPort", config.webSocketPort}});
+  DebugPrint("Returning default config: {}", doc.dump());
+  return doc;
+}
+
+void XSplit::pluginfunc_setConfiguration(const nlohmann::json& config) {
+  LOG_FUNCTION();
+  DebugPrint("new configuration: {}", config.dump());
+  setJsonConfig(config);
+  emit configurationChanged(mConfig);
 }

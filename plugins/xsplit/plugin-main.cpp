@@ -44,7 +44,7 @@ BOOL WINAPI XSplitScriptPluginCall(
   BSTR functionName,
   BSTR* argv,
   UINT argc,
-  BSTR* retv) {
+  BSTR* ret) {
   LOG_FUNCTION();
   Logger::debug("Context: {}", (void*)pContext);
   if (!sPlugin) {
@@ -59,7 +59,7 @@ BOOL WINAPI XSplitScriptPluginCall(
   // Execute in the worker thread, but block on it succeeding
   asio::post(sPlugin->getContext(), [=, &success]() {
     success.set_value(sPlugin->getSoftware()->handleCall(
-      pContext, functionName, argv, argc, retv));
+      pContext, functionName, argv, argc, ret));
   });
   auto f = success.get_future();
   Logger::debug("{}() - waiting for future", __FUNCTION__);
