@@ -17,13 +17,8 @@ th {
   vertical-align: middle;
 }
 
-.uninit, .hide {
+.uninit, .hide, .uninit *, .hide * {
   display: none;
-}
-
-#dllAccessWarning {
-  border-color: #f00;
-  background-color: 1px solid #550000;
 }
 
 .buttonBox {
@@ -37,4 +32,17 @@ th {
 
 .buttonbox button {
   margin: 2px;
+}
+
+.error {
+  border: 1px solid red;
+  background: repeating-linear-gradient(
+    135deg,
+    #500,
+    #500 5px,
+    #000 5px,
+    #000 10px,
+    #000 10px
+  );
+  padding: 1em;
 }

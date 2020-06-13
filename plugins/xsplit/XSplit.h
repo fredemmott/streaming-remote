@@ -57,13 +57,11 @@ class XSplit final : public StreamingSoftware {
       // called by XSplit.
       fmt::format("com_fredemmott_streamingremote__js__{}", func));
     std::vector<std::string> argv{args...};
-    asio::post([=]() {
-      BSTR* com_args = (BSTR*)malloc(sizeof(BSTR) * sizeof...(Targs));
-      for (size_t i = 0; i < sizeof...(Targs); ++i) {
-        com_args[i] = NEW_BSTR_FROM_STDSTRING(argv[i]);
-      }
-      mCallbackImpl->Callback(com_func, com_args, sizeof...(Targs));
-    });
+    BSTR* com_args = (BSTR*)malloc(sizeof(BSTR) * sizeof...(Targs));
+    for (size_t i = 0; i < sizeof...(Targs); ++i) {
+      com_args[i] = NEW_BSTR_FROM_STDSTRING(argv[i]);
+    }
+    mCallbackImpl->Callback(com_func, com_args, sizeof...(Targs));
   }
 
   void pluginfunc_init(const std::string& proto_version);

@@ -10,7 +10,7 @@
 import * as XJS from "xjs-framework/dist/xjs-es2015"
 import * as StreamRemote from './StreamRemote'
 
-const XSPLIT_JS_CPP_PROTO_VERSION = "1.0";
+const XSPLIT_JS_CPP_PROTO_VERSION = "2.0";
 
 interface DeferredPromise<T> {
   resolve?: (T) => void;
@@ -63,11 +63,9 @@ dll_callback('stopOutput', async function (id: string) {
   );
 });
 
-dll_callback('init', async function (proto: string) {
-  if (proto != XSPLIT_JS_CPP_PROTO_VERSION) {
-    readyState.reject(
-      `Protocol mismatch: JS is ${XSPLIT_JS_CPP_PROTO_VERSION}, DLL is ${proto}`
-    );
+dll_callback('init', async function (dll_proto: string) {
+  if (dll_proto != XSPLIT_JS_CPP_PROTO_VERSION) {
+    readyState.reject([dll_proto, XSPLIT_JS_CPP_PROTO_VERSION]);
     return;
   }
   await sendOutputListToDll();

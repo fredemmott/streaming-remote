@@ -10,10 +10,23 @@
       to offer configuration pages.
     </p>
 
-    <p id="dllAccessWarning" class="uninit">
-      You must allow DLL access permissions for this extension to work or be configurable; there should
-      be a banner at the top of the main XSplit window.
-    </p>
+    <div id="dllVersionMismatchError" class="uninit error">
+      <p>
+        xsplit-streaming-remote.dll and the plugin are different versions; please update both
+        to the latest version available from https://github.com/fredemmott/streaming-remote/.
+      </p>
+      <dl>
+        <dt>DLL Version</dt><dd id="dllVersion"></dd>
+        <dt>Plugin Version</dt><dd id="jsVersion"></dd>
+      </dl>
+    </div>
+
+    <div id="dllAccessWarning" class="uninit error">
+      <p>
+        You must allow DLL access permissions for this extension to work or be configurable; there should
+        be a banner at the top of the main XSplit window.
+      </p>
+    </div>
 
     <table id="configTable" class="uninit">
       <tr><th>Password</th><td><input type="password" id="password" /><a href="#" id="passwordShowHide">(reveal)</a></td></tr>

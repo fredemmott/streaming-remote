@@ -13,13 +13,22 @@ import { Config } from './StreamRemote';
 export async function start(): Promise<void> {
   await XJS.ready;
   initializeDllWarning();
+  try {
+    await Plugin.ready;
+  } catch (error) {
+    const [dll_proto, js_proto]= error as [string, string];
+    document.getElementById('dllVersion').textContent = dll_proto;
+    document.getElementById('jsVersion').textContent = js_proto;
+    document.getElementById('dllVersionMismatchError').classList.remove('uninit');
+    return;
+  }
   setupConfiguration();
   connectConfigurationButtons();
 }
 
 async function initializeDllWarning(): Promise<void> {
   const canDll = await XJS.Dll.isAccessGranted();
-  const element = document.querySelector('#dllAccessWarning');
+  const element = document.getElementById('dllAccessWarning');
   if (canDll) {
     element.classList.add('hide');
   }
@@ -55,7 +64,7 @@ window.addEventListener('load', () => {
 });
 
 async function setupConfiguration(): Promise<void> {
-  const passwordToggle = document.querySelector('#passwordShowHide') as HTMLAnchorElement;
+  const passwordToggle = document.getElementById('passwordShowHide') as HTMLAnchorElement;
   passwordToggle.addEventListener('click', e => {
     e.preventDefault();
     if (Elements.password.type == "password") {
@@ -72,7 +81,7 @@ async function setupConfiguration(): Promise<void> {
   Elements.namedPipe.value = config.localSocket;
   Elements.tcpPort.value = config.tcpPort.toString();
   Elements.webSocketPort.value = config.webSocketPort.toString();
-  document.querySelector('#configTable').classList.remove('uninit');
+  document.getElementById('configTable').classList.remove('uninit');
 }
 
 async function updateButtonState(): Promise<void> {
