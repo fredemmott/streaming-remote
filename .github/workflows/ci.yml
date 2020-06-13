@@ -139,7 +139,7 @@ jobs:
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
           arch: ${{matrix.qt-platform}}
           aqtversion: ==0.9.0
-          extra: --archives qtbase
+          extra: --archives qtbase qtsvg qtxml ${{matrix.qt-archives}}
       - name: Cache OBS
         id: cache-obs
         uses: actions/cache@v1
@@ -233,6 +233,8 @@ jobs:
         build-type: [Release, Debug]
         include:
           - os: windows
+            qt-archives: qtwinextras
             qt-version: 5.10.1
           - os: macos
+            qt-archives: qtmacextras
             qt-version: 5.14.1
