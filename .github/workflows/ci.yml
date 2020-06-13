@@ -57,7 +57,7 @@ jobs:
           dir: ${{runner.temp}}/Qt
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
           arch: ${{matrix.qt-platform}}
-          aqtversion: =0.9.0
+          aqtversion: ==0.9.0
           extra: --archives qtbase
       - name: Cache OBS
         id: cache-obs
