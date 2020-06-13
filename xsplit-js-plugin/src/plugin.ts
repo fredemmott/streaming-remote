@@ -64,6 +64,7 @@ dll_callback('stopOutput', async function (id: string) {
 });
 
 dll_callback('init', async function (dll_proto: string) {
+  console.log("init", {dll_proto, XSPLIT_JS_CPP_PROTO_VERSION});
   if (dll_proto != XSPLIT_JS_CPP_PROTO_VERSION) {
     readyState.reject([dll_proto, XSPLIT_JS_CPP_PROTO_VERSION]);
     return;
@@ -123,7 +124,7 @@ async function sendOutputListToDll() {
 }
 
 async function loadDll(): Promise<void> {
-  console.log('loading dll');
+  console.log('Waiting for XJS');
   await XJS.ready();
   console.log('XJS ready');
   const handle = XJS.Dll.load(["ScriptDlls\\Local\\xsplit-streaming-remote.dll"]);
@@ -161,7 +162,6 @@ export async function start() {
 }
 
 export async function getConfiguration(): Promise<StreamRemote.Config> {
-  await ready;
   const storageKey = await (new XJS.App()).getUserIdHash();
   const storedJson = localStorage.getItem(storageKey);
   if (storedJson === null || storedJson === '') {
@@ -171,8 +171,7 @@ export async function getConfiguration(): Promise<StreamRemote.Config> {
     return config;
   }
 
-  const storedConfig = JSON.parse(storedJson) as StreamRemote.Config;
-  return storedConfig;
+  return JSON.parse(storedJson) as StreamRemote.Config;
 }
 
 export async function setConfiguration(config: StreamRemote.Config): Promise<void> {
