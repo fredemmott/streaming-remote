@@ -26,7 +26,7 @@
   "Software": {
     "MinimumVersion": "4.1"
   },
-  "PropertyInspectorPath": "pi.html",
+  "PropertyInspectorPath": "property_inspector/index.html",
   "OS": [
     {
       "Platform": "mac",
