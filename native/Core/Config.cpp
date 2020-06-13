@@ -41,9 +41,8 @@ Config Config::getDefault() {
   }
 
   return Config{
-    s_defaultPassword,// password
-    std::string(),// local socket
-    9001,// tcp port
-    9002// websocket port
+    .password = s_defaultPassword,
+    .tcpPort = 9001,
+    .webSocketPort = 9002
   };
 };

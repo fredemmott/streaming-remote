@@ -58,8 +58,8 @@ std::vector<Output> XSplit::getOutputs() {
 }
 
 void XSplit::setJsonConfig(const nlohmann::json& doc) {
+  LOG_FUNCTION();
   mConfig.password = doc["password"].is_null() ? "" : doc["password"];
-  mConfig.localSocket = doc["localSocket"].is_null() ? "" : doc["localSocket"];
   mConfig.tcpPort = doc["tcpPort"];
   mConfig.webSocketPort = doc["webSocketPort"];
 }
@@ -152,7 +152,6 @@ nlohmann::json XSplit::pluginfunc_getDefaultConfiguration() {
   LOG_FUNCTION();
   auto config = Config::getDefault();
   json doc({{"password", config.password},
-            {"localSocket", config.localSocket},
             {"tcpPort", config.tcpPort},
             {"webSocketPort", config.webSocketPort}});
   DebugPrint("Returning default config: {}", doc.dump());

@@ -12,7 +12,6 @@
 
 struct Config {
   std::string password;
-  std::string localSocket;
   uint16_t tcpPort;
   uint16_t webSocketPort;
 

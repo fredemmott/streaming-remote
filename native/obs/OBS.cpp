@@ -21,7 +21,6 @@ const std::string s_streaming("Streaming");
 
 const char* CONFIG_SECTION = "streamingRemote";
 const char* CONFIG_ID_PASSWORD = "password";
-const char* CONFIG_ID_LOCAL_SOCKET = "localSocket";
 const char* CONFIG_ID_TCP_PORT = "tcpPort";
 const char* CONFIG_ID_WEBSOCKET_PORT = "webSocketPort";
 }// namespace
@@ -141,9 +140,6 @@ void OBS::setConfiguration(const Config& config) {
   mConfig = config;
   config_set_string(
     obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD, config.password.c_str());
-  config_set_string(
-    obs_config, CONFIG_SECTION, CONFIG_ID_LOCAL_SOCKET,
-    config.localSocket.empty() ? nullptr : config.localSocket.c_str());
   config_set_uint(
     obs_config, CONFIG_SECTION, CONFIG_ID_TCP_PORT, config.tcpPort);
   config_set_uint(
@@ -169,20 +165,6 @@ Config OBS::getInitialConfiguration() {
   } else {
     config_set_string(
       obs_config, CONFIG_SECTION, CONFIG_ID_PASSWORD, config.password.c_str());
-  }
-
-  if (!config.localSocket.empty()) {
-    config_set_default_string(
-      obs_config, CONFIG_SECTION, "Local Socket", config.localSocket.c_str());
-    config_save(obs_config);
-  }
-
-  auto localSocket
-    = config_get_string(obs_config, CONFIG_SECTION, "Local Socket");
-  if (localSocket == nullptr || strcmp(localSocket, "") == 0) {
-    config.localSocket = std::string();
-  } else {
-    config.localSocket = localSocket;
   }
 
   config_set_default_uint(
