@@ -26,15 +26,15 @@ jobs:
       - name: Build web UI
         working-directory: webui
         run: yarn install && yarn run webpack --mode ${{matrix.build-type}}
-      - name: Build zip
+      - name: Copy files
         working-directory: webui
         run: |
-          cp ../LICENSE .
-          zip streaming-remote-webui-${{matrix.build-type}}.zip index.html site.css dist/bundle.js
+          mkdir ${{runner.temp}}/artifacts
+          install ../LICENSE index.html site.css dist/bundle.js ${{runner.temp}}/artifacts
       - uses: actions/upload-artifact@v2
         with:
-          name: streaming-remote-webui-${{matrix.build-type}}
-          path: webui/streaming-remote-webui-${{matrix.build-type}}.zip
+          name: webui-${{matrix.build-type}}
+          path: ${{runner.temp}}/artifacts
     strategy:
       matrix:
         build-type: [ "production", "development" ]
@@ -81,15 +81,10 @@ jobs:
             set -e
             test -f com.fredemmott.streamingremote.streamDeckPlugin
           fi
-      - name: Build .zip
-        run: |
-          zip \
-          streaming-remote-${{matrix.build-type}}-streamDeckPlugin.zip \
-          com.fredemmott.streamingremote.streamDeckPlugin
       - uses: actions/upload-artifact@v2
         with:
-          name: streaming-remote-StreamDeckPlugin-${{matrix.build-type}}
-          path: streaming-remote-${{matrix.build-type}}-streamDeckPlugin.zip
+          name: sdplugin-${{matrix.build-type}}
+          path: com.fredemmott.streamingremote.streamDeckPlugin
     strategy:
       matrix:
         build-type: [ "production", "development" ]
@@ -106,15 +101,17 @@ jobs:
       - name: Build XSplit plugin
         working-directory: xsplit-js-plugin
         run: yarn install && yarn run webpack --mode ${{matrix.build-type}}
-      - name: Build zip
+      - name: Copy files
         working-directory: xsplit-js-plugin
         run: |
-          cp ../LICENSE .
-          zip streaming-remote-xsplit-${{matrix.build-type}}.zip LICENSE index.html index.xml index.css dist/bundle.js
+          mkdir -p ${{runner.temp}}/artifacts/dist
+          install dist/bundle.js ${{runner.temp}}/artifacts/dist/bundle.js
+          install ../LICENSE index.html index.xml index.css ${{runner.temp}}/artifacts/
+        shell: bash
       - uses: actions/upload-artifact@v2
         with:
-          name: streaming-remote-xsplit-${{matrix.build-type}}
-          path: xsplit-js-plugin/streaming-remote-xsplit-${{matrix.build-type}}.zip
+          name: xsplit-${{matrix.build-type}}
+          path: ${{runner.temp}}/artifacts
     strategy:
       matrix:
         build-type: [ "production", "development" ]
@@ -213,19 +210,21 @@ jobs:
         run: |
           cmake --install . --config ${{matrix.build-type}}
           install ../LICENSE ../LICENSE.OBS_COMBINED_WORK ${{runner.temp}}/prefix/
-      - name: Make zips
+      - name: Copy files
         working-directory: ${{runner.temp}}/prefix
         run: |
-          mkdir ../artifacts
-          7z a ../artifacts/obs-streaming-remote-${{matrix.os}}-${{matrix.build-type}}.zip LICENSE LICENSE.OBS_COMBINED_WORK obs*
+          mkdir -p ../artifacts/obs
+          rm *.lib || true
+          install LICENSE LICENSE.OBS_COMBINED_WORK obs-streaming-remote.* ../artifacts/obs/
           if [ "${{matrix.os}}" == "windows" ]; then
-            7z a ../artifacts/xsplit-streaming-remote-${{matrix.os}}-${{matrix.build-type}}.zip LICENSE xsplit*
+            mkdir -p ../artifacts/xsplit
+            install LICENSE xsplit* ../artifacts/xsplit/
           fi
         shell: bash
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: streaming-remote-binaries-${{matrix.os}}-${{matrix.build-type}}
+          name: native-${{matrix.os}}-${{matrix.build-type}}
           path: ${{runner.temp}}/artifacts
     strategy:
       matrix:
@@ -238,3 +237,61 @@ jobs:
           - os: macos
             qt-archives: qtmacextras
             qt-version: 5.14.1
+  prepare-packages:
+    name: Prepare packages
+    needs: [native, streamdeck, webui, xsplit]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        path: ${{runner.temp}}/artifacts
+    - name: Display downloaded files
+      run: ls -R
+      working-directory: ${{runner.temp}}/artifacts
+    - name: Make output directory
+      run: mkdir -p ${{runner.temp}}/final/
+    - name: Prepare StreamDeck plugins
+      working-directory: ${{runner.temp}}/artifacts
+      run: |
+        install \
+          sdplugin-production/com.fredemmott.streamingremote.streamDeckPlugin \
+          ${{runner.temp}}/final/
+        install \
+          sdplugin-development/com.fredemmott.streamingremote.streamDeckPlugin \
+          ${{runner.temp}}/final/debug-com.fredemmott.streamingremote.streamDeckPlugin
+    - name: Prepare Web UI
+      working-directory: ${{runner.temp}}/artifacts
+      run: |
+        ( cd webui-production; 7z a ${{runner.temp}}/final/webui-streaming-remote.zip *)
+        ( cd webui-development; 7z a ${{runner.temp}}/final/debug-webui-streaming-remote.zip *)
+    - name: Prepare OBS plugins
+      working-directory: ${{runner.temp}}/artifacts
+      run: |
+        ( cd native-windows-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-win64.zip *)
+        ( cd native-macos-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-macos.zip  *)
+        ( cd native-windows-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-win64.zip *)
+        ( cd native-macos-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-macos.zip *)
+    - name: Prepare XSplit plugins
+      working-directory: ${{runner.temp}}/artifacts
+      run: |
+        mkdir -p ${{runner.temp}}/xsplit-debug/plugin ${{runner.temp}}/xsplit-release/plugin
+        ( cd native-windows-Release/xsplit/; install * ${{runner.temp}}/xsplit-release )
+        ( cd native-windows-Debug/xsplit/; install * ${{runner.temp}}/xsplit-debug )
+        ( cd xsplit-production; install * ${{runner.temp}}/xsplit-release/plugin/ )
+        ( cd xsplit-development; install * ${{runner.temp}}/xsplit-debug/plugin/ )
+        cd ${{runner.temp}}/xsplit-release
+        ls -lR
+        7z a ${{runner.temp}}/final/xsplit-streaming-remote.zip *
+        cd ${{runner.temp}}/xsplit-debug
+        ls -lR
+        7z a ${{runner.temp}}/final/debug-xsplit-streaming-remote.zip *
+    - name: Prepare OBS plugins
+      working-directory: ${{runner.temp}}/artifacts
+      run: |
+        ( cd native-windows-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-win64.zip *)
+        ( cd native-macos-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-macos.zip  *)
+        ( cd native-windows-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-win64.zip *)
+        ( cd native-macos-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-macos.zip *)
+    - name: Display final files
+      run: ls -R
+      working-directory: ${{runner.temp}}/final
