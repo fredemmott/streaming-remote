@@ -64,7 +64,10 @@ jobs:
           install streamdeck-plugin/dist/bundle.js ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/dist/bundle.js
           install LICENSE ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/LICENSE
       - name: Checkout StreamDeck DistributionTool
-        run: git checkout streamdeck-distributiontool-v1.1 DistributionTool
+        run: |
+          BRANCH=streamdeck-distributiontool-v1.1
+          git fetch origin $BRANCH
+          git checkout origin/$BRANCH DistributionTool
       - name: Build .streamDeckPlugin
         run: |
           set +e
