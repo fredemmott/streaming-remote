@@ -38,6 +38,57 @@ jobs:
     strategy:
       matrix:
         build-type: [ "production", "development" ]
+  streamdeck:
+    name: StreamDeck Plugin - ${{matrix.build-type}}
+    needs: [check-generated-versions]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install tsc
+        run: brew install tsc
+      - name: Check tool versions
+        run: |
+          echo "Yarn: $(yarn --version)"
+          echo "TSC: $(tsc --version)"
+      - name: Build lib
+        working-directory: js-client-lib
+        run: yarn install && tsc
+      - name: Copy plugin directory
+        run: cp -R streamdeck-plugin ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin
+      - name: Build plugin
+        working-directory: streamdeck-plugin
+        run: yarn install && yarn run webpack --mode ${{matrix.build-type}}
+      - name: Copy built files
+        run: |
+          install -d streamdeck-plugin/dist/bundle.js ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/dist/bundle.js
+          install LICENSE ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/LICENSE
+      - name: Checkout StreamDeck DistributionTool
+        run: git checkout streamdeck-distributiontool-v1.1 DistributionTool
+      - name: Build .streamDeckPlugin
+        run: |
+          set +e
+          ./DistributionTool -b \
+            -i ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin \
+            -o .
+          if [ $? -eq 0 ]; then
+            echo "Distribution tool failed"
+            exit 1
+          else
+            set -e
+            test -f com.fredemmott.streamingremote.streamDeckPlugin
+          fi
+      - name: Build .zip
+        run: |
+          zip \
+          streaming-remote-${{matrix.build-type}}-streamDeckPlugin.zip \
+          com.fredemmott.streamingremote.streamDeckPlugin
+      - uses: actions/upload-artifact@v2
+        with:
+          name: streaming-remote-StreamDeckPlugin-${{matrix.build-type}}
+          path: streaming-remote-${{matrix.build-type}}-streamDeckPlugin.zip
+    strategy:
+      matrix:
+        build-type: [ "production", "development" ]
   xsplit:
     name: XSplit plugin - ${{matrix.build-type}}
     needs: [check-generated-versions]
