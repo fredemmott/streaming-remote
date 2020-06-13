@@ -204,7 +204,7 @@ const myPlugin = {
 
 setInterval(() => myPlugin.displayAndRetryBadConnections(), 1000);
 
-function connectSocket(inPort, inPluginUUID, inRegisterEvent, inInfo) {
+function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, inInfo) {
   pluginUUID = inPluginUUID
 
   // Open the web socket
@@ -306,5 +306,5 @@ async function loadImages() {
   };
 }
 
-window['connectSocket'] = connectSocket;
+window['connectElgatoStreamDeckSocket'] = connectElgatoStreamDeckSocket;
 window.addEventListener('load', () => loadImages());
