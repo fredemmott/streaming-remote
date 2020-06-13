@@ -9,8 +9,7 @@
 // the typescript isn't currently compileable :'(
 import * as XJS from "xjs-framework/dist/xjs-es2015"
 import * as StreamRemote from './StreamRemote'
-
-const XSPLIT_JS_CPP_PROTO_VERSION = "2.0";
+import { XSplitPluginDllApiVersion } from './Version';
 
 interface DeferredPromise<T> {
   resolve?: (T) => void;
@@ -64,9 +63,9 @@ dll_callback('stopOutput', async function (id: string) {
 });
 
 dll_callback('init', async function (dll_proto: string) {
-  console.log("init", {dll_proto, XSPLIT_JS_CPP_PROTO_VERSION});
-  if (dll_proto != XSPLIT_JS_CPP_PROTO_VERSION) {
-    readyState.reject([dll_proto, XSPLIT_JS_CPP_PROTO_VERSION]);
+  console.log("init", {dll_proto, XSplitPluginDllApiVersion});
+  if (dll_proto != XSplitPluginDllApiVersion) {
+    readyState.reject([dll_proto, XSplitPluginDllApiVersion]);
     return;
   }
   await sendOutputListToDll();
@@ -137,7 +136,7 @@ async function loadDll(): Promise<void> {
   console.log('waiting for dll');
   await handle;
   console.log('got dll');
-  StreamRemote.DllCall.init(XSPLIT_JS_CPP_PROTO_VERSION);
+  StreamRemote.DllCall.init(XSplitPluginDllApiVersion);
 }
 
 export async function start() {

@@ -108,13 +108,13 @@ void XSplit::sendToXSplitDebugLog(const std::string& what) {
 
 void XSplit::pluginfunc_init(const std::string& proto_version) {
   LOG_FUNCTION();
-  if (proto_version != XSPLIT_JS_CPP_PROTO_VERSION) {
+  if (proto_version != XSPLIT_PLUGIN_DLL_API_VERSION) {
     DebugPrint(
       "Protocol version mismatch - JS v{}, DLL v{}", proto_version,
-      XSPLIT_JS_CPP_PROTO_VERSION);
+      XSPLIT_PLUGIN_DLL_API_VERSION);
     // intentionally not leaving early - tell the JS plugin what's going on.
   }
-  callJSPlugin("init", XSPLIT_JS_CPP_PROTO_VERSION);
+  callJSPlugin("init", XSPLIT_PLUGIN_DLL_API_VERSION);
 }
 
 void XSplit::pluginfunc_setConfig(
