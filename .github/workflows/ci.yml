@@ -28,9 +28,8 @@ jobs:
       - name: Build zip
         working-directory: webui
         run: |
-          rm -rf node_modules
           cp ../LICENSE .
-          zip streaming-remote-webui-${{matrix.build-type}}.zip ./
+          zip streaming-remote-webui-${{matrix.build-type}}.zip index.html site.css dist/*
       - uses: actions/upload-artifact@v2
         with:
           name: streaming-remote-webui-${{matrix.build-type}}
@@ -39,7 +38,7 @@ jobs:
       matrix:
         build-type: [ "production", "development" ]
   native:
-    name: Build ${{matrix.os}}/${{matrix.build-type}}
+    name: Build ${{matrix.os}} - ${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
     env:
       OBS_VERSION: 25.0.5
