@@ -36,7 +36,6 @@ export interface Output {
 
 export interface Config {
   password: string;
-  localSocket: string;
   tcpPort: Number;
   webSocketPort: Number;
 }
@@ -63,9 +62,6 @@ export namespace DllCall {
     const config = JSON.parse(json) as Config;
     if (config.password == '') {
       config.password = null;
-    }
-    if (config.localSocket == '') {
-      config.localSocket = null;
     }
     return config;
   }

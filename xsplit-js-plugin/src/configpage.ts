@@ -45,7 +45,6 @@ interface ElementsIf {
   password ?: HTMLInputElement;
   tcpPort ?: HTMLInputElement;
   webSocketPort ?: HTMLInputElement;
-  namedPipe ?: HTMLInputElement;
   apply ?: HTMLButtonElement;
   reset ?: HTMLButtonElement;
 }
@@ -58,7 +57,6 @@ window.addEventListener('load', () => {
   e.password = qs('#password');
   e.tcpPort = qs('#tcpPort');
   e.webSocketPort = qs('#webSocketPort');
-  e.namedPipe = qs('#localSocket');
   e.apply = qs('#apply');
   e.reset = qs('#reset');
 });
@@ -78,7 +76,6 @@ async function setupConfiguration(): Promise<void> {
 
   const config = await Plugin.getConfiguration();
   Elements.password.value = config.password;
-  Elements.namedPipe.value = config.localSocket;
   Elements.tcpPort.value = config.tcpPort.toString();
   Elements.webSocketPort.value = config.webSocketPort.toString();
   document.getElementById('configTable').classList.remove('uninit');
@@ -90,7 +87,6 @@ async function updateButtonState(): Promise<void> {
 
   const haveChanges =
     (a.password !== b.password)
-    || (a.localSocket !== b.localSocket)
     || (a.tcpPort !== b.tcpPort)
     || (a.webSocketPort !== b.webSocketPort);
   Elements.reset.disabled = !haveChanges;
@@ -101,7 +97,6 @@ function getConfigurationFromElements(): Config {
   const e = Elements;
   return {
     password: e.password.value,
-    localSocket: e.namedPipe.value == '' ? null : e.namedPipe.value,
     tcpPort: e.tcpPort.value == null ? null : parseInt(e.tcpPort.value),
     webSocketPort: e.webSocketPort.value == null ? null : parseInt(e.webSocketPort.value),
   };
@@ -118,12 +113,10 @@ function connectConfigurationButtons(): void {
     e.password.value = config.password;
     e.tcpPort.value = config.tcpPort.toString();
     e.webSocketPort.value = config.webSocketPort.toString();
-    e.namedPipe.value = config.localSocket;
     updateButtonState();
   });
 
   e.password.addEventListener('change', () => updateButtonState());
   e.tcpPort.addEventListener('change', () => updateButtonState());
   e.webSocketPort.addEventListener('change', () => updateButtonState());
-  e.namedPipe.addEventListener('change', () => updateButtonState());
 }
