@@ -2,94 +2,87 @@
 <html>
 
 <head>
-    <meta charset="utf-8" />
-    <title>com.fredemmott.streamingremote PI</title>
-    <link rel="stylesheet" href="sdpi.css">
-    <script src="common.js"></script>
+  <meta charset="utf-8" />
+  <title>com.fredemmott.streamingremote PI</title>
+  <link rel="stylesheet" href="sdpi.css">
+  <script src="common.js"></script>
 </head>
 
 <body>
-    <div class="sdpi-wrapper hidden" id="mainWrapper">
-        <div class="sdpi-item">
-            <div class="sdpi-item-label">Server</div>
-            <input
-				class="sdpi-item-value"
-				placeholder="ws://<host>:<port>"
-				value='ws://localhost:9002'
-				pattern="^ws://.+:[0-9]+$"
-				id="uri"
-				onchange="saveSettings();"
-				required
-			/>
-        </div>
-		<div class="sdpi-item">
-            <div class="sdpi-item-label">Password</div>
-            <input
-				class="sdpi-item-value"
-				type="password"
-				id="password"
-				onchange="saveSettings();"
-				required
-			/>
-        </div>
-		<div class="sdpi-item">
-			<div class="sdpi-item-label" onchange="saveSettings()">Output</div>
-			<select class="sdpi-item-value select" id="output" disabled onchange="saveSettings();">
-			</select>
-		</div>
+  <div class="sdpi-wrapper hidden" id="mainWrapper">
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Server</div>
+      <input class="sdpi-item-value" placeholder="ws://<host>:<port>" value='ws://localhost:9002'
+        pattern="^ws://.+:[0-9]+$" id="uri" onchange="saveSettings();" required />
     </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Password</div>
+      <input class="sdpi-item-value" type="password" id="password" onchange="saveSettings();" required />
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label" onchange="saveSettings()">Output</div>
+      <select class="sdpi-item-value select" id="output" disabled onchange="saveSettings();">
+      </select>
+    </div>
+	<p>
+		<a href="https://github.com/fredemmott/streaming-remote/releases/latest" target="_blank">
+      Download compatible plugins for OBS and XSplit
+    </a>
+	</p>
 
-    <script>
-        var uuid, actionInfo, ctx;
+  </div>
 
-        $SD.on('connected', function (jsonObj) {
-			uuid = jsonObj.uuid;
-			actionInfo = jsonObj.actionInfo.action;
-			ctx = jsonObj.actionInfo.context;
-			$SD.api.sendToPlugin(uuid, actionInfo, {event: 'getData'});
-		});
-		$SD.on('sendToPropertyInspector', function (jsonObj) {
-			const {event} = jsonObj.payload;
-			if (event != 'data') {
-				return;
-			}
-			const {outputs, settings} = jsonObj.payload;
-			
-			const outputSelect = document.getElementById('output');
-			while (outputSelect.firstChild) {
-				outputSelect.removeChild(outputSelect.firstChild);
-			}
-			Object.keys(outputs).map(id => {
-				const {name, state, type} = outputs[id];
-				const option = document.createElement('option');
-				option.setAttribute('value', id);
-				option.setAttribute('label', name);
-				if (id == settings.output) {
-					option.setAttribute('selected', true);
-				}
-				outputSelect.appendChild(option);
-			});
-			outputSelect.disabled = false;
-			
-			document.getElementById('uri').value = settings.uri;
-			document.getElementById('password').value = settings.password;
-			
-			if (settings.output == "" && outputSelect.value != settings.output) {
-				saveSettings();
-			}
-			
-			document.getElementById('mainWrapper').classList.remove('hidden');
-		});
-		
-		function saveSettings() {
-			const settings = {
-				uri: document.getElementById('uri').value,
-				password: document.getElementById('password').value,
-				output: document.getElementById('output').value,
-			};
-			$SD.api.sendToPlugin(uuid, actionInfo, {event: 'saveSettings', settings});
-		}
-    </script>
+  <script>
+    var uuid, actionInfo, ctx;
+
+    $SD.on('connected', function (jsonObj) {
+      uuid = jsonObj.uuid;
+      actionInfo = jsonObj.actionInfo.action;
+      ctx = jsonObj.actionInfo.context;
+      $SD.api.sendToPlugin(uuid, actionInfo, { event: 'getData' });
+    });
+    $SD.on('sendToPropertyInspector', function (jsonObj) {
+      const { event } = jsonObj.payload;
+      if (event != 'data') {
+        return;
+      }
+      const { outputs, settings } = jsonObj.payload;
+
+      const outputSelect = document.getElementById('output');
+      while (outputSelect.firstChild) {
+        outputSelect.removeChild(outputSelect.firstChild);
+      }
+      Object.keys(outputs).map(id => {
+        const { name, state, type } = outputs[id];
+        const option = document.createElement('option');
+        option.setAttribute('value', id);
+        option.setAttribute('label', name);
+        if (id == settings.output) {
+          option.setAttribute('selected', true);
+        }
+        outputSelect.appendChild(option);
+      });
+      outputSelect.disabled = false;
+
+      document.getElementById('uri').value = settings.uri;
+      document.getElementById('password').value = settings.password;
+
+      if (settings.output == "" && outputSelect.value != settings.output) {
+        saveSettings();
+      }
+
+      document.getElementById('mainWrapper').classList.remove('hidden');
+    });
+
+    function saveSettings() {
+      const settings = {
+        uri: document.getElementById('uri').value,
+        password: document.getElementById('password').value,
+        output: document.getElementById('output').value,
+      };
+      $SD.api.sendToPlugin(uuid, actionInfo, { event: 'saveSettings', settings });
+    }
+  </script>
 
 </body>
 
