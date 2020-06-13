@@ -97,20 +97,38 @@ class XSplit final : public StreamingSoftware {
     return std::make_tuple(mapper(Tis)...);
   }
 
-  template <class TRet, class... Targs>
+  template<class T>
+  T convert_plugin_func_arg(const std::string& in) {
+    return in;
+  }
+
+  template<>
+  nlohmann::json convert_plugin_func_arg<nlohmann::json>(const std::string& in) {
+    return nlohmann::json::parse(in);
+  }
+
+  template <class... Targs>
   auto call_plugin_func(
     BSTR* ret,
-    TRet (XSplit::*impl)(const Targs&...),
+    std::string (XSplit::*impl)(const Targs&...),
     Targs... args) {
-    *ret = NEW_BSTR_FROM_STDSTRING((this->*impl)(args...));
+    *ret = NEW_BSTR_FROM_STDSTRING((this->*impl)(convert_plugin_func_arg<Targs>(args)...));
   }
+
+  template <class... Targs>
+	auto call_plugin_func(
+		BSTR* ret,
+		nlohmann::json (XSplit::*impl)(const Targs&...),
+		Targs... args) {
+		*ret = NEW_BSTR_FROM_STDSTRING((this->*impl)(convert_plugin_func_arg<Targs>(args)...).dump());
+	}
 
   template <class... Targs>
   auto call_plugin_func(
     BSTR* ret,
     void (XSplit::*impl)(const Targs&...),
     Targs... args) {
-    (this->*impl)(args...);
+    (this->*impl)(convert_plugin_func_arg<Targs>(args)...);
   }
 
   template <class TRet, class... Targs>
