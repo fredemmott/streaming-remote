@@ -8,6 +8,10 @@
 
 import * as XJS from "xjs-framework/dist/xjs-es2015"
 
+function cpp_fun(name: string): string {
+  return `com.fredemmott.streaming-remote/cpp/${name}`;
+}
+
 export enum OutputType {
   UNKNOWN = 'unknown',
   LOCAL_RECORDING = 'local_recording',
@@ -38,12 +42,15 @@ export interface Config {
 }
 
 export namespace DllCall {
-  export async function init(
+  export async function init(proto_version: string): Promise<void> {
+    await XJS.Dll.callEx(cpp_fun('init'), proto_version);
+  }
+  export async function setConfig(
     config: Config,
     outputs: Array<Output>,
   ): Promise<void> {
     await XJS.Dll.callEx(
-      'StreamingRemote.init',
+      cpp_fun('setConfig'),
       JSON.stringify(config),
       JSON.stringify(outputs),
     );
@@ -51,7 +58,7 @@ export namespace DllCall {
 
   export async function getDefaultConfiguration(): Promise<Config> {
     const json = await XJS.Dll.callEx(
-      'StreamingRemote.getDefaultConfiguration'
+      cpp_fun('getDefaultConfiguration'),
     );
     const config = JSON.parse(json) as Config;
     if (config.password == '') {
@@ -64,12 +71,12 @@ export namespace DllCall {
   }
 
   export async function outputStateChanged(id: string, state: OutputState): Promise<void> {
-    await XJS.Dll.callEx('StreamingRemote.outputStateChanged', id, state);
+    await XJS.Dll.callEx(cpp_fun('outputStateChanged'), id, state);
   }
 
   export async function setConfiguration(config: Config): Promise<void> {
     const json = JSON.stringify(config);
     console.log('setting config', config);
-    await XJS.Dll.callEx('StreamingRemote.setConfiguration', json);
+    await XJS.Dll.callEx(cpp_fun('setConfiguration'), json);
   }
 }

@@ -47,7 +47,13 @@ class XSplit : public StreamingSoftware {
 
   template <class... Targs>
   void callJSPlugin(const char* func, Targs... args) {
-    BSTR com_func = NEW_BSTR_FROM_STDSTRING(func);
+    OutputDebugStringA("[xsplit-streaming-remote] Calling JS");
+    BSTR com_func = NEW_BSTR_FROM_STDSTRING(
+      // ideally:
+      //   fmt::format("com.fredemmott.streaming-remote/js/{}", func));
+      // ... but it needs to be a valid JS function name; `OnDll<foo>()` is
+      // called by XSplit.
+      fmt::format("com_fredemmott_streamingremote__js__{}", func));
     std::vector<std::string> argv{args...};
     asio::post([=]() {
       BSTR* com_args = (BSTR*)malloc(sizeof(BSTR) * sizeof...(Targs));

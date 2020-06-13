@@ -10,6 +10,8 @@
 import * as XJS from "xjs-framework/dist/xjs-es2015"
 import * as StreamRemote from './StreamRemote'
 
+const XSPLIT_JS_CPP_PROTO_VERSION = "1.0";
+
 interface DeferredPromise<T> {
   resolve?: (T) => void;
   reject?: (T) => void;
@@ -20,21 +22,19 @@ export const ready: Promise<void> = new Promise((resolve, reject) => {
   readyState.resolve = resolve;
   readyState.reject = reject;
 });
-const dllReadyState: DeferredPromise<void> = {};
-const dllReady: Promise<void> = new Promise((resolve, reject) => {
-  dllReadyState.resolve = resolve;
-  dllReadyState.reject = reject;
-});
 
-declare global {
-  interface Window {
-    OnDllstreamingRemoteStartOutput: (id: string) => Promise<void>;
-    OnDllstreamingRemoteStopOutput: (id: string) => Promise<void>;
-    OnDllstreamingRemoteDebugLog: (what: string) => Promise<void>;
-  }
+function dll_callback(name: string, impl): void {
+  // com.fredemmott.js.streaming-remote/js/, but without invalid chars for JS
+  // function names
+  const plugin_prefix = "com_fredemmott_streamingremote__js__";
+  window[`OnDll${plugin_prefix}${name}`] = impl;
 }
 
-window.OnDllstreamingRemoteStartOutput = async function (id) {
+dll_callback('debugLog', async function(what: string) {
+  console.log(`DLL: ${what}`);
+});
+
+dll_callback('startOutput', async function (id: string) {
   const outputs = await XJS.Output.getOutputList();
   await Promise.all(
     outputs.map(async output => {
@@ -47,13 +47,9 @@ window.OnDllstreamingRemoteStartOutput = async function (id) {
       }
     })
   );
-}
+});
 
-window.OnDllstreamingRemoteDebugLog = async function(what) {
-  console.log('DLL says: ' + what);
-}
-
-window.OnDllstreamingRemoteStopOutput = async function (id) {
+dll_callback('stopOutput', async function (id: string) {
   const outputs = await XJS.Output.getOutputList();
   await Promise.all(
     outputs.map(async output => {
@@ -65,7 +61,18 @@ window.OnDllstreamingRemoteStopOutput = async function (id) {
       }
     })
   );
-}
+});
+
+dll_callback('init', async function (proto: string) {
+  if (proto != XSPLIT_JS_CPP_PROTO_VERSION) {
+    readyState.reject(
+      `Protocol mismatch: JS is ${XSPLIT_JS_CPP_PROTO_VERSION}, DLL is ${proto}`
+    );
+    return;
+  }
+  await sendOutputListToDll();
+  readyState.resolve(null);
+});
 
 async function sendOutputListToDll() {
   await XJS.ready();
@@ -114,11 +121,13 @@ async function sendOutputListToDll() {
       }
     }
   });
-  await StreamRemote.DllCall.init(config, retOutputs);
+  await StreamRemote.DllCall.setConfig(config, retOutputs);
 }
 
 async function loadDll(): Promise<void> {
+  console.log('loading dll');
   await XJS.ready();
+  console.log('XJS ready');
   const handle = XJS.Dll.load(["ScriptDlls\\Local\\xsplit-streaming-remote.dll"]);
   const haveDll = await XJS.Dll.isAccessGranted();
   if (!haveDll) {
@@ -126,8 +135,10 @@ async function loadDll(): Promise<void> {
       XJS.Dll.on('access-granted', resolve);
     });
   }
+  console.log('waiting for dll');
   await handle;
-  dllReadyState.resolve(null);
+  console.log('got dll');
+  StreamRemote.DllCall.init(XSPLIT_JS_CPP_PROTO_VERSION);
 }
 
 export async function start() {
@@ -149,13 +160,10 @@ export async function start() {
     const id = await channel.getName();
     await StreamRemote.DllCall.outputStateChanged(id, StreamRemote.OutputState.STOPPED);
   });
-
-  await sendOutputListToDll();
-  readyState.resolve(null);
 }
 
 export async function getConfiguration(): Promise<StreamRemote.Config> {
-  await dllReady;
+  await ready;
   const storageKey = await (new XJS.App()).getUserIdHash();
   const storedJson = localStorage.getItem(storageKey);
   if (storedJson === null || storedJson === '') {
@@ -170,7 +178,7 @@ export async function getConfiguration(): Promise<StreamRemote.Config> {
 }
 
 export async function setConfiguration(config: StreamRemote.Config): Promise<void> {
-  await dllReady;
+  await ready;
   const storageKey = await (new XJS.App()).getUserIdHash();
   localStorage.setItem(storageKey, JSON.stringify(config));
   await StreamRemote.DllCall.setConfiguration(config);

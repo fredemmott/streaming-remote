@@ -15,12 +15,13 @@
 
 #include "Core/Config.h"
 #include "Core/Logger.h"
+#include "version.h"
 
 #define DebugPrint(...) Logger::debug(__VA_ARGS__)
 
 using json = nlohmann::json;
 
-#define CHECK(x) \
+#define XSPLIT_CHECK(x) \
   if (!(x)) { \
     DebugPrint("Assertion failed at {}:{}: {}" __FILE__, __LINE__, #x); \
     return false; \
@@ -68,6 +69,9 @@ bool XSplit::handleCall(
   }
 
   const auto fun = STDSTRING_FROM_BSTR(wideFunctionName);
+  const auto fun_id = [](const char* name) {
+    return fmt::format("com.fredemmott.streaming-remote/cpp/{}", name);
+  };
   std::vector<std::string> argv;
   DebugPrint("Call: {}", fun);
   for (UINT i = 0; i < argc; ++i) {
@@ -76,8 +80,26 @@ bool XSplit::handleCall(
     argv.push_back(arg);
   }
 
-  if (fun == "StreamingRemote.init") {
-    CHECK(argc == 2);
+  if (fun == fun_id("init")) {
+    DebugPrint("init handler - {}", __LINE__);
+    XSPLIT_CHECK(argc == 1);
+    DebugPrint("init handler - {}", __LINE__);
+    const auto proto = argv[0];
+    DebugPrint("init handler - {}", __LINE__);
+    if (proto != XSPLIT_JS_CPP_PROTO_VERSION) {
+      DebugPrint(
+        "Protocol version mismatch - JS v{}, DLL v{}", proto,
+        XSPLIT_JS_CPP_PROTO_VERSION);
+    }
+    DebugPrint("init handler - {}", __LINE__);
+    callJSPlugin("init", XSPLIT_JS_CPP_PROTO_VERSION);
+    DebugPrint("init handler - {}", __LINE__);
+    DebugPrint("end init handler");
+    return true;
+  }
+
+  if (fun == fun_id("setConfig")) {
+    XSPLIT_CHECK(argc == 2);
     const auto config = json::parse(argv[0]);
     const auto outputs = json::parse(argv[1]);
     DebugPrint("Setting config to {}", config.dump());
@@ -92,8 +114,8 @@ bool XSplit::handleCall(
     return true;
   }
 
-  if (fun == "StreamingRemote.outputStateChanged") {
-    CHECK(argc == 2);
+  if (fun == fun_id("outputStateChanged")) {
+    XSPLIT_CHECK(argc == 2);
     const auto id = argv[0];
     const auto stateStr = argv[1];
     const auto state = Output::stateFromString(stateStr);
@@ -110,8 +132,8 @@ bool XSplit::handleCall(
     return true;
   }
 
-  if (fun == "StreamingRemote.getDefaultConfiguration") {
-    CHECK(argc == 0);
+  if (fun == fun_id("getDefaultConfiguration")) {
+    XSPLIT_CHECK(argc == 0);
     auto config = Config::getDefault();
     json doc({{"password", config.password},
               {"localSocket", config.localSocket},
@@ -122,8 +144,8 @@ bool XSplit::handleCall(
     return true;
   }
 
-  if (fun == "StreamingRemote.setConfiguration") {
-    CHECK(argc == 1);
+  if (fun == fun_id("setConfiguration")) {
+    XSPLIT_CHECK(argc == 1);
     const auto config = json::parse(argv[0]);
     setJsonConfig(config);
     DebugPrint("new configuration: {}", config.dump());
@@ -138,14 +160,14 @@ bool XSplit::handleCall(
 
 void XSplit::startOutput(const std::string& id) {
   LOG_FUNCTION(id);
-  callJSPlugin("streamingRemoteStartOutput", id);
+  callJSPlugin("startOutput", id);
 }
 
 void XSplit::stopOutput(const std::string& id) {
   LOG_FUNCTION(id);
-  callJSPlugin("streamingRemoteStopOutput", id);
+  callJSPlugin("stopOutput", id);
 }
 
 void XSplit::sendToXSplitDebugLog(const std::string& what) {
-  callJSPlugin("streamingRemoteDebugLog", what);
+  callJSPlugin("debugLog", what);
 }
