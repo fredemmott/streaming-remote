@@ -8,7 +8,7 @@
 
 import * as sodium from 'libsodium-wrappers-sumo';
 import CryptoState from './CryptoState';
-import { OutputState, Output } from './RPCTypes';
+import { OutputState, Output } from './Types';
 
 interface JSONRPCMessage {
   jsonrpc: "2.0",
@@ -37,7 +37,7 @@ export type OutputStateChangedCallback =
   (id: string, state: OutputState) => void | Promise<void>;
 
 
-export default class RPCClient {
+export default class Client {
   private ws: WebSocket;
   private cryptoState: CryptoState;
   constructor(ws: WebSocket, cryptoState: CryptoState) {

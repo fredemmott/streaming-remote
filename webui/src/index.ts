@@ -6,11 +6,9 @@
  * in the root directory of this source tree.
  */
 
-import handshake from './handshake';
-import RPCClient from './RPCClient';
-import CryptoState from './CryptoState';
-import { Output, OutputType, OutputState } from './RPCTypes';
-import { ClientConfig, ClientConfigStorage } from './ClientConfig';
+import {Output, OutputState, OutputType} from "StreamingRemoteClient";
+import * as Client from "StreamingRemoteClient";
+import * as ConfigStorage from "./ConfigStorage";
 
 function handleOutputDrop(e) {
   e.preventDefault();
@@ -42,19 +40,19 @@ function handleOutputDragOver(e) {
 class WebUIClient {
   static allHosts: { [host: string]: boolean } = {};
   private ws: WebSocket;
-  private rpc: RPCClient;
-  private config: ClientConfig;
+  private rpc: Client.RPC;
+  private config: Client.Config;
   private outputs: { [id: string]: HTMLDivElement };
-  constructor(ws: WebSocket, config: ClientConfig) {
+  constructor(ws: WebSocket, config: Client.Config) {
     this.ws = ws;
     this.config = config;
     this.outputs = {};
   }
 
   public async start(password: string): Promise<void> {
-    let handshakeState: CryptoState = null;
+    let cryptoState : Client.CryptoState = null;
     try {
-      handshakeState = await handshake(this.ws, password);
+      cryptoState = await Client.handshake(this.ws, password);
     } catch (e) {
       const error = document.querySelector('#error');
       error.classList.remove('uninit');
@@ -66,7 +64,7 @@ class WebUIClient {
       document.querySelector('#connectionParameters').classList.remove('hide');
       return;
     }
-    this.rpc = new RPCClient(this.ws, handshakeState);
+    this.rpc = new Client.RPC(this.ws, cryptoState);
     this.rpc.onHelloNotification(() => {
       document.querySelector('#connecting').classList.add('hide');
       this.updateOutputs();
@@ -173,7 +171,7 @@ class WebUIClient {
   }
 }
 
-async function connect(config: ClientConfig) {
+async function connect(config: Client.Config) {
   document.querySelector('#connectionParameters').classList.add('hide');
   document.querySelector('#connecting').classList.remove('hide');
   const uri = 'ws://' + config.host + ':' + config.port;
@@ -194,14 +192,14 @@ async function connect(config: ClientConfig) {
   });
 }
 
-function reset(ws: WebSocket, config: ClientConfig) {
+function reset(ws: WebSocket, config: Client.Config) {
   ws.close();
   setTimeout(function () { connect(config); }, 500);
 }
 
 function initializeConnectionForm(): void {
   try {
-    const saved = ClientConfigStorage.getSavedConfigurationNames();
+    const saved = ConfigStorage.getSavedConfigurationNames();
     if (saved.length == 0) {
       document.querySelector('#savedConnections').classList.add('hide');
     } else {
@@ -216,7 +214,7 @@ function initializeConnectionForm(): void {
 
         button.addEventListener('click', e => {
           e.preventDefault();
-          const config = ClientConfigStorage.getSavedConfiguration(name);
+          const config = ConfigStorage.getSavedConfiguration(name);
           document.title = name + ' [Stream Remote]';
           connect(config);
         });
@@ -239,7 +237,7 @@ function initializeConnectionForm(): void {
     const name = (document.querySelector('#name') as HTMLInputElement).value;
     if (name !== '') {
       document.title = name + ' [Stream Remote]';
-      ClientConfigStorage.saveConfiguration(name, config);
+      ConfigStorage.saveConfiguration(name, config);
     }
     connect(config);
   });

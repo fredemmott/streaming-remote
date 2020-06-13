@@ -1,0 +1,14 @@
+{
+  "name": "lib-streaming-remote-client",
+  "version": "1.0.0",
+  "description": "JS client library for streaming-remote",
+  "author": "Fred Emmott",
+  "license": "MIT",
+  "dependencies": {
+    "@types/libsodium-wrappers-sumo": "^0.7.0",
+    "libsodium-wrappers-sumo": "^0.7.3",
+    "typescript": "^3.1.1"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
+}
