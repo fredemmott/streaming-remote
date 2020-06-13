@@ -10,15 +10,16 @@ jobs:
     steps:
       - name: Cache Qt
         id: cache-qt
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{runner.temp}}/Qt
-          key: Qt-${{matrix.qt-version}}-${{ matrix.os }}
+          key: Qt-${{matrix.qt-version}}-${{matrix.os}}-${{matrix.architecture}}
       - uses: jurplel/install-qt-action@v2
         with:
           version: '5.10.1'
           dir: ${{runner.temp}}/Qt
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
+          arch: ${{matrix.qt-platform}}
       - name: Cache OBS
         id: cache-obs
         uses: actions/cache@v1
