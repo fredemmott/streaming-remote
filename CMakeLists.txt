@@ -15,6 +15,6 @@ configure_file(
 )
 configure_file(
 	streamdeck-plugin/manifest.json.in
-	${CMAKE_CURRENT_SOURCE_DIR}/sdplugin/manifest.json
+	${CMAKE_CURRENT_SOURCE_DIR}/streamdeck-plugin/manifest.json
 	NEWLINE_STYLE LF
 )

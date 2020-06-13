@@ -62,7 +62,6 @@ jobs:
         run: |
           mkdir -p ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/dist/
           install streamdeck-plugin/dist/bundle.js ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/dist/bundle.js
-          install streamdeck-plugin/manifest.json ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/manifest.json
           install LICENSE ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/LICENSE
       - name: Checkout StreamDeck DistributionTool
         run: |

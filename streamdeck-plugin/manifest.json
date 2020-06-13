@@ -1,0 +1,36 @@
+{
+  "Actions": [
+    {
+      "Icon": "keys/streaming-changing",
+      "Name": "Streaming Remote",
+      "States": [
+        {
+          "Image": "keys/streaming-changing",
+          "TitleAlignment": "middle",
+          "FontSize": "16"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Remotely control OBS and XSplit",
+      "UUID": "com.fredemmott.streamingremote.action"
+    }
+  ],
+  "Author": "Fred Emmott",
+  "CodePath": "app.html",
+  "Description": "Remotely control OBS and XSplit",
+  "Name": "Streaming Remote",
+  "Icon": "keys/streaming-changing",
+  "URL": "https://github.com/fredemmott/streaming-remote/",
+  "Version": "2.0",
+  "PropertyInspectorPath": "pi.html",
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.11"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ]
+}
