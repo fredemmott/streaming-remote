@@ -44,8 +44,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install tsc
-        run: brew install tsc
+      - name: Install typescript
+        run: brew install typescript
       - name: Check tool versions
         run: |
           echo "Yarn: $(yarn --version)"
