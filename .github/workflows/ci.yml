@@ -110,7 +110,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: streaming-remote-webui-${{matrix.build-type}}
-          path: webui/streaming-remote-webui-${{matrix.build-type}}.zip
+          path: xsplit-js-plugin/streaming-remote-webui-${{matrix.build-type}}.zip
     strategy:
       matrix:
         build-type: [ "production", "development" ]
