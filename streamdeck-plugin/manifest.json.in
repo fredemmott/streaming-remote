@@ -21,7 +21,7 @@
   "Name": "Streaming Remote",
   "Icon": "keys/streaming-changing",
   "URL": "https://github.com/fredemmott/streaming-remote/",
-  "Version": "1.0",
+  "Version": "${CMAKE_PROJECT_VERSION}",
   "PropertyInspectorPath": "pi.html",
   "OS": [
     {

@@ -1,0 +1,20 @@
+{
+  "name": "streaming-remote-streamdeck-plugin",
+  "version": "1.0.0",
+  "description": "StreamDeck plugin for streaming-remote",
+  "main": "dist/bundle.js",
+  "author": "Fred Emmott",
+  "license": "MIT",
+  "dependencies": {
+    "StreamingRemoteClient": "../js-client-lib"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.10.2",
+    "webpack-cli": "^3.1.2",
+    "babel-loader": "^8.0.4",
+    "ts-loader": "^7.0.5",
+    "typescript": "^3.1.1",
+    "webpack": "^4.20.2"
+  }
+}

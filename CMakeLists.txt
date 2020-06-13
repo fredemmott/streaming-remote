@@ -13,3 +13,8 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/xsplit-js-plugin/src/Version.ts
   NEWLINE_STYLE LF
 )
+configure_file(
+	streamdeck-plugin/manifest.json.in
+	${CMAKE_CURRENT_SOURCE_DIR}/sdplugin/manifest.json
+	NEWLINE_STYLE LF
+)
