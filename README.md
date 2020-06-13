@@ -5,7 +5,7 @@ Streaming Remote provides secure remote control of
 sockets, WebSockets, local unix sockets (MacOS and Linux) or named pipes
 (Windows).
 
-A basic Web UI is also provided.
+A StreamDeck plugin and basic Web UI are also provided.
 
 ## Web UI
 
@@ -41,27 +41,62 @@ but it works in Chrome.
 
 We expect to expand the capabilities in the future.
 
-## Requirements
+## Installation
+
+Download files from [https://github.com/fredemmott/streaming-remote/releases/latest](the latest release); most
+users will want the the 'production' or 'Release' downloads, unless you have a specific reason not to.
+
+### OBS Studio
+
+1. Download the OBS studio plugin and extract it
+2. Copy the `.dll` or `.so` to the `obs-plugins` sub-folder of your OBS studio installation
+   - If you use 64-bit OBS for Windows, this is likely `C:\Program Files\obs-studio\obs-plugins\64bit`
+   - If you use 32-bit OBS for Windows, this is likely `C:\Program Files\obs-studio\obs-plugins\32bit`
+   - If you use OBS for MacOS, this is likely `/Applications/OBS.app/Contents/PlugIns`
+   - If you installed OBS using homebrew, will need to build from source
+3. Start OBS
+4. Configure the plugin from "Streaming Remote Settings" in the Tools menu
+
+### XSplit Broadcaster
+
+1. Enable developer mode from Tools -> Settings -> Advanced
+2. Restart XSplit when prompted
+3. Download the XSplit plugin and extract it
+4. Copy the `dll` to the `ScriptDlls\Local` subdirectory of your XSplit installation; this is likely
+  `C:\Program Files (x86)\SplitmediaLabs\XSplit Broadcaster\x64\Scriptdlls\Local`
+5. Select "Extensions" -> "Add extension" -> "Add extension file"
+6. Use the "Browse" button to find the index.html file inside the plugin directory
+7. Open "Tools" -> "Streaming Remote" to enable or configure; closing the window closes the plugin.
+
+### Web UI
+
+1. Download the Web UI and extract it
+2. Open `index.html` in your favorite browser; Google Chrome is recommended
+
+### StreamDeck plugin
+
+1. Download the plugin and open it
+
+## Building Native Components From Source
+
+### Requirements
 
 - [CMake](https://cmake.org)
-- [libsodium](https://libsodium.org)
 - [Qt5](https://www.qt.io)
-- [yarn](https://yarnpkg.com/en/) or [npm](https://www.npmjs.com) if building
   the web UI or the XSplit plugin
-- [OBS Studio](https://obsproject.com) if building the OBS plugin
+- [OBS Studio](https://obsproject.com) - built from source - if building the OBS plugin
+- Visual Studio 2019 or recent XCode
 
-If you are on MacOS, we recommend building OBS from source, and installing
-the other dependencies via [Homebrew](https://brew.sh).
-
-## Building The Plugins
+### Instructions
 
 ```
 streaming-remote$ mkdir build
 streaming-remote$ cd build
-build$ cmake ../plugins \
-  -DWITH_XSPLIT_PLUGIN=ON \
-  -DWITH_OBS_PLUGIN=ON \
-  -DOBS_SOURCE_DIR=/path/to/obs-source
+build$ cmake .. \
+  -DWITH_XSPLIT=ON \
+  -DWITH_OBS_ON \
+  -DOBS_SOURCE_DIR=/path/to/obs-studio \
+  -DOBS_BUILD_DIR=/path/to/obs-studio/build
 build$ make
 ```
 
@@ -69,34 +104,6 @@ The XSplit plugin can be built on all platforms, even though XSplit itself
 is only available on Windows. This is useful when working on changes that
 affect the `StreamingSoftware` class on a non-Windows machine.
 
-### Qt Paths
-
-You may need to add paths to `CMAKE_PREFIX_PATHS` for CMake to find Qt.
-
-On MacOS with Homebrew, this is likely
-`-DCMAKE_PREFIX_PATHS=/usr/local/opt/qt/lib/cmake`.
-
-On Windows, this is likely `-DCMAKE_PREFIX_PATH=C:/Qt/lib/cmake`.
-
-### OBS paths
-
-If you did not build OBS Studio from source, you may need to specify several
-variables instead of `OBS_SOURCE_DIR`:
-- `LIBOBS_INCLUDE_DIR`: the directory containing `obs-module.h`
-- `LIBOBS_LIB`: the path to `libobs.so`, `libobs.dll`, `libobs.dylib`, or the
-   equivalent for your platform.
-- `OBS_FRONTEND_API_INCLUDE_DIR`: the directory containing `obs-frontend-api.h`
-- `OBS_FRONTEND_API_LIB`: the path to `libobs-frontend-api.so`, or the
-  equivalent for your platform.
-
-
-## Installing the OBS Plugin
-
-Copy `obs-streaming-remote.so` to your OBS plugins directory.
-
-## Installing the XSplit Plugin
-
-### Native Component
 
 1. Copy the DLLs for QtCore, QtNetwork, QtWebsockets, and sodium into the
    root directory of your XSplit installation - likely
@@ -105,21 +112,22 @@ Copy `obs-streaming-remote.so` to your OBS plugins directory.
    `Local` directory inside that path.
 1.  Copy `xsplit-streaming-remote.dll` to the new `Local` directory
 1.  You will need to enable developer mode in XSplit to run self-built DLLs
-
-### JavaScript component
-
-1. in the `plugins/xsplit/js` directory, run `yarn install` or `npm install`
-1. run `yarn run webpack --mode production` or
-   `npm run webpack --mode production`
 1. in XSplit, open the 'Extensions' menu, then 'Add Extension'; select the
    `plugins/xsplit/js/index.html` file
 
-## Building the Web UI
 
-1. in the `webui` directory, run `yarn install` or `npm install`
-1. run `yarn run webpack --mode production` or
-   `npm run webpack --mode production`
-1. open the `webui/index.html` file in Chrome or Safari
+## Building TypeScript Components from source
+
+### Requirements
+
+- typescript
+- yarn (preferred) or npm
+
+### Instructions
+
+1. in `js-client-lib`, run `yarn install && tsc`
+2. in `xsplit-js-plugin`, `streamdeck-plugin`, and `webui`, run:
+   `yarn install && yarn run webpack --mode production
 
 ## Protocol
 
