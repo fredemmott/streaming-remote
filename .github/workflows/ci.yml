@@ -194,8 +194,8 @@ jobs:
           cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
-            -DCMAKE_INSTALL_BINDIR=$(echo "${{runner.temp}}/artifacts" | tr "\\\\" / ) \
-            -DCMAKE_INSTALL_LIBDIR=$(echo "${{runner.temp}}/artifacts" | tr "\\\\" / ) \
+            -DCMAKE_INSTALL_BINDIR=$(echo "${{runner.temp}}/prefix" | tr "\\\\" / ) \
+            -DCMAKE_INSTALL_LIBDIR=$(echo "${{runner.temp}}/prefix" | tr "\\\\" / ) \
             -DWITH_XSPLIT=ON \
             -DWITH_OBS=ON \
             -DOBS_SOURCE_DIR=$(echo "${{github.workspace}}/obs-studio/" | tr "\\\\" /) \
@@ -206,7 +206,18 @@ jobs:
         run: cmake --build . --parallel --config ${{matrix.build-type}}
       - name: Install
         working-directory: streaming-remote/build
-        run: cmake --install . --config ${{matrix.build-type}}
+        run: |
+          cmake --install . --config ${{matrix.build-type}}
+          install LICENSE LICENSE.OBS_COMBINED_WORK ${{runner.temp}}/prefix/
+      - name: Make zips
+        working-directory: ${{runner.temp}}/build
+        run: |
+          mkdir ../artifacts
+          zip ../artifacts/obs-streaming-remote-${{matrix.os}}-${matrix.build-type}}.zip LICENSE LICENSE.OBS_COMBINED_WORK obs*
+          if [ "${{matrix.os}}" == "windows" ]; then
+            zip ../artifacts/xsplit-streaming-remote-${{matrix.os}}-${matrix.build-type}}.zip LICENSE xsplit*
+          fi
+        shell: bash
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
