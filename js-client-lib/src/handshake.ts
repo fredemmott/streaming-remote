@@ -7,7 +7,7 @@
  */
 
 import * as sodium from 'libsodium-wrappers-sumo';
-import CryptoState from './cryptoState';
+import CryptoState from './CryptoState';
 
 interface ClientHelloState {
   psk: Uint8Array;
