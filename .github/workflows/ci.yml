@@ -60,7 +60,8 @@ jobs:
         run: yarn install && yarn run webpack --mode ${{matrix.build-type}}
       - name: Copy built files
         run: |
-          install -d streamdeck-plugin/dist/bundle.js ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/dist/bundle.js
+          mkdir -p ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/dist/
+          install streamdeck-plugin/dist/bundle.js ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/dist/bundle.js
           install LICENSE ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/LICENSE
       - name: Checkout StreamDeck DistributionTool
         run: git checkout streamdeck-distributiontool-v1.1 DistributionTool
