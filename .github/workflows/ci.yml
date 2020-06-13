@@ -45,7 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install typescript
-        run: brew install typescript
+        run: brew unlink node@12 && brew install typescript
       - name: Check tool versions
         run: |
           echo "Yarn: $(yarn --version)"
