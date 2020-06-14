@@ -29,8 +29,9 @@ jobs:
       - name: Copy files
         working-directory: webui
         run: |
-          mkdir ${{runner.temp}}/artifacts
-          install ../LICENSE index.html site.css dist/bundle.js ${{runner.temp}}/artifacts
+          mkdir -p ${{runner.temp}}/artifacts/dist
+          install ../LICENSE index.html site.css ${{runner.temp}}/artifacts
+          install dist/bundle.js ${{runner.temp}}/artifacts/dist/bundle.js
       - uses: actions/upload-artifact@v2
         with:
           name: webui-${{matrix.build-type}}
