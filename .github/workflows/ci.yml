@@ -279,8 +279,8 @@ jobs:
         mkdir -p ${{runner.temp}}/xsplit-debug/plugin ${{runner.temp}}/xsplit-release/plugin
         ( cd native-windows-Release/xsplit/; install * ${{runner.temp}}/xsplit-release )
         ( cd native-windows-Debug/xsplit/; install * ${{runner.temp}}/xsplit-debug )
-        ( cd xsplit-production; install * ${{runner.temp}}/xsplit-release/plugin/ )
-        ( cd xsplit-development; install * ${{runner.temp}}/xsplit-debug/plugin/ )
+        ( cd xsplit-production; rsync -av ./ ${{runner.temp}}/xsplit-release/plugin/ )
+        ( cd xsplit-development; rsync -av ./ ${{runner.temp}}/xsplit-debug/plugin/ )
         cd ${{runner.temp}}/xsplit-release
         ls -lR
         7z a ${{runner.temp}}/final/xsplit-streaming-remote.zip *
