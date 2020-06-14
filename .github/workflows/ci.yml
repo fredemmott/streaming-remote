@@ -299,16 +299,16 @@ jobs:
         fi
     - name: Create Draft Release
       id: create-release
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        release_name: Release v${{ steps.ref.tag }}
-        tag_name: ${{steps.ref.tag}}
+        release_name: Release v${{ steps.ref.outputs.tag }}
+        tag_name: ${{steps.ref.outputs.tag}}
         draft: true
     - name: Attach OBS/Release/Win64
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -318,7 +318,7 @@ jobs:
         asset_name: obs-streaming-remote-win64.zip
         asset_content_type: application/zip
     - name: Attach OBS/Release/Macos
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -328,7 +328,7 @@ jobs:
         asset_name: obs-streaming-remote-macos.zip
         asset_content_type: application/zip
     - name: Attach OBS/Debug/Win64
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -338,7 +338,7 @@ jobs:
         asset_name: debug-obs-streaming-remote-win64.zip
         asset_content_type: application/zip
     - name: Attach OBS/Debug/Macos
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -348,7 +348,7 @@ jobs:
         asset_name: debug-obs-streaming-remote-macos.zip
         asset_content_type: application/zip
     - name: Attach XSplit/Release
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -358,7 +358,7 @@ jobs:
         asset_name: xsplit-streaming-remote-macos.zip
         asset_content_type: application/zip
     - name: Attach XSplit/Debug
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -368,7 +368,7 @@ jobs:
         asset_name: debug-xsplit-streaming-remote-macos.zip
         asset_content_type: application/zip
     - name: Attach WebUI/Release
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -378,7 +378,7 @@ jobs:
         asset_name: webui-streaming-remote.zip
         asset_content_type: application/zip
     - name: Attach WebUI/Debug
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -388,7 +388,7 @@ jobs:
         asset_name: debug-webui-streaming-remote.zip
         asset_content_type: application/zip
     - name: Attach SDPlugin/Release
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -398,7 +398,7 @@ jobs:
         asset_name : com.fredemmott.streamingremote.streamDeckPlugin
         asset_content_type: application/octet-stream
     - name: Attach SDPlugin/Debug
-      if: steps.ref.is-release == 'true'
+      if: steps.ref.outputs.is-release == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
