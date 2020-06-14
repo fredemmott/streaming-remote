@@ -287,13 +287,6 @@ jobs:
         cd ${{runner.temp}}/xsplit-debug
         ls -lR
         7z a ${{runner.temp}}/final/debug-xsplit-streaming-remote.zip *
-    - name: Prepare OBS plugins
-      working-directory: ${{runner.temp}}/artifacts
-      run: |
-        ( cd native-windows-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-win64.zip *)
-        ( cd native-macos-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-macos.zip  *)
-        ( cd native-windows-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-win64.zip *)
-        ( cd native-macos-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-macos.zip *)
     - name: Display final files
       run: ls -R
       working-directory: ${{runner.temp}}/final
