@@ -24,11 +24,11 @@
       <select class="sdpi-item-value select" id="output" disabled onchange="saveSettings();">
       </select>
     </div>
-	<p>
-		<a href="https://github.com/fredemmott/streaming-remote/releases/latest" target="_blank">
+  <p>
+    <a href="https://github.com/fredemmott/streaming-remote/releases/latest" target="_blank">
       Download compatible plugins for OBS and XSplit
     </a>
-	</p>
+  </p>
 
   </div>
 
@@ -80,7 +80,7 @@
         password: document.getElementById('password').value,
         output: document.getElementById('output').value,
       };
-      $SD.api.sendToPlugin(uuid, actionInfo, { event: 'saveSettings', settings });
+      $SD.api.setSettings(uuid, settings);
     }
   </script>
 
