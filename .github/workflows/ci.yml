@@ -355,7 +355,7 @@ jobs:
       with:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
         asset_path: ${{runner.temp}}/final/xsplit-streaming-remote.zip
-        asset_name: xsplit-streaming-remote-macos.zip
+        asset_name: xsplit-streaming-remote-win64.zip
         asset_content_type: application/zip
     - name: Attach XSplit/Debug
       if: steps.ref.outputs.is-release == 'true'
@@ -365,7 +365,7 @@ jobs:
       with:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
         asset_path: ${{runner.temp}}/final/debug-xsplit-streaming-remote.zip
-        asset_name: debug-xsplit-streaming-remote-macos.zip
+        asset_name: debug-xsplit-streaming-remote-win64.zip
         asset_content_type: application/zip
     - name: Attach WebUI/Release
       if: steps.ref.outputs.is-release == 'true'
