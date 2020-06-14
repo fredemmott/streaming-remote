@@ -1,3 +1,6 @@
+set(OBS_SOURCE_DIR "" CACHE PATH "Path to obs-studio source")
+set(OBS_BUILD_DIR "build" CACHE PATH "Path to obs-studio build tree, matching OBS_SOURCE_DIR")
+
 find_library(
   OBS_LIB
   NAMES obs
