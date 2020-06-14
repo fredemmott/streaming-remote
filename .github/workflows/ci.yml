@@ -288,3 +288,101 @@ jobs:
     - name: Display final files
       run: ls -R
       working-directory: ${{runner.temp}}/final
+    - name: Create Draft Release
+      id: create-release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_name: Release ${{ github.sha }}
+        draft: true
+    - name: Attach OBS/Release/Win64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/obs-streaming-remote-win64.zip
+        asset_name: obs-streaming-remote-win64.zip
+        asset_content_type: application/zip
+    - name: Attach OBS/Release/Macos
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/obs-streaming-remote-macos.zip
+        asset_name: obs-streaming-remote-macos.zip
+        asset_content_type: application/zip
+    - name: Attach OBS/Debug/Win64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/debug-obs-streaming-remote-win64.zip
+        asset_name: debug-obs-streaming-remote-win64.zip
+        asset_content_type: application/zip
+    - name: Attach OBS/Debug/Macos
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/debug-obs-streaming-remote-macos.zip
+        asset_name: debug-obs-streaming-remote-macos.zip
+        asset_content_type: application/zip
+    - name: Attach XSplit/Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/xsplit-streaming-remote.zip
+        asset_name: xsplit-streaming-remote-macos.zip
+        asset_content_type: application/zip
+    - name: Attach XSplit/Debug
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/debug-xsplit-streaming-remote.zip
+        asset_name: debug-xsplit-streaming-remote-macos.zip
+        asset_content_type: application/zip
+    - name: Attach WebUI/Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/webui-streaming-remote.zip
+        asset_name: webui-streaming-remote.zip
+        asset_content_type: application/zip
+    - name: Attach WebUI/Debug
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/debug-webui-streaming-remote.zip
+        asset_name: debug-webui-streaming-remote.zip
+        asset_content_type: application/zip
+    - name: Attach SDPlugin/Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/com.fredemmott.streamingremote.streamDeckPlugin
+        asset_name : com.fredemmott.streamingremote.streamDeckPlugin
+        asset_content_type: application/octet-stream
+    - name: Attach SDPlugin/Debug
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: ${{runner.temp}}/final/debug-com.fredemmott.streamingremote.streamDeckPlugin
+        asset_name : debug-com.fredemmott.streamingremote.streamDeckPlugin
+        asset_content_type: application/octet-stream
