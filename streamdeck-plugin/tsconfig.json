@@ -5,5 +5,5 @@
     "sourceMap": true,
     "moduleResolution": "Node",
     "outDir": "dist"
-  },
+  }
 }
