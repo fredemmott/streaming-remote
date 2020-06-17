@@ -1,5 +1,8 @@
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_CXX_STANDARD 20)
-set(CXX_STANDARD_REQUIRED true)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 if (MSVC)
   add_definitions("/Zc:__cplusplus -DUNICODE=1 -D_WIN32_WINNT=0x0601 ")
 endif()

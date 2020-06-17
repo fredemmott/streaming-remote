@@ -9,4 +9,4 @@
 // Generated with CMake to keep it in sync, but committed so that yarn + webpack
 // works even if you don't run cmake
 
-export const XSplitPluginDllApiVersion = "2.0";
+export const XSplitPluginDllApiVersion = "2.1";
