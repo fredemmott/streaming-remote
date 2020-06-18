@@ -21,7 +21,7 @@
   "Name": "Streaming Remote",
   "Icon": "keys/streaming-changing",
   "URL": "https://github.com/fredemmott/streaming-remote/",
-  "Version": "2.2",
+  "Version": "2.3",
   "SDKVersion": 2,
   "Software": {
     "MinimumVersion": "4.1"
