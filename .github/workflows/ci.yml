@@ -71,17 +71,10 @@ jobs:
           git checkout origin/$BRANCH DistributionTool
       - name: Build .streamDeckPlugin
         run: |
-          set +e
           ./DistributionTool -b \
             -i ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin \
             -o .
-          if [ $? -eq 0 ]; then
-            echo "Distribution tool failed"
-            exit 1
-          else
-            set -e
-            test -f com.fredemmott.streamingremote.streamDeckPlugin
-          fi
+          test -f com.fredemmott.streamingremote.streamDeckPlugin
       - uses: actions/upload-artifact@v2
         with:
           name: sdplugin-${{matrix.build-type}}
