@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 # MSVC_RUNTIME_LIBRARY support
 cmake_policy(SET CMP0091 NEW)
 
-project(streaming-remote VERSION 2.1 LANGUAGES CXX)
+project(streaming-remote VERSION 2.2 LANGUAGES CXX)
 set(XSPLIT_PLUGIN_DLL_API_VERSION ${CMAKE_PROJECT_VERSION})
 
 option(WITH_NATIVE_PLUGINS "Build C++ code" ON)
