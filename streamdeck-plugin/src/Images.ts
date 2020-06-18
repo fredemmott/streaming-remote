@@ -18,7 +18,7 @@ function loadImageAsDataUri(url: string): Promise<string> {
 
       var ctx = canvas.getContext("2d");
       ctx.drawImage(this, 0, 0);
-      resolve(canvas.toDataURL("image/png"));
+      resolve(canvas.toDataURL("image/svg+xml"));
     }.bind(image);
 
     image.src = url;
@@ -36,12 +36,12 @@ async function loadImagesUncached(): Promise<Images> {
     recordingChanging,
     recordingActive
   ] = await Promise.all([
-    loadImageAsDataUri('keys/streaming-stopped.png'),
-    loadImageAsDataUri('keys/streaming-changing.png'),
-    loadImageAsDataUri('keys/streaming-active.png'),
-    loadImageAsDataUri('keys/recording-stopped.png'),
-    loadImageAsDataUri('keys/recording-changing.png'),
-    loadImageAsDataUri('keys/recording-active.png'),
+    loadImageAsDataUri('keys/streaming-stopped.svg'),
+    loadImageAsDataUri('keys/streaming-changing.svg'),
+    loadImageAsDataUri('keys/streaming-active.svg'),
+    loadImageAsDataUri('keys/recording-stopped.svg'),
+    loadImageAsDataUri('keys/recording-changing.svg'),
+    loadImageAsDataUri('keys/recording-active.svg'),
   ]);
   return {
     streamingStopped,
