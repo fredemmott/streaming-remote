@@ -17,14 +17,12 @@
 
 ## XSplit Broadcaster
 
-1. Enable developer mode from Tools -> Settings -> Advanced
-2. Restart XSplit when prompted
-3. Download the XSplit plugin and extract it
-4. Copy the `dll` to the `ScriptDlls\Local` subdirectory of your XSplit installation; this is likely
+1. Download the XSplit plugin and extract it
+2. Copy the `dll` to the `ScriptDlls\Local` subdirectory of your XSplit installation; this is likely
   `C:\Program Files (x86)\SplitmediaLabs\XSplit Broadcaster\x64\Scriptdlls\Local`
-5. Select "Extensions" -> "Add extension" -> "Add extension file"
-6. Use the "Browse" button to find the index.html file inside the plugin directory
-7. Open "Tools" -> "Streaming Remote" to enable or configure; closing the window closes the plugin.
+3. Select "Extensions" -> "Add extension" -> "Add extension file"
+4. Use the "Browse" button to find the index.html file inside the plugin directory
+5. Open "Tools" -> "Streaming Remote" to enable or configure; closing the window closes the plugin.
 
 ## Web UI
 
