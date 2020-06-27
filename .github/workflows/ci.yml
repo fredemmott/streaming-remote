@@ -196,7 +196,7 @@ jobs:
           cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
-            -DSIGNING_KEY_ARGS="/f;$(echo ${{runner.temp}} | tr "\\\\" /)/MyCert.pfx" \
+            -DSIGNTOOL_KEY_ARGS="/f;$(echo ${{runner.temp}} | tr "\\\\" /)/MyCert.pfx" \
             -DCMAKE_INSTALL_BINDIR=$(echo "${{runner.temp}}/prefix" | tr "\\\\" / ) \
             -DCMAKE_INSTALL_LIBDIR=$(echo "${{runner.temp}}/prefix" | tr "\\\\" / ) \
             -DWITH_XSPLIT=ON \
