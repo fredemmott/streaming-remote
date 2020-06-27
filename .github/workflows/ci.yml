@@ -188,7 +188,7 @@ jobs:
         if: matrix.os == 'windows'
         env:
           CODE_SIGNING_PFX_BASE64: ${{ secrets.CODE_SIGNING_PFX_BASE64 }}
-        run: '[System.Convert]::FromBase64String($Env:CODE_SIGNING_PFX_BASE64) | Set-Content MyCert.pfx -AsByteStream'
+        run: '[System.Convert]::FromBase64String($Env:CODE_SIGNING_PFX_BASE64) | Set-Content ${{runner.temp}}/MyCert.pfx -AsByteStream'
       - name: Configure
         working-directory: streaming-remote
         run: |
@@ -196,7 +196,7 @@ jobs:
           cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
-            -DSIGNING_KEY_ARGS="/f;MyCert.pfx" \
+            -DSIGNING_KEY_ARGS="/f;$(echo ${{runner.temp}} | tr "\\\\" /)/MyCert.pfx" \
             -DCMAKE_INSTALL_BINDIR=$(echo "${{runner.temp}}/prefix" | tr "\\\\" / ) \
             -DCMAKE_INSTALL_LIBDIR=$(echo "${{runner.temp}}/prefix" | tr "\\\\" / ) \
             -DWITH_XSPLIT=ON \
