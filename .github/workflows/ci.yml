@@ -194,16 +194,16 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
-            -DSIGNTOOL_KEY_ARGS="/f;$(echo ${{runner.temp}} | tr "\\\\" /)/MyCert.pfx" \
-            -DCMAKE_INSTALL_BINDIR=$(echo "${{runner.temp}}/prefix" | tr "\\\\" / ) \
-            -DCMAKE_INSTALL_LIBDIR=$(echo "${{runner.temp}}/prefix" | tr "\\\\" / ) \
-            -DWITH_XSPLIT=ON \
-            -DWITH_OBS=ON \
-            -DOBS_SOURCE_DIR=$(echo "${{github.workspace}}/obs-studio/" | tr "\\\\" /) \
-            -DOBS_BUILD_DIR=$(echo "${{github.workspace}}/obs-studio/build/" | tr "\\\\" /)
-        shell: bash
+          cmake .. `
+            -DCMAKE_BUILD_TYPE=${{matrix.build-type}} `
+            -DSIGNTOOL_KEY_ARGS=/f;${{runner.temp}}/MyCert.pfx" `
+            "-DCMAKE_INSTALL_BINDIR=${{runner.temp}}/prefix" `
+            "-DCMAKE_INSTALL_LIBDIR=${{runner.temp}}/prefix" `
+            -DWITH_XSPLIT=ON `
+            -DWITH_OBS=ON `
+            "-DOBS_SOURCE_DIR=${{github.workspace}}/obs-studio/" `
+            "-DOBS_BUILD_DIR=${{github.workspace}}/obs-studio/build/"
+        shell: pwsh
       - name: Build
         working-directory: streaming-remote/build
         run: cmake --build . --parallel --config ${{matrix.build-type}}
