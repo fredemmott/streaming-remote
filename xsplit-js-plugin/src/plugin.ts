@@ -133,10 +133,14 @@ async function loadDll(): Promise<void> {
       XJS.Dll.on('access-granted', resolve);
     });
   }
-
+  console.log('waiting for handle');
+  await handle;
+  console.log('calling init');
   try {
     await StreamRemote.DllCall.init(XSplitPluginDllApiVersion);
+    console.log('init succeeded');
   } catch (e) {
+    console.log(e);
     document.getElementById('dllNotFound').classList.remove("uninit");
   }
 }
