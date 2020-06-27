@@ -13,7 +13,7 @@ include(vendor/json.cmake)
 include(vendor/libsodium.cmake)
 include(vendor/websocketpp.cmake)
 
-set(SIGNTOOL_KEY "" CACHE STRING "Key thumbprint for signtool.exe")
+set(SIGNTOOL_KEY_ARGS "" CACHE STRING "Key arguments for signtool.exe - separate with ';'")
 find_program(
   SIGNTOOL_EXE
   signtool
@@ -22,14 +22,14 @@ find_program(
   DOC "Path to signtool.exe if SIGNTOOL_KEY is set"
 )
 function(sign_target TARGET)
-  if(SIGNTOOL_KEY)
+  if(SIGNTOOL_KEY_ARGS AND WIN32)
     add_custom_command(
       TARGET ${TARGET} POST_BUILD
       COMMAND
       "${SIGNTOOL_EXE}"
       ARGS
       sign
-      /sha1 "${SIGNTOOL_KEY}"
+      ${SIGNTOOL_KEY_ARGS}
       /t http://timestamp.digicert.com
       /fd SHA256
       "$<TARGET_FILE:${TARGET}>"
