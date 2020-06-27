@@ -21,7 +21,7 @@
   "Name": "Streaming Remote",
   "Icon": "plugin-icon",
   "URL": "https://github.com/fredemmott/streaming-remote/",
-  "Version": "2.3",
+  "Version": "2.2.2",
   "SDKVersion": 2,
   "Software": {
     "MinimumVersion": "4.1"
