@@ -187,8 +187,8 @@ jobs:
       - name: Fetch code-signing key
         if: matrix.os == 'windows'
         env:
-          CODE_SIGNING_PFX_BASE64: ${{secrets.CODE_SIGNING_PFX_BASE64}}
-        run: [System.Convert]::FromBase64String($Env:CODE_SIGNING_PFX_BASE64) | Set-Content MyCert.pfx -Encoding Byte
+          CODE_SIGNING_PFX_BASE64: ${{ secrets.CODE_SIGNING_PFX_BASE64 }}
+        run: '[System.Convert]::FromBase64String($Env:CODE_SIGNING_PFX_BASE64) | Set-Content MyCert.pfx -Encoding Byte'
       - name: Configure
         working-directory: streaming-remote
         run: |
