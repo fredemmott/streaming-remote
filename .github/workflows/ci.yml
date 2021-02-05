@@ -19,10 +19,10 @@ jobs:
       - name: Check tool versions
         run: |
           echo "Yarn: $(yarn --version)"
-          echo "TSC: $(tsc --version)"
+          echo "TSC: $(yarn run tsc --version)"
       - name: Build lib
         working-directory: js-client-lib
-        run: yarn install && tsc
+        run: yarn install && yarn run tsc
       - name: Build web UI
         working-directory: webui
         run: yarn install && yarn run webpack --mode ${{matrix.build-type}}
@@ -50,10 +50,10 @@ jobs:
       - name: Check tool versions
         run: |
           echo "Yarn: $(yarn --version)"
-          echo "TSC: $(tsc --version)"
+          echo "TSC: $(yarn run tsc --version)"
       - name: Build lib
         working-directory: js-client-lib
-        run: yarn install && tsc
+        run: yarn install && yarn run tsc
       - name: Copy plugin directory
         run: cp -R streamdeck-plugin ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin
       - name: Build plugin
@@ -91,7 +91,7 @@ jobs:
       - name: Check tool versions
         run: |
           echo "Yarn: $(yarn --version)"
-          echo "TSC: $(tsc --version)"
+          echo "TSC: $(yarn run tsc --version)"
       - name: Build XSplit plugin
         working-directory: xsplit-js-plugin
         run: yarn install && yarn run webpack --mode ${{matrix.build-type}}
