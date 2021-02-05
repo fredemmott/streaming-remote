@@ -241,6 +241,10 @@ jobs:
       - name: Set build architecture (Windows)
         if: matrix.os == 'windows'
         run: echo CMAKE_PLATFORM_GENERATOR=x64 >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: streaming-remote
       - name: Fetch code-signing key
         if: matrix.os == 'windows'
         env:
