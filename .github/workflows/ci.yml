@@ -213,7 +213,7 @@ jobs:
       - name: Copy files
         working-directory: ${{runner.temp}}/prefix
         run: |
-          DIR="../artifacts/obs/obs-$(echo ${{obs.version}} | cut -f1-2 -d.)"
+          DIR="../artifacts/obs/obs-$(echo ${{matrix.obs-version}} | cut -f1-2 -d.)"
           mkdir -p "$DIR"
           rm *.lib || true
           install LICENSE LICENSE.OBS_COMBINED_WORK obs-streaming-remote.* "$DIR/"
