@@ -19,6 +19,9 @@ set_target_properties(
   obs-streaming-remote
   PROPERTIES
   AUTOMOC ON
+  # We currently build against versions of OBS that are distributed with a Qt
+  # which can't be used in C++20 builds :'(
+  CXX_STANDARD 17
 )
 install(TARGETS obs-streaming-remote)
 

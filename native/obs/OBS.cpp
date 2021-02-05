@@ -92,9 +92,9 @@ std::vector<Scene> OBS::getScenes() {
     // every scene, so not useful as a unique identifier
     const auto name = obs_source_get_name(source);
     out.push_back({
-      .id = name,
-      .name = name,
-      .active = (source == active_scene)
+      /*.id = */ name,
+      /*.name = */ name,
+      /*.active = */ (source == active_scene)
     });
   }
   obs_frontend_source_list_free(&sources);
