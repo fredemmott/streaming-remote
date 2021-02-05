@@ -41,7 +41,7 @@ OBS::OBS() : QObject(), StreamingSoftware(), mLoggerImpl(
   }
 
   auto settingsAction = reinterpret_cast<QAction*>(
-    obs_frontend_add_tools_menu_qaction("Streaming Remote settings"));
+    obs_frontend_add_tools_menu_qaction("Streaming Remote"));
 
   connect(settingsAction, &QAction::triggered, [this, obsWindow]() {
     auto dialog = new OBSConfigDialog(mConfig, obsWindow);
