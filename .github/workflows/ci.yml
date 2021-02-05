@@ -134,7 +134,6 @@ jobs:
           extra: --archives qtbase qtsvg qtxml ${{matrix.qt-archives}}
       - name: Cache OBS
         id: cache-obs
-        if: matrix.os != 'windows' # https://github.com/actions/cache/issues/336
         uses: actions/cache@v1
         with:
           path: obs-studio
