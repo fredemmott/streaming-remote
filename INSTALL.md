@@ -13,7 +13,10 @@
 
 ## StreamDeck plugin
 
-1. Download the plugin and open it
+1. Download and open the plugin
+2. The StreamDeck software should automatically open the plugin and ask if you want to install
+3. Enter the password and connection details; for example, if OBS is running on 'mypc' with WebSocket port
+   9002, enter `ws://mypc:9002`. Be sure to use the WebSocket port, not the TCP port.
 
 ## XSplit Broadcaster
 
@@ -28,3 +31,5 @@
 
 1. Download the Web UI and extract it
 2. Open `index.html` in your favorite browser; Google Chrome is recommended
+3. Enter the password and connection details; for example, if OBS is running on 'mypc' with WebSocket port
+   9002, enter `ws://mypc:9002`. Be sure to use the WebSocket port, not the TCP port.
