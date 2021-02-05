@@ -113,7 +113,7 @@ jobs:
     name: Native - ${{matrix.os}} - ${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
     env:
-      OBS_VERSION: 25.0.5
+      OBS_VERSION: 26.0.2
       OBS_BUILD_TYPE: Release
       QT_CACHE_VERSION: 5
     steps:
