@@ -119,7 +119,6 @@ jobs:
       - name: Cache Qt
         id: cache-qt
         uses: actions/cache@v2
-        if: matrix.os != 'windows' # https://github.com/actions/cache/issues/336
         with:
           path: ${{runner.temp}}/Qt
           key: Qt-${{matrix.qt-version}}-${{matrix.os}}-${{env.QT_CACHE_VERSION}}
