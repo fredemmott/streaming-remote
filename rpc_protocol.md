@@ -108,6 +108,7 @@ where it is not supported.
 Scene = {
   id: string,
   name: string,
+  active: bool,
 }
 ```
 
@@ -355,8 +356,13 @@ Example response:
   "result": {
     "scene123": {
       "id": "scene123",
-      "name": "Game"
-    }
+      "name": "Game",
+      "active": true
+    },
+    "scene456": {
+      "id": "scene456",
+      "name": "On a Break",
+      "active": false
   }
 }
 ```

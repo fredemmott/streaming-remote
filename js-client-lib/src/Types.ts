@@ -32,4 +32,5 @@ export interface Output {
 export interface Scene {
   id: string,
   name: string,
+  active: boolean,
 }

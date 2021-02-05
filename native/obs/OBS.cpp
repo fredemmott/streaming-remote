@@ -80,6 +80,9 @@ std::vector<Output> OBS::getOutputs() {
 
 std::vector<Scene> OBS::getScenes() {
   LOG_FUNCTION();
+
+  const auto active_scene = obs_frontend_get_current_scene();
+
   obs_frontend_source_list sources = {};
   obs_frontend_get_scenes(&sources);
   std::vector<Scene> out;
@@ -88,7 +91,11 @@ std::vector<Scene> OBS::getScenes() {
     // OBS sources also have an 'id' property, but it always 'scene' for
     // every scene, so not useful as a unique identifier
     const auto name = obs_source_get_name(source);
-    out.push_back({ .id = name, .name = name });
+    out.push_back({
+      .id = name,
+      .name = name,
+      .active = (source == active_scene)
+    });
   }
   obs_frontend_source_list_free(&sources);
   return out;

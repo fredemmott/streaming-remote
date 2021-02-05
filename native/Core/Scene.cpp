@@ -13,13 +13,15 @@ using json = nlohmann::json;
 json Scene::toJson() const {
   return {
     {"id", id},
-    {"name", name}
+    {"name", name},
+    {"active", active}
   };
 }
 
 Scene Scene::fromJson(const json& json) {
   return {
     .id = json["id"],
-    .name = json["name"]
+    .name = json["name"],
+    .active = json["active"]
   };
 }

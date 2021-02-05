@@ -14,6 +14,7 @@
 struct Scene {
   std::string id;
   std::string name;
+  bool active;
 
   nlohmann::json toJson() const;
   static Scene fromJson(const nlohmann::json&);
