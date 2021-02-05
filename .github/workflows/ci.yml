@@ -290,6 +290,7 @@ jobs:
         if: matrix.os == 'windows'
         run: |
           mkdir -p ../artifacts/xsplit
+          rm *.lib || true
           install LICENSE xsplit* ../artifacts/xsplit
         shell: bash
       - name: Upload artifacts
