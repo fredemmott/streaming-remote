@@ -10,6 +10,7 @@
 
 #include "ClientHandler.h"
 #include "Config.h"
+#include "Logger.h"
 #include "MessageInterface.h"
 #include "StreamingSoftware.h"
 #include "TCPServer.h"
@@ -30,12 +31,34 @@ Server::~Server() {
 void Server::startListening(const Config& config) {
   stopListening();
   if (config.tcpPort) {
-    mTCPServer = new TCPServer(mContext, config);
-    mTCPServer->newConnection.connect(this, &Server::newConnection);
+    try {
+      mTCPServer = new TCPServer(mContext, config);
+      mTCPServer->newConnection.connect(this, &Server::newConnection);
+    } catch (const std::system_error& e) {
+      if (e.code() == std::errc::address_in_use) {
+        Logger::debug(
+          "Failed to start TCP server: port {} is already in use.",
+          config.tcpPort
+        );
+      } else {
+        Logger::debug("Failed to start TCP server: {}", e.what());
+      }
+    }
   }
   if (config.webSocketPort) {
-    mWebSocketServer = new WebSocketServer(mContext, config);
-    mWebSocketServer->newConnection.connect(this, &Server::newConnection);
+    try {
+      mWebSocketServer = new WebSocketServer(mContext, config);
+      mWebSocketServer->newConnection.connect(this, &Server::newConnection);
+    } catch (const websocketpp::exception& e) {
+      if (e.code() == asio::error::address_in_use) {
+        Logger::debug(
+          "Failed to start WebSocket server: port {} is already in use.",
+          config.webSocketPort
+        );
+      } else {
+        Logger::debug("Failed to start WebSocket server: {}", e.what());
+      }
+    }
   }
 }
 
