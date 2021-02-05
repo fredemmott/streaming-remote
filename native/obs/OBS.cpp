@@ -14,7 +14,6 @@
 #include <QAction>
 #include <QMainWindow>
 #include <QObject>
-#include <QScopeGuard>
 
 namespace {
 const std::string s_recording("Recording");
@@ -24,6 +23,17 @@ const char* CONFIG_SECTION = "streamingRemote";
 const char* CONFIG_ID_PASSWORD = "password";
 const char* CONFIG_ID_TCP_PORT = "tcpPort";
 const char* CONFIG_ID_WEBSOCKET_PORT = "webSocketPort";
+
+struct OBSSourceListScopeGuard {
+  obs_frontend_source_list* sources = nullptr;
+  ~OBSSourceListScopeGuard() {
+    if (sources) {
+      obs_frontend_source_list_free(sources);
+    }
+    sources = nullptr;
+  }
+};
+
 }// namespace
 
 OBS::OBS() : QObject(), StreamingSoftware(), mLoggerImpl(
@@ -85,6 +95,8 @@ std::vector<Scene> OBS::getScenes() {
   const auto active_scene = obs_frontend_get_current_scene();
 
   obs_frontend_source_list sources = {};
+  OBSSourceListScopeGuard guard = {&sources};
+
   obs_frontend_get_scenes(&sources);
   std::vector<Scene> out;
   for (size_t i = 0; i < sources.sources.num; i++) {
@@ -98,7 +110,6 @@ std::vector<Scene> OBS::getScenes() {
       /*.active = */ (source == active_scene)
     });
   }
-  obs_frontend_source_list_free(&sources);
   return out;
 }
 
@@ -108,7 +119,7 @@ bool OBS::activateScene(const std::string& id) {
   const auto current_scene = obs_frontend_get_current_scene();
 
   obs_frontend_source_list sources = {};
-  auto sources_free = qScopeGuard([&]() { obs_frontend_source_list_free(&sources); });
+  OBSSourceListScopeGuard guard = {&sources};
 
   obs_frontend_get_scenes(&sources);
 
