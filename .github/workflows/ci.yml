@@ -83,7 +83,7 @@ jobs:
       matrix:
         build-type: [ "production", "development" ]
   xsplit:
-    name: XSplit plugin - ${{matrix.build-type}}
+    name: XSplit Plugin (TypeScript) - ${{matrix.build-type}}
     needs: [check-generated-versions]
     runs-on: ubuntu-latest
     steps:
@@ -109,8 +109,8 @@ jobs:
     strategy:
       matrix:
         build-type: [ "production", "development" ]
-  native:
-    name: Native - ${{matrix.os}} - ${{matrix.build-type}}
+  native-obs:
+    name: OBS Plugin - ${{matrix.os}} - ${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
     env:
       OBS_VERSION: 26.0.2
@@ -198,7 +198,7 @@ jobs:
             "-DSIGNTOOL_KEY_ARGS=/f;${{runner.temp}}/MyCert.pfx" `
             "-DCMAKE_INSTALL_BINDIR=${{runner.temp}}/prefix" `
             "-DCMAKE_INSTALL_LIBDIR=${{runner.temp}}/prefix" `
-            -DWITH_XSPLIT=ON `
+            -DWITH_XSPLIT=OFF `
             -DWITH_OBS=ON `
             "-DOBS_SOURCE_DIR=${{github.workspace}}/obs-studio/" `
             "-DOBS_BUILD_DIR=${{github.workspace}}/obs-studio/build/"
@@ -217,15 +217,11 @@ jobs:
           mkdir -p ../artifacts/obs
           rm *.lib || true
           install LICENSE LICENSE.OBS_COMBINED_WORK obs-streaming-remote.* ../artifacts/obs/
-          if [ "${{matrix.os}}" == "windows" ]; then
-            mkdir -p ../artifacts/xsplit
-            install LICENSE xsplit* ../artifacts/xsplit/
-          fi
         shell: bash
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: native-${{matrix.os}}-${{matrix.build-type}}
+          name: native-obs-${{matrix.os}}-${{matrix.build-type}}
           path: ${{runner.temp}}/artifacts
     strategy:
       matrix:
@@ -238,9 +234,58 @@ jobs:
           - os: macos
             qt-archives: qtmacextras
             qt-version: 5.14.1
+  native-xsplit:
+    name: XSplit Plugin (native) - ${{matrix.os}} - ${{matrix.build-type}}
+    runs-on: ${{matrix.os}}-latest
+    steps:
+      - name: Set build architecture (Windows)
+        if: matrix.os == 'windows'
+        run: echo CMAKE_PLATFORM_GENERATOR=x64 >> $GITHUB_ENV
+      - name: Fetch code-signing key
+        if: matrix.os == 'windows'
+        env:
+          CODE_SIGNING_PFX_BASE64: ${{ secrets.CODE_SIGNING_PFX_BASE64 }}
+        run: '[System.Convert]::FromBase64String($Env:CODE_SIGNING_PFX_BASE64) | Set-Content ${{runner.temp}}/MyCert.pfx -AsByteStream'
+      - name: Configure
+        working-directory: streaming-remote
+        run: |
+          mkdir build
+          cd build
+          cmake .. `
+            -DCMAKE_BUILD_TYPE=${{matrix.build-type}} `
+            "-DSIGNTOOL_KEY_ARGS=/f;${{runner.temp}}/MyCert.pfx" `
+            "-DCMAKE_INSTALL_BINDIR=${{runner.temp}}/prefix" `
+            "-DCMAKE_INSTALL_LIBDIR=${{runner.temp}}/prefix" `
+            -DWITH_XSPLIT=ON `
+            -DWITH_OBS=OFF `
+        shell: pwsh
+      - name: Build
+        working-directory: streaming-remote/build
+        run: cmake --build . --parallel --config ${{matrix.build-type}}
+      - name: Install
+        working-directory: streaming-remote/build
+        run: |
+          cmake --install . --config ${{matrix.build-type}}
+          install ../LICENSE ${{runner.temp}}/prefix/
+      - name: Copy files
+        working-directory: ${{runner.temp}}/prefix
+        if: matrix.os == 'windows'
+        run: |
+          mkdir -p ../artifacts/xsplit
+          install LICENSE xsplit* ../artifacts/xsplit
+        shell: bash
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: native-xsplit-${{matrix.os}}-${{matrix.build-type}}
+          path: ${{runner.temp}}/artifacts
+    strategy:
+      matrix:
+        os: [macos, windows]
+        build-type: [Release, Debug]
   prepare-packages:
     name: Prepare packages
-    needs: [native, streamdeck, webui, xsplit]
+    needs: [native-obs, native-xsplit, streamdeck, webui, xsplit]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v2
@@ -268,16 +313,16 @@ jobs:
     - name: Prepare OBS plugins
       working-directory: ${{runner.temp}}/artifacts
       run: |
-        ( cd native-windows-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-win64.zip *)
-        ( cd native-macos-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-macos.zip  *)
-        ( cd native-windows-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-win64.zip *)
-        ( cd native-macos-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-macos.zip *)
+        ( cd native-obs-windows-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-win64.zip *)
+        ( cd native-obs-macos-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-macos.zip  *)
+        ( cd native-obs-windows-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-win64.zip *)
+        ( cd native-obs-macos-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-macos.zip *)
     - name: Prepare XSplit plugins
       working-directory: ${{runner.temp}}/artifacts
       run: |
         mkdir -p ${{runner.temp}}/xsplit-debug/plugin ${{runner.temp}}/xsplit-release/plugin
-        ( cd native-windows-Release/xsplit/; install * ${{runner.temp}}/xsplit-release )
-        ( cd native-windows-Debug/xsplit/; install * ${{runner.temp}}/xsplit-debug )
+        ( cd native-xsplit-windows-Release/xsplit/; install * ${{runner.temp}}/xsplit-release )
+        ( cd native-xsplit-windows-Debug/xsplit/; install * ${{runner.temp}}/xsplit-debug )
         ( cd xsplit-production; rsync -av ./ ${{runner.temp}}/xsplit-release/plugin/ )
         ( cd xsplit-development; rsync -av ./ ${{runner.temp}}/xsplit-debug/plugin/ )
         cd ${{runner.temp}}/xsplit-release
