@@ -110,10 +110,9 @@ jobs:
       matrix:
         build-type: [ "production", "development" ]
   native-obs:
-    name: OBS Plugin - ${{matrix.os}} - ${{matrix.build-type}}
+    name: OBS v${{matrix.obs-version}} Plugin - ${{matrix.os}} - ${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
     env:
-      OBS_VERSION: 26.0.2
       OBS_BUILD_TYPE: Release
       QT_CACHE_VERSION: 5
     steps:
@@ -137,7 +136,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: obs-studio
-          key: OBS-${{env.OBS_VERSION}}-${{ matrix.os }}
+          key: OBS-${{matrix.obs-version}}-${{ matrix.os }}
       - name: Install OBS dependencies (MacOS)
         if: matrix.os == 'macos' && steps.cache-obs.outputs.cache-hit != 'true'
         run: brew install ffmpeg x264 mbedtls swig
@@ -157,7 +156,7 @@ jobs:
         with:
           repository: obsproject/obs-studio
           path: obs-studio
-          ref: ${{env.OBS_VERSION}}
+          ref: ${{matrix.obs-version}}
           submodules: recursive
       - name: Set build architecture (Windows)
         if: matrix.os == 'windows'
@@ -214,9 +213,10 @@ jobs:
       - name: Copy files
         working-directory: ${{runner.temp}}/prefix
         run: |
-          mkdir -p ../artifacts/obs
+          DIR="../artifacts/obs/obs-$(echo ${{obs.version}} | cut -f1-2 -d.)"
+          mkdir -p "$DIR"
           rm *.lib || true
-          install LICENSE LICENSE.OBS_COMBINED_WORK obs-streaming-remote.* ../artifacts/obs/
+          install LICENSE LICENSE.OBS_COMBINED_WORK obs-streaming-remote.* "$DIR/"
         shell: bash
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -227,13 +227,27 @@ jobs:
       matrix:
         os: [macos, windows]
         build-type: [Release, Debug]
+        obs-version: [25.0.8, 26.0.2, 26.1.2]
+        # Qt versions taken from OBS Studio's `.github/workflow/main.yml`
         include:
-          - os: windows
-            qt-archives: qtwinextras
-            qt-version: 5.10.1
           - os: macos
             qt-archives: qtmacextras
+          - os: windows
+            qt-archives: qtwinextras
+          - obs-version: 25.0.8
+            os: macos
             qt-version: 5.14.1
+          - obs-version: 25.0.8
+            os: windows
+            qt-version: 5.10.1
+          - obs-version: 26.0.2
+            os: macos
+            qt-version: 5.14.1
+          - obs-version: 26.0.2
+            os: windows
+            qt-version: 5.10.1
+          - obs-version: 26.1.2
+            qt-version: 5.15.2
   native-xsplit:
     name: XSplit Plugin (native) - ${{matrix.os}} - ${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
