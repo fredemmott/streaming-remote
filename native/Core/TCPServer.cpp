@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "Config.h"
+#include "Logger.h"
 #include "TCPConnection.h"
 
 TCPServer::TCPServer(asio::io_context* context, const Config& config)
@@ -28,6 +29,15 @@ TCPServer::~TCPServer() {
 void TCPServer::startAccept() {
   auto conn = new TCPConnection(mContext);
   mAcceptor.async_accept(conn->socket(), [=](const asio::error_code& error) {
+    if (error == asio::error::operation_aborted) {
+      // accept was cancelled, e.g. when OBS is shutting down, or the
+      // configuration was changed
+      return;
+    }
+    if (error) {
+      Logger::debug("Unexpected ASIO error in async_accept: {}", error.message());
+      return;
+    }
     this->newConnection(conn);
     this->startAccept();
   });
