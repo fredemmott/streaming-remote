@@ -180,4 +180,8 @@ export default class Client {
   public async stopOutput(id: string): Promise<void> {
     await this.sendRequest("outputs/stop", { id });
   }
+
+  public async activateScene(id: string): Promise<void> {
+    await this.sendRequest("scenes/activate", { id });
+  }
 }

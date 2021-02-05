@@ -23,3 +23,7 @@ bool StreamingSoftware::setOutputDelay(
 std::vector<Scene> StreamingSoftware::getScenes() {
   return {};
 }
+
+bool StreamingSoftware::activateScene(const std::string& id) {
+  return false;
+}

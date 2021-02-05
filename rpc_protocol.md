@@ -386,3 +386,42 @@ Example response:
   }
 }
 ```
+
+### `scenes/activate`
+
+This method is sent by the client when it wants to switch scenes.
+
+This method takes `{ id: string }` for its' parameters.
+
+Success indicates the scene is available and not currently active, and the
+streaming software (e.g. OBS, XSplit) has been asked to start the transition,
+however it is not necessarily the new active scene until a
+`scenes/currentSceneChanged` notification is received.
+
+Example request:
+
+```
+{
+  "jsonrpc": "2.0",
+  "method": "scenes/activate",
+  "id": "select-taking-a-break",
+  "params": { "id": "scene1234" }
+}
+```
+
+Example response and notifications:
+
+```
+{
+  "jsonrpc": "2.0",
+  "id": "select-taking-a-break",
+  "result": {}
+}
+{
+  "jsonrpc": "2.0",
+  "method": "scenes/currentSceneChanged",
+  "params": {
+    "id": "scene1234"
+  }
+}
+```

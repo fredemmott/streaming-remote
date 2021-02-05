@@ -142,6 +142,13 @@ void ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
         .dump());
     return;
   }
+
+  if (method == "scenes/activate") {
+    mSoftware->activateScene(jsonrpc["params"]["id"]);
+    encryptThenSendMessage(
+      {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", json::object()}});
+    return;
+  }
 }
 
 namespace {

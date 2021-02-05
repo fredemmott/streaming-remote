@@ -14,6 +14,7 @@
 #include <QAction>
 #include <QMainWindow>
 #include <QObject>
+#include <QScopeGuard>
 
 namespace {
 const std::string s_recording("Recording");
@@ -99,6 +100,32 @@ std::vector<Scene> OBS::getScenes() {
   }
   obs_frontend_source_list_free(&sources);
   return out;
+}
+
+bool OBS::activateScene(const std::string& id) {
+  LOG_FUNCTION();
+  Logger::debug("Activating scene '{}'", id);
+  const auto current_scene = obs_frontend_get_current_scene();
+
+  obs_frontend_source_list sources = {};
+  auto sources_free = qScopeGuard([&]() { obs_frontend_source_list_free(&sources); });
+
+  obs_frontend_get_scenes(&sources);
+
+  for (size_t i = 0; i < sources.sources.num; i++) {
+    const auto source = sources.sources.array[i];
+    if (source == current_scene) {
+      continue;
+    }
+    // OBS sources also have an 'id' property, but it always 'scene' for
+    // every scene, so not useful as a unique identifier
+    const auto name = obs_source_get_name(source);
+    if (name == id) {
+      obs_frontend_set_current_scene(source);
+      return true;
+    }
+  }
+  return false;
 }
 
 void OBS::startOutput(const std::string& id) {
