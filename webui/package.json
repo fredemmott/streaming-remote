@@ -11,10 +11,10 @@
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.10.2",
-    "webpack-cli": "^3.1.2",
     "babel-loader": "^8.0.4",
     "ts-loader": "^7.0.5",
     "typescript": "^3.1.1",
-    "webpack": "^4.20.2"
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2"
   }
 }
