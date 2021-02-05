@@ -28,3 +28,8 @@ export interface Output {
   state: OutputState,
   delaySeconds?: number,
 }
+
+export interface Scene {
+  id: string,
+  name: string,
+}

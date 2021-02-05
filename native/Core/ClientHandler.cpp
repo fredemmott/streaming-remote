@@ -127,6 +127,19 @@ void ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
     encryptThenSendMessage(response);
     return;
   }
+
+  if (method == "scenes/get") {
+    const auto scenes = mSoftware->getScenes();
+    json scenesJson;
+    for (const auto& scene : scenes) {
+      scenesJson[scene.id] = scene.toJson();
+    }
+
+    encryptThenSendMessage(
+      (json{{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", scenesJson}})
+        .dump());
+    return;
+  }
 }
 
 namespace {

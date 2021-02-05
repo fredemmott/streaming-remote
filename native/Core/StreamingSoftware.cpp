@@ -19,3 +19,7 @@ bool StreamingSoftware::setOutputDelay(
   int64_t seconds) {
   return false;
 }
+
+std::vector<Scene> StreamingSoftware::getScenes() {
+  return {};
+}

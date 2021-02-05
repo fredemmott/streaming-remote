@@ -10,6 +10,7 @@
 
 #include "Config.h"
 #include "Output.h"
+#include "Scene.h"
 #include "Signal.h"
 
 #include <string>
@@ -21,11 +22,14 @@ class StreamingSoftware {
   virtual ~StreamingSoftware();
 
   virtual Config getConfiguration() const = 0;
+
   virtual std::vector<Output> getOutputs() = 0;
 
   virtual void startOutput(const std::string& id) = 0;
   virtual void stopOutput(const std::string& id) = 0;
   virtual bool setOutputDelay(const std::string& id, int64_t seconds);
+
+  virtual std::vector<Scene> getScenes();
 
   Signal<const Config&> initialized;
   Signal<const std::string&, OutputState> outputStateChanged;

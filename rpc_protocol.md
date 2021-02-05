@@ -102,6 +102,15 @@ If `delaySeconds` is 0, there is no delay. If `delaySeconds` is negative or abse
 delay is not supported. Implementations *should* omit `delaySeconds` for outputs
 where it is not supported.
 
+### `Scene`
+
+```
+Scene = {
+  id: string,
+  name: string,
+}
+```
+
 ## Server-To-Client Notifications
 
 ### `hello`
@@ -318,3 +327,36 @@ Example response:
   "id": "setDelay/1",
   "result": { "seconds": 300 }
 }
+
+### `scenes/get`
+
+The client invokes this method when it wants information on the available scenes.
+
+This method has no parameters.
+
+This method returns a map from scene ID to `Scene` objects.
+
+Example request:
+
+```
+{
+  "jsonrpc": "2.0",
+  "method": "scenes/get",
+  "id": 1
+}
+```
+
+Example response:
+
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "scene123": {
+      "id": "scene123",
+      "name": "Game"
+    }
+  }
+}
+```

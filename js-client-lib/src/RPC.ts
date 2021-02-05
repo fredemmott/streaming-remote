@@ -8,7 +8,7 @@
 
 import * as sodium from 'libsodium-wrappers-sumo';
 import CryptoState from './CryptoState';
-import { OutputState, Output } from './Types';
+import { OutputState, Output, Scene } from './Types';
 
 interface JSONRPCMessage {
   jsonrpc: "2.0",
@@ -149,6 +149,10 @@ export default class Client {
 
   public async getOutputs(): Promise<{ [id: string]: Output }> {
     return await this.sendRequest('outputs/get', null);
+  }
+
+  public async getScenes(): Promise<{ [id: string]: Scene }> {
+    return await this.sendRequest('scenes/get', null);
   }
 
   public async setDelay(id: string, seconds: number): Promise<void> {

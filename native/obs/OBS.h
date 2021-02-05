@@ -20,13 +20,15 @@ class OBS : public QObject, public StreamingSoftware {
   OBS();
   ~OBS();
 
-  std::vector<Output> getOutputs();
   Config getConfiguration() const;
 
- public:
+  std::vector<Output> getOutputs();
+
   void startOutput(const std::string& id);
   void stopOutput(const std::string& id);
   bool setOutputDelay(const std::string& id, int64_t seconds);
+
+  std::vector<Scene> getScenes();
 
  private:
   Config getInitialConfiguration();
