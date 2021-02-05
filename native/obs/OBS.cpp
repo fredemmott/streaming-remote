@@ -228,6 +228,11 @@ void OBS::frontendEventCallback(enum obs_frontend_event event, void* data) {
       break;
     case OBS_FRONTEND_EVENT_RECORDING_STOPPED:
       emit obs->outputStateChanged(s_recording, OutputState::STOPPED);
+    case OBS_FRONTEND_EVENT_SCENE_CHANGED:
+      // 'id' for scenes is always 'scene', so use name instead
+      emit obs->currentSceneChanged(
+        obs_source_get_name(obs_frontend_get_current_scene())
+      );
       break;
   }
 }

@@ -152,6 +152,26 @@ Example:
 }
 ```
 
+### `scenes/currentSceneChanged`
+
+This notification is sent by the server when the current scene is changed.
+
+This notification has one parameter:
+
+- `id: string`: the ID of the new scene
+
+Example:
+
+```
+{
+  "jsonrpc": "2.0",
+  "method": "scenes/currentSceneChanged",
+  "params": {
+    "id": "aaaaa-bb-cc-ddd"
+  }
+}
+```
+
 ## Client-To-Server Requests
 
 ### `outputs/get`

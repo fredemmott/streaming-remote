@@ -27,6 +27,8 @@ class ClientHandler {
   void messageReceived(const std::string& message);
 
   void outputStateChanged(const std::string& id, OutputState state);
+  void currentSceneChanged(const std::string& id);
+
   void handshakeClientHelloMessageReceived(const std::string& message);
   void handshakeClientReadyMessageReceived(const std::string& message);
   void encryptedRpcMessageReceived(const std::string& message);

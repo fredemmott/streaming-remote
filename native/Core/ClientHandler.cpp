@@ -35,6 +35,8 @@ ClientHandler::ClientHandler(
     mState(ClientState::UNINITIALIZED) {
   mSoftware->outputStateChanged.connect(
     this, &ClientHandler::outputStateChanged);
+  mSoftware->currentSceneChanged.connect(
+    this, &ClientHandler::currentSceneChanged);
   mConnection->messageReceived.connect(this, &ClientHandler::messageReceived);
   mConnection->disconnected.connect([this]() {
     mConnection = nullptr;
@@ -233,6 +235,13 @@ void ClientHandler::outputStateChanged(
     {{"jsonrpc", "2.0"},
      {"method", "outputs/stateChanged"},
      {"params", json{{"id", id}, {"state", Output::stateToString(state)}}}});
+}
+
+void ClientHandler::currentSceneChanged(const std::string& id) {
+  encryptThenSendMessage(
+    {{"jsonrpc", "2.0"},
+     {"method", "scenes/currentSceneChanged"},
+     {"params", json{{"id", id}}}});
 }
 
 namespace {

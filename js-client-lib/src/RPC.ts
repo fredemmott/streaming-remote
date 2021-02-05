@@ -35,6 +35,8 @@ type JSONRPCResponse = JSONRPCSuccessResponse | JSONRPCErrorResponse;
 export type HelloCallback = () => void | Promise<void>;
 export type OutputStateChangedCallback =
   (id: string, state: OutputState) => void | Promise<void>;
+export type SceneChangedCallback =
+  (id: string) => void | Promise<void>;
 
 
 export default class Client {
@@ -54,6 +56,11 @@ export default class Client {
   private outputStateChangedCallbacks: Array<OutputStateChangedCallback> = [];
   public onOutputStateChanged(cb: OutputStateChangedCallback): void {
     this.outputStateChangedCallbacks.push(cb);
+  }
+
+  private sceneChangedCallbacks: Array<SceneChangedCallback> = [];
+  public onSceneChanged(cb: SceneChangedCallback): void {
+    this.sceneChangedCallbacks.push(cb);
   }
 
   private sendMessage(message: JSONRPCMessage): void {
@@ -102,6 +109,13 @@ export default class Client {
       ));
       return;
     }
+    if (message.method == "scenes/currentSceneChanged") {
+      this.sceneChangedCallbacks.forEach(cb => cb(
+        message.params.id
+      ));
+      return;
+    }
+    console.log('Unhandled notification', message);
   }
 
   private responseHandlers: {

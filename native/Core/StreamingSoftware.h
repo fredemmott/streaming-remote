@@ -32,6 +32,7 @@ class StreamingSoftware {
   virtual std::vector<Scene> getScenes();
 
   Signal<const Config&> initialized;
-  Signal<const std::string&, OutputState> outputStateChanged;
   Signal<const Config&> configurationChanged;
+  Signal<const std::string&, OutputState> outputStateChanged;
+  Signal<const std::string&> currentSceneChanged;
 };
