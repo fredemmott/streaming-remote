@@ -82,7 +82,7 @@ jobs:
     strategy:
       matrix:
         build-type: [ "production", "development" ]
-  xsplit:
+  xsplit-ts:
     name: XSplit Plugin (TypeScript) - ${{matrix.build-type}}
     needs: [check-generated-versions]
     runs-on: ubuntu-latest
@@ -104,13 +104,13 @@ jobs:
         shell: bash
       - uses: actions/upload-artifact@v2
         with:
-          name: xsplit-${{matrix.build-type}}
+          name: xsplit-ts-${{matrix.build-type}}
           path: ${{runner.temp}}/artifacts
     strategy:
       matrix:
         build-type: [ "production", "development" ]
-  native-obs:
-    name: OBS v${{matrix.obs-version}} Plugin - ${{matrix.os}} - ${{matrix.build-type}}
+  obs:
+    name: OBS Plugin (v${{matrix.obs-version}}) - ${{matrix.os}} - ${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
     env:
       OBS_BUILD_TYPE: Release
@@ -221,7 +221,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: native-obs-${{matrix.os}}-${{matrix.build-type}}
+          name: obs-${{matrix.os}}-${{matrix.build-type}}
           path: ${{runner.temp}}/artifacts
     strategy:
       matrix:
@@ -248,7 +248,7 @@ jobs:
             qt-version: 5.10.1
           - obs-version: 26.1.2
             qt-version: 5.15.2
-  native-xsplit:
+  xsplit-native:
     name: XSplit Plugin (native) - ${{matrix.os}} - ${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
     steps:
@@ -296,7 +296,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: native-xsplit-${{matrix.os}}-${{matrix.build-type}}
+          name: xsplit-native-${{matrix.os}}-${{matrix.build-type}}
           path: ${{runner.temp}}/artifacts
     strategy:
       matrix:
@@ -304,7 +304,7 @@ jobs:
         build-type: [Release, Debug]
   prepare-packages:
     name: Prepare packages
-    needs: [native-obs, native-xsplit, streamdeck, webui, xsplit]
+    needs: [obs, xsplit-native, streamdeck, webui, xsplit-ts]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v2
@@ -332,18 +332,18 @@ jobs:
     - name: Prepare OBS plugins
       working-directory: ${{runner.temp}}/artifacts
       run: |
-        ( cd native-obs-windows-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-win64.zip *)
-        ( cd native-obs-macos-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-macos.zip  *)
-        ( cd native-obs-windows-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-win64.zip *)
-        ( cd native-obs-macos-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-macos.zip *)
-    - name: Prepare XSplit plugins
+        ( cd obs-windows-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-win64.zip *)
+        ( cd obs-macos-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-macos.zip  *)
+        ( cd obs-windows-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-win64.zip *)
+        ( cd obs-macos-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-macos.zip *)
+    - name: Prepare combined XSplit plugins
       working-directory: ${{runner.temp}}/artifacts
       run: |
         mkdir -p ${{runner.temp}}/xsplit-debug/plugin ${{runner.temp}}/xsplit-release/plugin
-        ( cd native-xsplit-windows-Release/xsplit/; install * ${{runner.temp}}/xsplit-release )
-        ( cd native-xsplit-windows-Debug/xsplit/; install * ${{runner.temp}}/xsplit-debug )
-        ( cd xsplit-production; rsync -av ./ ${{runner.temp}}/xsplit-release/plugin/ )
-        ( cd xsplit-development; rsync -av ./ ${{runner.temp}}/xsplit-debug/plugin/ )
+        ( cd xsplit-native-windows-Release/xsplit/; install * ${{runner.temp}}/xsplit-release )
+        ( cd xsplit-native-windows-Debug/xsplit/; install * ${{runner.temp}}/xsplit-debug )
+        ( cd xsplit-ts-production; rsync -av ./ ${{runner.temp}}/xsplit-release/plugin/ )
+        ( cd xsplit-ts-development; rsync -av ./ ${{runner.temp}}/xsplit-debug/plugin/ )
         cd ${{runner.temp}}/xsplit-release
         7z a ${{runner.temp}}/final/xsplit-streaming-remote.zip *
         cd ${{runner.temp}}/xsplit-debug
