@@ -42,17 +42,15 @@ class WebUIClient {
   private ws: WebSocket;
   private rpc: Client.RPC;
   private config: Client.Config;
-  private outputs: { [id: string]: HTMLDivElement };
-  constructor(ws: WebSocket, config: Client.Config) {
-    this.ws = ws;
-    this.config = config;
-    this.outputs = {};
-  }
+  private outputs: { [id: string]: HTMLDivElement } = {};
 
-  public async start(password: string): Promise<void> {
+  public async start(ws: WebSocket, config: Client.Config): Promise<void> {
+    this.config = config;
+    this.ws = ws;
+
     let cryptoState : Client.CryptoState = null;
     try {
-      cryptoState = await Client.handshake(this.ws, password);
+      cryptoState = await Client.handshake(this.ws, config.password);
     } catch (e) {
       const error = document.querySelector('#error');
       error.classList.remove('uninit');
@@ -171,30 +169,26 @@ class WebUIClient {
   }
 }
 
-async function connect(config: Client.Config) {
+async function connect(config: Client.Config, reused_client: WebUIClient = null) {
   document.querySelector('#connectionParameters').classList.add('hide');
   document.querySelector('#connecting').classList.remove('hide');
   const uri = 'ws://' + config.host + ':' + config.port;
-  const password = config.password;
   const ws = new WebSocket(uri);
   ws.binaryType = 'arraybuffer';
 
   ws.addEventListener('open', async () => {
-    const client = (new WebUIClient(ws, config));
-    await client.start(password);
-    ws.addEventListener('close', function () {
-      reset(ws, config);
-    });
+    const client = reused_client ? reused_client : new WebUIClient();
+    await client.start(ws, config);
+    ws.addEventListener('close', () => reset(ws, config, client));
   });
-
   ws.addEventListener('error', function () {
-    reset(ws, config);
+    reset(ws, config, reused_client);
   });
 }
 
-function reset(ws: WebSocket, config: Client.Config) {
+function reset(ws: WebSocket, config: Client.Config, reused_client: WebUIClient = null) {
   ws.close();
-  setTimeout(function () { connect(config); }, 500);
+  setTimeout(function () { connect(config, reused_client); }, 500);
 }
 
 function initializeConnectionForm(): void {
