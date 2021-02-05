@@ -161,7 +161,7 @@ jobs:
           submodules: recursive
       - name: Set build architecture (Windows)
         if: matrix.os == 'windows'
-        run: echo "::set-env name=CMAKE_PLATFORM_GENERATOR::x64"
+        run: echo CMAKE_PLATFORM_GENERATOR=x64 >> $GITHUB_ENV
       - name: Configure OBS
         if: steps.cache-obs.outputs.cache-hit != 'true'
         working-directory: obs-studio
