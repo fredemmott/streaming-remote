@@ -2,7 +2,7 @@ name: Continuous Integration
 on: [push, pull_request]
 jobs:
   check-generated-versions:
-    name: Generated version files
+    name: Check generated version files are up to date
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
