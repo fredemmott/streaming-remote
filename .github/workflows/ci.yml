@@ -257,7 +257,7 @@ jobs:
             "-DCMAKE_INSTALL_BINDIR=${{runner.temp}}/prefix" `
             "-DCMAKE_INSTALL_LIBDIR=${{runner.temp}}/prefix" `
             -DWITH_XSPLIT=ON `
-            -DWITH_OBS=OFF `
+            -DWITH_OBS=OFF
         shell: pwsh
       - name: Build
         working-directory: streaming-remote/build
