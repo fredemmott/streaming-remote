@@ -19,7 +19,6 @@ set_target_properties(
   obs-streaming-remote
   PROPERTIES
   AUTOMOC ON
-  CXX_STANDARD 17
 )
 install(TARGETS obs-streaming-remote)
 
