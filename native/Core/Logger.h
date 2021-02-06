@@ -10,7 +10,16 @@
 
 #include <fmt/format.h>
 
+#include <exception>
 #include <string>
+
+#if __cplusplus > 201703L
+inline bool uncaught_exception() noexcept {
+  return std::uncaught_exceptions() > 0;
+}
+#else
+using std::uncaught_exception;
+#endif
 
 class Logger {
  public:
@@ -56,7 +65,11 @@ class ScopeLogger {
   ScopeLogger(const ScopeLogger& other) = delete;
 
   ~ScopeLogger() {
-    Logger::debug("{} - EXIT", mMessage);
+    if (uncaught_exception()) {
+      Logger::debug("{} - EXCEPTION", mMessage);
+    } else {
+      Logger::debug("{} - EXIT", mMessage);
+    }
   }
 
  private:
