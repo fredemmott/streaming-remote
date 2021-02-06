@@ -10,7 +10,7 @@ import handshake from './handshake';
 import RPC from './RPC';
 import Config from './Config';
 import CryptoState from './CryptoState';
-import {Output, OutputState, OutputType } from './Types'
+import {Output, OutputState, OutputType, Scene} from './Types'
 
 export {
   handshake,
@@ -19,5 +19,6 @@ export {
   RPC,
   Output,
   OutputState,
-  OutputType
+  OutputType,
+  Scene,
 };

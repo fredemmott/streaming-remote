@@ -6,7 +6,7 @@
  * in the root directory of this source tree.
  */
 
-import {Output, OutputState, OutputType} from "StreamingRemoteClient";
+import {Output, OutputState, OutputType, Scene} from "StreamingRemoteClient";
 import * as Client from "StreamingRemoteClient";
 import * as ConfigStorage from "./ConfigStorage";
 
@@ -42,7 +42,8 @@ class WebUIClient {
   private ws: WebSocket;
   private rpc: Client.RPC;
   private config: Client.Config;
-  private outputs: { [id: string]: HTMLDivElement } = {};
+  private outputs: { [id: string]: HTMLElement } = {};
+  private scenes: { [id: string]: HTMLElement } = {};
 
   public async start(ws: WebSocket, config: Client.Config): Promise<void> {
     this.config = config;
@@ -65,68 +66,96 @@ class WebUIClient {
     this.rpc = new Client.RPC(this.ws, cryptoState);
     this.rpc.onHelloNotification(() => {
       document.querySelector('#connecting').classList.add('hide');
-      this.updateOutputs();
-    });
-    this.rpc.onOutputStateChanged((id: string, state: OutputState) => {
-      const element = this.outputs[id];
-      this.setOutputElementState(element, state);
-    });
-  }
-
-  private async updateOutputs(): Promise<void> {
-    const outputs = await this.rpc.getOutputs();
-    WebUIClient.allHosts[this.config.host] = true;
-    if (Object.keys(WebUIClient.allHosts).length > 1) {
-      document.querySelector('body').classList.add('multihost');
+        WebUIClient.allHosts[this.config.host] = true;
+        if (Object.keys(WebUIClient.allHosts).length > 1) {
+          document.querySelector('body').classList.add('multihost');
+        }
+        this.updateOutputs();
+        this.updateScenes();
+      });
+      this.rpc.onOutputStateChanged((id: string, state: OutputState) => {
+        const element = this.outputs[id];
+        this.setOutputElementState(element, state);
+      });
+      this.rpc.onSceneChanged(async (active_id: string) => {
+        for (const id in this.scenes) {
+          this.scenes[id].classList.toggle('active', id == active_id);
+        }
+      });
     }
 
-    const container = document.querySelector('#outputContainer') as HTMLDivElement;
-    for (const key in this.outputs) {
-      container.removeChild(this.outputs[key]);
-    }
-    this.outputs = {};
-
-    for (const id in outputs) {
-      this.addOutputElement(container, outputs[id]);
-    }
-    document.querySelector('#outputContainer').classList.remove('uninit');
-  }
-
-  private addOutputElement(container: HTMLDivElement, output: Output): void {
-    const recordingTemplate = document.querySelector('#recordingTemplate');
-    const streamingTemplate = document.querySelector('#streamingTemplate');
-    const { id, name, type, state, delaySeconds } = output;
-    const template = (type === OutputType.LOCAL_RECORDING)
-      ? recordingTemplate : streamingTemplate;
-    const elem = template.cloneNode(/* deep = */ true) as HTMLDivElement;
-    this.outputs[id] = elem;
-    elem.removeAttribute('id');
-    elem.dataset.outputId = id;
-    elem.dataset.host = this.config.host;
-    if (delaySeconds != undefined) {
-      const delayMsg = elem.querySelector('.delay') as HTMLSpanElement;
-      if (delaySeconds == 0) {
-        delayMsg.innerText = 'no delay';
-      } else {
-        delayMsg.innerText = delaySeconds.toString() + 's delay';
+    private async updateCollection<T>(
+      collection: { [id: string]: T },
+      container: HTMLElement,
+      elements: { [id: string]: HTMLElement },
+      createElement: (T) => HTMLElement,
+    ) {
+      for (const key in elements) {
+        container.removeChild(elements[key]);
       }
-      delayMsg.addEventListener(
-        'click',
-        async e => {
-          e.preventDefault();
-          const input = window.prompt(
-            "Enter the number of seconds to delay the stream, or '0' to " +
-            "disable delay",
-            '0'
-          );
-          const seconds = parseInt(input);
-          if (isNaN(seconds) || seconds < 0) {
-            return;
-          }
-          await this.rpc.setDelay(output.id, seconds);
-          if (seconds == 0) {
-            delayMsg.innerText = 'no delay';
-          } else {
+      elements = {};
+
+      for (const id in collection) {
+        const elem = createElement(collection[id]);
+        elements[id] = elem;
+        container.appendChild(elem);
+      }
+      container.classList.remove('uninit');
+      return elements;
+    }
+
+    private async updateOutputs(): Promise<void> {
+      this.outputs = await this.updateCollection(
+        await this.rpc.getOutputs(),
+        document.querySelector('#outputContainer'),
+        this.outputs,
+        (output) => this.createOutputElement(output),
+      );
+    }
+
+    private async updateScenes(): Promise<void> {
+      this.scenes = await this.updateCollection(
+        await this.rpc.getScenes(),
+        document.querySelector('#sceneContainer'),
+        this.scenes,
+        (scene) => this.createSceneElement(scene),
+      );
+    }
+
+    private createOutputElement(output: Output): HTMLElement {
+      const recordingTemplate = document.getElementById('recordingTemplate');
+      const streamingTemplate = document.getElementById('streamingTemplate');
+      const { id, name, type, state, delaySeconds } = output;
+      const template = (type === OutputType.LOCAL_RECORDING)
+        ? recordingTemplate : streamingTemplate;
+      const elem = template.cloneNode(/* deep = */ true) as HTMLDivElement;
+      elem.removeAttribute('id');
+      elem.dataset.outputId = id;
+      elem.dataset.host = this.config.host;
+      if (delaySeconds != undefined) {
+        const delayMsg = elem.querySelector('.delay') as HTMLSpanElement;
+        if (delaySeconds == 0) {
+          delayMsg.innerText = 'no delay';
+        } else {
+          delayMsg.innerText = delaySeconds.toString() + 's delay';
+        }
+        delayMsg.addEventListener(
+          'click',
+          async e => {
+            e.preventDefault();
+            const input = window.prompt(
+              "Enter the number of seconds to delay the stream, or '0' to " +
+              "disable delay",
+              '0'
+            );
+            const seconds = parseInt(input);
+            if (isNaN(seconds) || seconds < 0) {
+              return;
+            }
+            await this.rpc.setDelay(output.id, seconds);
+            if (seconds == 0) {
+              delayMsg.innerText = 'no delay';
+            } else {
             delayMsg.innerText = input + 's delay';
           }
         }
@@ -145,7 +174,19 @@ class WebUIClient {
       e.preventDefault();
       elem.classList.add('removed');
     });
-    container.appendChild(elem);
+    return elem;
+  }
+
+  private createSceneElement(scene: Scene): HTMLElement {
+    const template = document.getElementById('sceneTemplate');
+    const elem = template.cloneNode(/* deep = */ true) as HTMLElement;
+    elem.querySelector('h1').textContent = scene.name;
+    elem.querySelector('h2').textContent = this.config.host;
+    elem.dataset.sceneId = scene.id;
+    elem.removeAttribute('id');
+    elem.classList.toggle('active', scene.active);
+    elem.classList.remove('uninit');
+    return elem;
   }
 
   private toggleState(id: string, node: HTMLElement): void {
