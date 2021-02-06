@@ -76,6 +76,9 @@ class Plugin final {
       try {
         mContext.run();
         Logger::debug("ASIO context cleanly finished");
+      } catch (const std::exception& e) {
+        Logger::debug("Unclean exit from ASIO context: {}", e.what());
+        throw;
       } catch (...) {
         Logger::debug("Unclean exit from ASIO context");
         throw;
