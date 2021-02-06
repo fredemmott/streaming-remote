@@ -41,6 +41,7 @@ XSplit::XSplit(IXSplitScriptDllContext* context)
   registerPluginFunc(
     "getDefaultConfiguration", &XSplit::pluginfunc_getDefaultConfiguration);
   registerPluginFunc("setConfiguration", &XSplit::pluginfunc_setConfiguration);
+  registerPluginFunc("currentSceneChanged", &XSplit::pluginfunc_currentSceneChanged);
 }
 
 XSplit::~XSplit() {
@@ -55,6 +56,11 @@ Config XSplit::getConfiguration() const {
 std::vector<Output> XSplit::getOutputs() {
   LOG_FUNCTION();
   return mOutputs;
+}
+
+std::vector<Scene> XSplit::getScenes() {
+  LOG_FUNCTION();
+  return mScenes;
 }
 
 void XSplit::setJsonConfig(const nlohmann::json& doc) {
@@ -102,6 +108,20 @@ void XSplit::stopOutput(const std::string& id) {
   callJSPlugin("stopOutput", id);
 }
 
+bool XSplit::activateScene(const std::string& id) {
+  LOG_FUNCTION(id);
+  for (const auto& scene: mScenes) {
+    if (scene.active) {
+      continue;
+    }
+    if (scene.id == id) {
+      callJSPlugin("activateScene", id);
+      return true;
+    }
+  }
+  return false;
+}
+
 void XSplit::sendToXSplitDebugLog(const std::string& what) {
   callJSPlugin("debugLog", what);
 }
@@ -119,7 +139,8 @@ void XSplit::pluginfunc_init(const std::string& proto_version) {
 
 void XSplit::pluginfunc_setConfig(
   const nlohmann::json& config,
-  const nlohmann::json& outputs) {
+  const nlohmann::json& outputs,
+  const nlohmann::json& scenes) {
   LOG_FUNCTION();
   DebugPrint("Setting config to {}", config.dump());
   setJsonConfig(config);
@@ -128,6 +149,11 @@ void XSplit::pluginfunc_setConfig(
   mOutputs.clear();
   for (const auto& output : outputs) {
     mOutputs.push_back(Output::fromJson(output));
+  }
+  mScenes.clear();
+  DebugPrint("Setting scenes to {}", scenes.dump());
+  for (const auto& scene : scenes) {
+    mScenes.push_back(Scene::fromJson(scene));
   }
   emit initialized(mConfig);
 }
@@ -146,6 +172,14 @@ void XSplit::pluginfunc_outputStateChanged(
     }
   }
   emit outputStateChanged(id, state);
+}
+
+void XSplit::pluginfunc_currentSceneChanged(const std::string& id) {
+  LOG_FUNCTION();
+  for (auto& scene : mScenes) {
+    scene.active = (scene.id == id);
+  }
+  emit currentSceneChanged(id);
 }
 
 nlohmann::json XSplit::pluginfunc_getDefaultConfiguration() {

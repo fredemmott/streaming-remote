@@ -62,19 +62,24 @@ dll_callback('stopOutput', async function (id: string) {
   );
 });
 
+dll_callback('activateScene', async function(id: string) {
+  const scene = await XJS.Scene.getBySceneUid(id);
+  await XJS.Scene.setActiveScene(scene);
+});
+
 dll_callback('init', async function (dll_proto: string) {
   console.log("init", {dll_proto, XSplitPluginDllApiVersion});
   if (dll_proto != XSplitPluginDllApiVersion) {
     readyState.reject([dll_proto, XSplitPluginDllApiVersion]);
     return;
   }
-  await sendOutputListToDll();
+  await sendInitialDataToDll();
   readyState.resolve(null);
 });
 
-async function sendOutputListToDll() {
+async function sendInitialDataToDll() {
   await XJS.ready();
-  const [allOutputs, activeOutputs, config] = await Promise.all([
+  const [allOutputs, activeOutputs, scenes, config] = await Promise.all([
     (async () => {
       const outputs = await XJS.Output.getOutputList() as Array<any>;
       return Promise.all(
@@ -108,6 +113,22 @@ async function sendOutputListToDll() {
       );
     })(),
     XJS.StreamInfo.getActiveStreamChannels(),
+    (async () => {
+      const [count, active] = await Promise.all([
+        XJS.Scene.getSceneCount(),
+        XJS.Scene.getActiveScene(),
+      ]);
+      const scenes = await Promise.all([...Array(count).keys()].map(
+        (i) => XJS.Scene.getBySceneIndex(i)
+      ));
+      const active_id = await active.getSceneUid();
+      return await Promise.all(scenes.map(
+        async (scene) => { return {
+          id: await scene.getSceneUid(),
+          name: await scene.getName(),
+          active: active_id == await scene.getSceneUid(),
+      }; }));
+    })(),
     getConfiguration(),
   ]);
   let retOutputs = allOutputs;
@@ -119,7 +140,7 @@ async function sendOutputListToDll() {
       }
     }
   });
-  await StreamRemote.DllCall.setConfig(config, retOutputs);
+  await StreamRemote.DllCall.setConfig(config, retOutputs, scenes);
 }
 
 async function loadDll(): Promise<void> {
@@ -163,6 +184,11 @@ export async function start() {
     }
     const id = await channel.getName();
     await StreamRemote.DllCall.outputStateChanged(id, StreamRemote.OutputState.STOPPED);
+  });
+  XJS.ExtensionWindow.on('scene-load', async function(number) {
+    const scene = await XJS.Scene.getBySceneIndex(number);
+    const id = await scene.getSceneUid();
+    await StreamRemote.DllCall.currentSceneChanged(id);
   });
 }
 

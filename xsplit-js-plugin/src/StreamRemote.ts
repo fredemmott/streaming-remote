@@ -34,6 +34,12 @@ export interface Output {
   state: OutputState;
 }
 
+export interface Scene {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
 export interface Config {
   password: string;
   tcpPort: Number;
@@ -47,11 +53,13 @@ export namespace DllCall {
   export async function setConfig(
     config: Config,
     outputs: Array<Output>,
+    scenes: Array<Scene>,
   ): Promise<void> {
     await XJS.Dll.callEx(
       cpp_fun('setConfig'),
       JSON.stringify(config),
       JSON.stringify(outputs),
+      JSON.stringify(scenes),
     );
   }
 
@@ -74,5 +82,9 @@ export namespace DllCall {
     const json = JSON.stringify(config);
     console.log('setting config', config);
     await XJS.Dll.callEx(cpp_fun('setConfiguration'), json);
+  }
+
+  export async function currentSceneChanged(id: string): Promise<void> {
+    await XJS.Dll.callEx(cpp_fun('currentSceneChanged'), id);
   }
 }

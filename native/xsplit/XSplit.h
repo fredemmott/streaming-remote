@@ -25,7 +25,6 @@ class XSplit final : public StreamingSoftware {
   ~XSplit();
 
   Config getConfiguration() const override;
-  std::vector<Output> getOutputs() override;
 
   bool handleCall(
     IXSplitScriptDllContext* context,
@@ -35,13 +34,18 @@ class XSplit final : public StreamingSoftware {
     BSTR* retv);
 
   // slots:
+  std::vector<Output> getOutputs() override;
   void startOutput(const std::string& id) override;
   void stopOutput(const std::string& id) override;
+
+  std::vector<Scene> getScenes() override;
+  bool activateScene(const std::string& id) override;
 
  private:
   Config mConfig;
   CComPtr<IXSplitScriptDllContext> mCallbackImpl;
   std::vector<Output> mOutputs;
+  std::vector<Scene> mScenes;
   Logger::ImplRegistration mLoggerImpl;
   std::map<std::string, std::function<void(BSTR*, UINT, BSTR*)>> mPluginFuncs;
 
@@ -67,10 +71,12 @@ class XSplit final : public StreamingSoftware {
   void pluginfunc_init(const std::string& proto_version);
   void pluginfunc_setConfig(
     const nlohmann::json& config,
-    const nlohmann::json& outputs);
+    const nlohmann::json& outputs,
+    const nlohmann::json& scenes);
   void pluginfunc_outputStateChanged(
     const std::string& id,
     const std::string& state);
+  void pluginfunc_currentSceneChanged(const std::string& id);
   nlohmann::json pluginfunc_getDefaultConfiguration();
   void pluginfunc_setConfiguration(const nlohmann::json& config);
 
