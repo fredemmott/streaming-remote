@@ -8,6 +8,7 @@
 
 #include "Logger.h"
 
+#include <exception>
 #include <map>
 #include <mutex>
 
@@ -16,6 +17,15 @@
 #endif
 
 namespace {
+
+#if __cplusplus > 201703L
+inline bool uncaught_exception() noexcept {
+	return std::uncaught_exceptions() > 0;
+}
+#else
+using std::uncaught_exception;
+#endif
+
 void native_logger(const std::string& message) {
 #ifndef NDEBUG
 #ifdef _MSC_VER
@@ -70,5 +80,13 @@ void Logger::logImpl(const std::string& message) {
   std::scoped_lock lock(sMutex);
   for (const auto& [_, impl] : sLoggers) {
     impl(message);
+  }
+}
+
+ScopeLogger::~ScopeLogger() {
+  if (uncaught_exception()) {
+    Logger::debug("{} - EXCEPTION", mMessage);
+  } else {
+    Logger::debug("{} - EXIT", mMessage);
   }
 }
