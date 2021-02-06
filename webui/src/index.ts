@@ -185,6 +185,16 @@ class WebUIClient {
     elem.dataset.sceneId = scene.id;
     elem.removeAttribute('id');
     elem.classList.toggle('active', scene.active);
+    elem.addEventListener(
+      'click',
+      (e: Event) => {
+        if (elem.classList.contains('active')) {
+          return;
+        }
+        e.preventDefault();
+        this.rpc.activateScene(scene.id);
+      },
+    );
     elem.classList.remove('uninit');
     return elem;
   }
