@@ -14,7 +14,6 @@
 #include <type_traits>
 
 #include "Logger.h"
-#include "Plugin.h"
 #include "Server.h"
 #include "StreamingSoftware.h"
 
