@@ -287,7 +287,7 @@ jobs:
           path: ${{runner.temp}}/artifacts
     strategy:
       matrix:
-        os: [windows]
+        os: [macos, windows]
         build-type: [Release, Debug]
   prepare-packages:
     name: Prepare packages
