@@ -425,3 +425,42 @@ Example response and notifications:
   }
 }
 ```
+
+### `scenes/getThumbnail`
+
+This method is sent by the client when it wants to switch scenes.
+
+This method takes `{ id: string, content_type: string }` for its' parameters.
+
+This method returns the content type and base64-encoded data.
+
+Implementations *should* support `image/png` as a content type.
+
+Example request:
+
+```
+{
+  "jsonrpc": "2.0",
+  "method": "scenes/getThumbnail",
+  "id": 1,
+  "params": {
+    "id": "scene1234",
+    "content_type":
+    "image/png"
+  }
+}
+```
+
+Example response:
+
+```
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+    "id": "scene1234",
+    "base64_data": "abcdef",
+    "content_type": "image/png"
+	}
+}
+```

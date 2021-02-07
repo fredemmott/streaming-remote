@@ -173,6 +173,30 @@ asio::awaitable<void> ClientHandler::plaintextRpcMessageReceived(const std::stri
       {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", success}});
     co_return;
   }
+
+  if (method == "scenes/getThumbnail") {
+    if (jsonrpc["params"]["content_type"] == "image/png") {
+      const auto image = co_await mSoftware->getSceneThumbnailAsBase64Png(jsonrpc["params"]["id"]);
+      if (!image.empty()) {
+        encryptThenSendMessage({
+          {"jsonrpc", "2.0"},
+          {"id", jsonrpc["id"]},
+          {"result", {
+            {"id", jsonrpc["params"]["id"]},
+            {"content_type", "image/png"},
+            {"base64_data", image}
+          }}
+        });
+        co_return;
+      }
+      encryptThenSendMessage({
+        {"jsonrpc", "2.0"},
+        {"id", jsonrpc["id"]},
+        {"error", { {"code", 0 }}}
+      });
+      co_return;
+    }
+  }
 }
 
 namespace {

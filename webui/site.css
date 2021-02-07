@@ -91,6 +91,10 @@ body {
   color: #555;
 }
 
+img.uninit {
+  display: none;
+}
+
 .output svg {
   margin: auto;
 }

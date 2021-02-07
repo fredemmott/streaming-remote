@@ -34,6 +34,7 @@ class StreamingSoftware {
 
   virtual asio::awaitable<std::vector<Scene>> getScenes();
   virtual asio::awaitable<bool> activateScene(const std::string& id);
+  virtual asio::awaitable<std::string> getSceneThumbnailAsBase64Png(const std::string& id);
 
   Signal<const Config&> initialized;
   Signal<const Config&> configurationChanged;

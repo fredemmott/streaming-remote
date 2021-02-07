@@ -164,6 +164,11 @@ asio::awaitable<bool> XSplit::activateScene(const std::string& id) {
   co_return (co_await coCallJSPlugin("activateScene", id)).get<bool>();
 }
 
+asio::awaitable<std::string> XSplit::getSceneThumbnailAsBase64Png(const std::string& id) {
+  LOG_FUNCTION(id);
+  co_return (co_await coCallJSPlugin("getSceneThumbnailAsBase64Png", id)).get<std::string>();
+}
+
 void XSplit::sendToXSplitDebugLog(const std::string& what) {
   callJSPlugin("debugLog", what);
 }

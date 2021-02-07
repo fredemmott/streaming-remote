@@ -88,7 +88,7 @@ class WebUIClient {
       collection: { [id: string]: T },
       container: HTMLElement,
       elements: { [id: string]: HTMLElement },
-      createElement: (T) => HTMLElement,
+      createElement: (T) => Promise<HTMLElement>,
     ) {
       for (const key in elements) {
         container.removeChild(elements[key]);
@@ -96,7 +96,7 @@ class WebUIClient {
       elements = {};
 
       for (const id in collection) {
-        const elem = createElement(collection[id]);
+        const elem = await createElement(collection[id]);
         elements[id] = elem;
         container.appendChild(elem);
       }
@@ -109,7 +109,7 @@ class WebUIClient {
         await this.rpc.getOutputs(),
         document.querySelector('#outputContainer'),
         this.outputs,
-        (output) => this.createOutputElement(output),
+        async (output) => await this.createOutputElement(output),
       );
     }
 
@@ -119,12 +119,12 @@ class WebUIClient {
         await this.rpc.getScenes(),
         document.querySelector('#sceneContainer'),
         this.scenes,
-        (scene) => this.createSceneElement(scene),
+        async (scene) => await this.createSceneElement(scene),
       );
       console.log('Update scenes end');
     }
 
-    private createOutputElement(output: Output): HTMLElement {
+    private async createOutputElement(output: Output): Promise<HTMLElement> {
       const recordingTemplate = document.getElementById('recordingTemplate');
       const streamingTemplate = document.getElementById('streamingTemplate');
       const { id, name, type, state, delaySeconds } = output;
@@ -179,11 +179,18 @@ class WebUIClient {
     return elem;
   }
 
-  private createSceneElement(scene: Scene): HTMLElement {
+  private async createSceneElement(scene: Scene): Promise<HTMLElement> {
     const template = document.getElementById('sceneTemplate');
     const elem = template.cloneNode(/* deep = */ true) as HTMLElement;
+    const thumbnail = await this.rpc.getSceneThumbnail(scene.id, "image/png");
     elem.querySelector('h1').textContent = scene.name;
     elem.querySelector('h2').textContent = this.config.host;
+    if (thumbnail) {
+      const img = elem.querySelector('img') as HTMLImageElement;
+      console.log(thumbnail);
+      img.src = "data:image/png;base64," + thumbnail;
+      img.classList.remove("uninit");
+    }
     elem.dataset.sceneId = scene.id;
     elem.removeAttribute('id');
     elem.classList.toggle('active', scene.active);

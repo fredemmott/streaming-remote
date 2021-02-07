@@ -165,10 +165,6 @@ export default class Client {
     return await this.sendRequest('outputs/get', null);
   }
 
-  public async getScenes(): Promise<{ [id: string]: Scene }> {
-    return await this.sendRequest('scenes/get', null);
-  }
-
   public async setDelay(id: string, seconds: number): Promise<void> {
     await this.sendRequest('outputs/setDelay', { id, seconds });
   }
@@ -181,7 +177,15 @@ export default class Client {
     await this.sendRequest("outputs/stop", { id });
   }
 
+  public async getScenes(): Promise<{ [id: string]: Scene }> {
+    return await this.sendRequest('scenes/get', null);
+  }
+
   public async activateScene(id: string): Promise<void> {
     await this.sendRequest("scenes/activate", { id });
+  }
+
+  public async getSceneThumbnail(id: string, content_type: string): Promise<string> {
+    return (await this.sendRequest("scenes/getThumbnail", { id, content_type })).base64_data;
   }
 }

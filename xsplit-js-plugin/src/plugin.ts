@@ -147,20 +147,22 @@ async function get_outputs(): Promise<Array<StreamRemote.Output>> {
 
 dll_function('getOutputs', get_outputs);
 
+dll_function('getSceneThumbnailAsBase64Png', async (uid: string) => {
+  const scene = await XJS.Scene.getBySceneUid(uid);
+  return await XJS.Thumbnail.getSceneThumbnail(scene);
+});
+
 dll_callback('init', async function (dll_proto: string) {
   console.log("init", {dll_proto, XSplitPluginDllApiVersion});
   if (dll_proto != XSplitPluginDllApiVersion) {
     readyState.reject([dll_proto, XSplitPluginDllApiVersion]);
     return;
   }
-  await sendInitialDataToDll();
+  await XJS.ready();
+
+  await StreamRemote.DllCall.setConfiguration(await getConfiguration());
   readyState.resolve(null);
 });
-
-async function sendInitialDataToDll() {
-  await XJS.ready();
-  await StreamRemote.DllCall.setConfiguration(await getConfiguration());
-}
 
 async function loadDll(): Promise<void> {
   console.log('Waiting for XJS');

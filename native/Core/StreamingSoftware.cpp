@@ -30,6 +30,10 @@ asio::awaitable<bool> StreamingSoftware::activateScene(const std::string& id) {
   co_return false;
 }
 
+asio::awaitable<std::string> StreamingSoftware::getSceneThumbnailAsBase64Png(const std::string& id) {
+  co_return std::string();
+}
+
 asio::io_context& StreamingSoftware::getIoContext() const noexcept {
   return *mContext;
 }
