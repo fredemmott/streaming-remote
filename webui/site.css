@@ -94,6 +94,16 @@ body {
 img.uninit {
   display: none;
 }
+.scene img {
+  margin: 3em;
+  margin-top: auto;
+  border: 3px solid gray;
+  border-radius: 5px;
+  max-width: 10em;
+}
+.scene.active img {
+  border-color:red;
+}
 
 .output svg {
   margin: auto;
