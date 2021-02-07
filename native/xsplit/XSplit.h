@@ -49,9 +49,6 @@ class XSplit final : public StreamingSoftware {
   uint64_t mNextPromiseId = 0;
   std::map<uint64_t, Promise> mPromises;
 
-  std::vector<Output> mOutputs;
-  std::vector<Scene> mScenes;
-
   Logger::ImplRegistration mLoggerImpl;
   std::map<std::string, std::function<void(BSTR*, UINT, BSTR*)>> mPluginFuncs;
 
@@ -92,10 +89,6 @@ class XSplit final : public StreamingSoftware {
   }
 
   void pluginfunc_init(const std::string& proto_version);
-  void pluginfunc_setConfig(
-    const nlohmann::json& config,
-    const nlohmann::json& outputs,
-    const nlohmann::json& scenes);
   void pluginfunc_outputStateChanged(
     const std::string& id,
     const std::string& state);

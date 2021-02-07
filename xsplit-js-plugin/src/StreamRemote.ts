@@ -50,18 +50,6 @@ export namespace DllCall {
   export async function init(proto_version: string): Promise<void> {
     await XJS.Dll.callEx(cpp_fun('init'), proto_version);
   }
-  export async function setConfig(
-    config: Config,
-    outputs: Array<Output>,
-    scenes: Array<Scene>,
-  ): Promise<void> {
-    await XJS.Dll.callEx(
-      cpp_fun('setConfig'),
-      JSON.stringify(config),
-      JSON.stringify(outputs),
-      JSON.stringify(scenes),
-    );
-  }
 
   export async function getDefaultConfiguration(): Promise<Config> {
     const json = await XJS.Dll.callEx(

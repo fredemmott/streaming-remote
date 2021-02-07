@@ -67,7 +67,6 @@ XSplit::XSplit(std::shared_ptr<asio::io_context> io_context, IXSplitScriptDllCon
     }) {
   LOG_FUNCTION();
   registerPluginFunc("init", &XSplit::pluginfunc_init);
-  registerPluginFunc("setConfig", &XSplit::pluginfunc_setConfig);
   registerPluginFunc(
     "outputStateChanged", &XSplit::pluginfunc_outputStateChanged);
   registerPluginFunc(
@@ -174,48 +173,17 @@ void XSplit::pluginfunc_init(const std::string& proto_version) {
   callJSPlugin("init", XSPLIT_PLUGIN_DLL_API_VERSION);
 }
 
-void XSplit::pluginfunc_setConfig(
-  const nlohmann::json& config,
-  const nlohmann::json& outputs,
-  const nlohmann::json& scenes) {
-  LOG_FUNCTION();
-  DebugPrint("Setting config to {}", config.dump());
-  setJsonConfig(config);
-
-  DebugPrint("Setting outputs to {}", outputs.dump());
-  mOutputs.clear();
-  for (const auto& output : outputs) {
-    mOutputs.push_back(Output::fromJson(output));
-  }
-  mScenes.clear();
-  DebugPrint("Setting scenes to {}", scenes.dump());
-  for (const auto& scene : scenes) {
-    mScenes.push_back(Scene::fromJson(scene));
-  }
-  emit initialized(mConfig);
-}
-
 void XSplit::pluginfunc_outputStateChanged(
   const std::string& id,
   const std::string& stateStr) {
   LOG_FUNCTION();
   DebugPrint("State changed: {} => {}", id, stateStr);
-
   const auto state = Output::stateFromString(stateStr);
-  for (auto& output : mOutputs) {
-    if (output.id == id) {
-      output.state = state;
-      break;
-    }
-  }
   emit outputStateChanged(id, state);
 }
 
 void XSplit::pluginfunc_currentSceneChanged(const std::string& id) {
   LOG_FUNCTION();
-  for (auto& scene : mScenes) {
-    scene.active = (scene.id == id);
-  }
   emit currentSceneChanged(id);
 }
 
@@ -233,7 +201,12 @@ void XSplit::pluginfunc_setConfiguration(const nlohmann::json& config) {
   LOG_FUNCTION();
   DebugPrint("new configuration: {}", config.dump());
   setJsonConfig(config);
-  emit configurationChanged(mConfig);
+
+  if (!initialized.wasEmitted()) {
+    emit initialized(mConfig);
+  } else {
+    emit configurationChanged(mConfig);
+  }
 }
 
 void XSplit::pluginfunc_returnValue(const nlohmann::json& data) {

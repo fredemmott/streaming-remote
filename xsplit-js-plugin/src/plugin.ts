@@ -159,12 +159,7 @@ dll_callback('init', async function (dll_proto: string) {
 
 async function sendInitialDataToDll() {
   await XJS.ready();
-  const [outputs, scenes, config] = await Promise.all([
-    get_outputs(),
-    get_scenes(),
-    getConfiguration(),
-  ]);
-  await StreamRemote.DllCall.setConfig(config, outputs, scenes);
+  await StreamRemote.DllCall.setConfiguration(await getConfiguration());
 }
 
 async function loadDll(): Promise<void> {
