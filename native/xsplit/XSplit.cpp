@@ -8,6 +8,7 @@
 
 #include "XSplit.h"
 
+#include <asio.hpp>
 #include <fmt/format.h>
 
 #include <memory>
@@ -22,21 +23,27 @@
 
 using json = nlohmann::json;
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 struct XSplit::Promise {
   public:
-    Promise(): p(new Impl { CreateEventA(NULL, true, false, nullptr) }) {}
+    Promise(
+      asio::io_context& ctx
+    ): p(
+      new Impl {
+        .timer = asio::steady_timer(ctx, std::chrono::steady_clock::time_point::max()),
+      }
+    ) {
+    }
 
     void resolve(const nlohmann::json& data) noexcept {
       p->data = data;
-      SetEvent(p->event);
+      p->timer.cancel();
     }
 
-    asio::awaitable<void> async_wait(asio::io_context& ctx) {
-      asio::windows::object_handle obj(ctx, p->event);
-      co_await obj.async_wait(asio::use_awaitable);
+    asio::awaitable<nlohmann::json> async_wait() {
+      asio::error_code ec;
+      co_await p->timer.async_wait(asio::redirect_error(asio::use_awaitable, ec));
+      assert(ec == asio::error::operation_aborted);
+      co_return result();
     }
 
     nlohmann::json result() const {
@@ -44,12 +51,8 @@ struct XSplit::Promise {
     }
   private:
     struct Impl {
-      HANDLE event;
+      asio::steady_timer timer;
       nlohmann::json data;
-
-      ~Impl() {
-        CloseHandle(event);
-      }
     };
     std::shared_ptr<Impl> p;
 };
@@ -212,5 +215,7 @@ void XSplit::pluginfunc_setConfiguration(const nlohmann::json& config) {
 
 void XSplit::pluginfunc_returnValue(const nlohmann::json& data) {
   LOG_FUNCTION();
-  mPromises[std::stoull(data["call_id"].get<std::string>())].resolve(data["value"]);
+  auto key = std::stoull(data["call_id"].get<std::string>());
+  mPromises.at(key).resolve(data["value"]);
+  mPromises.erase(key);
 }

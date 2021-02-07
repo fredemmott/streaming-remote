@@ -76,15 +76,12 @@ class XSplit final : public StreamingSoftware {
     const char* func,
     Targs... args
   ) {
-    Promise promise;
+    Promise promise(getIoContext());
     auto id = mNextPromiseId++;
     mPromises.emplace(id, promise);
 
     callJSPlugin(func, std::to_string(id), args...);
-    co_await promise.async_wait(getIoContext());
-    auto result = promise.result();
-    mPromises.erase(id);
-    co_return result;
+    co_return co_await promise.async_wait();
   }
 
   void pluginfunc_init(const std::string& proto_version);
