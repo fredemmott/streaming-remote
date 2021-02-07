@@ -76,7 +76,6 @@ STREAMINGREMOTE_EXPORT
 void WINAPI XSplitScriptPluginDestroy() {
   ScopeLogger _log(__FUNCTION__);
   delete sPlugin;
-  delete sImpl;
   sPlugin = nullptr;
   delete sImpl;
   sImpl = nullptr;
