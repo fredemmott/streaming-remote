@@ -17,18 +17,18 @@
 class OBS : public QObject, public StreamingSoftware {
   Q_OBJECT
  public:
-  OBS();
+  OBS(std::shared_ptr<asio::io_context>);
   ~OBS();
 
   Config getConfiguration() const override;
 
-  std::vector<Output> getOutputs() override;
+  asio::awaitable<std::vector<Output>> getOutputs() override;
 
   void startOutput(const std::string& id) override;
   void stopOutput(const std::string& id) override;
   bool setOutputDelay(const std::string& id, int64_t seconds) override;
 
-  std::vector<Scene> getScenes() override;
+  asio::awaitable<std::vector<Scene>> getScenes() override;
   bool activateScene(const std::string& id) override;
 
  private:

@@ -226,25 +226,13 @@ jobs:
       matrix:
         os: [macos, windows]
         build-type: [Release, Debug]
-        obs-version: [25.0.8, 26.0.2, 26.1.2]
+        obs-version: [26.1.2]
         # Qt versions taken from OBS Studio's `.github/workflow/main.yml`
         include:
           - os: macos
             qt-archives: qtmacextras
           - os: windows
             qt-archives: qtwinextras
-          - obs-version: 25.0.8
-            os: macos
-            qt-version: 5.14.1
-          - obs-version: 25.0.8
-            os: windows
-            qt-version: 5.10.1
-          - obs-version: 26.0.2
-            os: macos
-            qt-version: 5.14.1
-          - obs-version: 26.0.2
-            os: windows
-            qt-version: 5.10.1
           - obs-version: 26.1.2
             qt-version: 5.15.2
   xsplit-native:

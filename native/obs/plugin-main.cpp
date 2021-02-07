@@ -23,7 +23,8 @@ OBS_MODULE_USE_DEFAULT_LOCALE("obs-streaming-remote", "en-US");
 
 bool obs_module_load() {
   LOG_FUNCTION();
-  sPlugin = new Plugin<OBS>();
+  auto ctx = std::make_shared<asio::io_context>();
+  sPlugin = new Plugin(ctx, new OBS(ctx));
   return true;
 }
 

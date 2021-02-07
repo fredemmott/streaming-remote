@@ -36,7 +36,9 @@ struct OBSSourceListScopeGuard {
 
 }// namespace
 
-OBS::OBS() : QObject(), StreamingSoftware(), mLoggerImpl(
+OBS::OBS(
+  std::shared_ptr<asio::io_context> ctx
+) : QObject(), StreamingSoftware(ctx), mLoggerImpl(
   [=](const std::string& message) {
     blog(LOG_INFO, "[obs-streaming-remote] %s", message.c_str());
   }
@@ -69,13 +71,13 @@ OBS::~OBS() {
   obs_frontend_remove_event_callback(&OBS::frontendEventCallback, this);
 }
 
-std::vector<Output> OBS::getOutputs() {
+asio::awaitable<std::vector<Output>> OBS::getOutputs() {
   LOG_FUNCTION();
   auto profile = obs_frontend_get_profile_config();
   const bool delayEnabled = config_get_bool(profile, "Output", "DelayEnable");
   const int delaySeconds
     = delayEnabled ? config_get_int(profile, "Output", "DelaySec") : 0;
-  return std::vector<Output>{
+  co_return std::vector<Output>{
     Output{
       s_recording, s_recording,
       obs_frontend_recording_active() ? OutputState::ACTIVE
@@ -89,7 +91,7 @@ std::vector<Output> OBS::getOutputs() {
            OutputType::REMOTE_STREAM, delaySeconds}};
 }
 
-std::vector<Scene> OBS::getScenes() {
+asio::awaitable<std::vector<Scene>> OBS::getScenes() {
   LOG_FUNCTION();
 
   const auto active_scene = obs_frontend_get_current_scene();
@@ -110,7 +112,7 @@ std::vector<Scene> OBS::getScenes() {
       /*.active = */ (source == active_scene)
     });
   }
-  return out;
+  co_return out;
 }
 
 bool OBS::activateScene(const std::string& id) {
