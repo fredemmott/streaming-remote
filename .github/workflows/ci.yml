@@ -30,7 +30,7 @@ jobs:
         working-directory: webui
         run: |
           mkdir -p ${{runner.temp}}/artifacts/dist
-          install ../LICENSE index.html site.css ${{runner.temp}}/artifacts
+          install ../LICENSE ../LICENSE-MIT index.html site.css ${{runner.temp}}/artifacts
           install dist/bundle.js ${{runner.temp}}/artifacts/dist/bundle.js
       - uses: actions/upload-artifact@v2
         with:
@@ -63,7 +63,7 @@ jobs:
         run: |
           mkdir -p ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/dist/
           install streamdeck-plugin/dist/bundle.js ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/dist/bundle.js
-          install LICENSE ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/LICENSE
+          install LICENSE LICENSE-MIT ${{runner.temp}}/com.fredemmott.streamingremote.sdPlugin/
       - name: Checkout StreamDeck DistributionTool
         run: |
           BRANCH=streamdeck-distributiontool-v1.4
@@ -100,7 +100,7 @@ jobs:
         run: |
           mkdir -p ${{runner.temp}}/artifacts/dist
           install dist/bundle.js ${{runner.temp}}/artifacts/dist/bundle.js
-          install ../LICENSE index.html index.xml index.css ${{runner.temp}}/artifacts/
+          install ../LICENSE ../LICENSE-MIT index.html index.xml index.css ${{runner.temp}}/artifacts/
         shell: bash
       - uses: actions/upload-artifact@v2
         with:
@@ -208,14 +208,14 @@ jobs:
         working-directory: streaming-remote/build
         run: |
           cmake --install . --config ${{matrix.build-type}}
-          install ../LICENSE ../LICENSE.OBS_COMBINED_WORK ${{runner.temp}}/prefix/
+          install ../LICENSE ../LICENSE-GPLv2 ${{runner.temp}}/prefix/
       - name: Copy files
         working-directory: ${{runner.temp}}/prefix
         run: |
           DIR="../artifacts/obs/obs-$(echo ${{matrix.obs-version}} | cut -f1-2 -d.)"
           mkdir -p "$DIR"
           rm *.lib || true
-          install LICENSE LICENSE.OBS_COMBINED_WORK obs-streaming-remote.* "$DIR/"
+          install LICENSE LICENSE-GPLv2 obs-streaming-remote.* "$DIR/"
         shell: bash
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -271,14 +271,14 @@ jobs:
         working-directory: streaming-remote/build
         run: |
           cmake --install . --config ${{matrix.build-type}}
-          install ../LICENSE ${{runner.temp}}/prefix/
+          install ../LICENSE ../LICENSE-MIT ${{runner.temp}}/prefix/
       - name: Copy files
         working-directory: ${{runner.temp}}/prefix
         if: matrix.os == 'windows'
         run: |
           mkdir -p ../artifacts/xsplit
           rm *.lib || true
-          install LICENSE xsplit* ../artifacts/xsplit
+          install LICENSE LICENSE-MIT xsplit* ../artifacts/xsplit
         shell: bash
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
