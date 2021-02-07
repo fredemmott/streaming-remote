@@ -35,7 +35,7 @@ class XSplit final : public StreamingSoftware {
     BSTR* retv);
 
   // slots:
-  std::vector<Output> getOutputs() override;
+  asio::awaitable<std::vector<Output>> getOutputs() override;
   void startOutput(const std::string& id) override;
   void stopOutput(const std::string& id) override;
 
@@ -51,6 +51,7 @@ class XSplit final : public StreamingSoftware {
 
   std::vector<Output> mOutputs;
   std::vector<Scene> mScenes;
+
   Logger::ImplRegistration mLoggerImpl;
   std::map<std::string, std::function<void(BSTR*, UINT, BSTR*)>> mPluginFuncs;
 
@@ -71,6 +72,23 @@ class XSplit final : public StreamingSoftware {
       com_args[i] = NEW_BSTR_FROM_STDSTRING(argv[i]);
     }
     mCallbackImpl->Callback(com_func, com_args, sizeof...(Targs));
+  }
+
+  template<class... Targs>
+  asio::awaitable<nlohmann::json> coCallJSPlugin(
+    const char* func,
+    Targs... args
+  ) {
+    Promise promise;
+    auto id = mNextPromiseId++;
+    mPromises.emplace(id, promise);
+
+    asio::windows::object_handle obj(getIoContext(), promise.getEvent());
+    callJSPlugin(func, std::to_string(id), std::forward(args)...);
+    co_await obj.async_wait(asio::use_awaitable);
+    auto result = promise.result();
+    mPromises.erase(id);
+    co_return result;
   }
 
   void pluginfunc_init(const std::string& proto_version);

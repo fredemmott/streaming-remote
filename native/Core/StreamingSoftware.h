@@ -26,7 +26,7 @@ class StreamingSoftware {
 
   virtual Config getConfiguration() const = 0;
 
-  virtual std::vector<Output> getOutputs() = 0;
+  virtual asio::awaitable<std::vector<Output>> getOutputs() = 0;
 
   virtual void startOutput(const std::string& id) = 0;
   virtual void stopOutput(const std::string& id) = 0;

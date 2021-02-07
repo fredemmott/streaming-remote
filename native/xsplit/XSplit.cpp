@@ -86,22 +86,21 @@ Config XSplit::getConfiguration() const {
   return mConfig;
 }
 
-std::vector<Output> XSplit::getOutputs() {
+asio::awaitable<std::vector<Output>> XSplit::getOutputs() {
   LOG_FUNCTION();
-  return mOutputs;
+	const auto outputs = co_await coCallJSPlugin("getOutputs");
+
+	std::vector<Output> out;
+	for (const auto& output: outputs) {
+		out.push_back(Output::fromJson(output));
+	}
+	co_return out;
+
 }
 
 asio::awaitable<std::vector<Scene>> XSplit::getScenes() {
   LOG_FUNCTION();
-  Promise promise;
-  auto id = mNextPromiseId++;
-  mPromises.emplace(id, promise);
-  asio::windows::object_handle obj(getIoContext(), promise.getEvent());
-  callJSPlugin("getScenes", std::to_string(id));
-  co_await obj.async_wait(asio::use_awaitable);
-  const auto scenes = promise.result();
-  mPromises.erase(id);
-  Logger::debug("Retrieved scenes from promise: {}", scenes.dump());
+  const auto scenes = co_await coCallJSPlugin("getScenes");
 
   std::vector<Scene> out;
   for (const auto& scene : scenes) {

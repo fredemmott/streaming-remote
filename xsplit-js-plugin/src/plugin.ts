@@ -7,6 +7,7 @@
  */
 
 // the typescript isn't currently compileable :'(
+import { getPositionOfLineAndCharacter } from "typescript";
 import * as XJS from "xjs-framework/dist/xjs-es2015"
 import * as StreamRemote from './StreamRemote'
 import { XSplitPluginDllApiVersion } from './Version';
@@ -26,11 +27,19 @@ function dll_callback(name: string, impl): void {
   // com.fredemmott.js.streaming-remote/js/, but without invalid chars for JS
   // function names
   const plugin_prefix = "com_fredemmott_streamingremote__js__";
-  window[`OnDll${plugin_prefix}${name}`] = async (param: string) => {
-    console.log('Settinging timeout', name, param);
-    setTimeout(() => { console.log('calling impl', name, param); impl(param); }, 0);
-  };
+  window[`OnDll${plugin_prefix}${name}`] = (param) => impl(param);
 }
+
+function dll_function(name: string, impl): void {
+  dll_callback(
+    name,
+    async (call_id: string, ...args: Array<string>) => {
+      const result = await impl(...args);
+      await StreamRemote.DllCall.returnValue(call_id, result);
+    }
+  );
+}
+
 
 dll_callback('debugLog', async function(what: string) {
   console.log(`DLL: ${what}`);
@@ -87,9 +96,48 @@ async function get_scenes(): Promise<Array<StreamRemote.Scene>> {
   }; }));
 }
 
-dll_callback('getScenes', async function(call_id: string) {
-  await StreamRemote.DllCall.returnValue(call_id, await get_scenes());
-});
+dll_function('getScenes', get_scenes);
+
+async function get_outputs(): Promise<Array<StreamRemote.Output>> {
+  const [active_names, outputs] = await Promise.all([
+    (async () => {
+      const infos = await XJS.StreamInfo.getActiveStreamChannels();
+      return Promise.all(infos.map(info => info.getName()));
+    })(),
+    XJS.Output.getOutputList(),
+  ]);
+
+  return await Promise.all(outputs.map(async output => {
+    const id = await output.getName();
+    const name = await (async () => {
+      if (id == 'Local Recording') {
+        // getDisplayName() raises a typeerror
+        return 'Recording';
+      }
+      if (id == 'XBC_NDIStream') {
+        // getDisplayName() returns the ID. Not useful.
+        return 'NDI';
+      }
+      return await output.getDisplayName();
+    })();
+    let type = StreamRemote.OutputType.REMOTE_STREAM;
+    if (id == "Local Recording") {
+      type = StreamRemote.OutputType.LOCAL_RECORDING;
+    }
+    if (id == "XBC_NDIStream") {
+      type = StreamRemote.OutputType.LOCAL_STREAM;
+    }
+    let state = StreamRemote.OutputState.STOPPED;
+    active_names.forEach(active => {
+      if (active == id) {
+        state = StreamRemote.OutputState.ACTIVE;
+      }
+    });
+    return {id, name, type, state} as StreamRemote.Output;
+  }));
+}
+
+dll_function('getOutputs', get_outputs);
 
 dll_callback('init', async function (dll_proto: string) {
   console.log("init", {dll_proto, XSplitPluginDllApiVersion});
@@ -103,53 +151,12 @@ dll_callback('init', async function (dll_proto: string) {
 
 async function sendInitialDataToDll() {
   await XJS.ready();
-  const [allOutputs, activeOutputs, scenes, config] = await Promise.all([
-    (async () => {
-      const outputs = await XJS.Output.getOutputList() as Array<any>;
-      return Promise.all(
-        outputs.map(async output => {
-          const id = await output.getName();
-          const name = await (async () => {
-            if (id == 'Local Recording') {
-              // getDisplayName() raises a typeerror
-              return 'Recording';
-            }
-            if (id == 'XBC_NDIStream') {
-              // getDisplayName() returns the ID. Not useful.
-              return 'NDI';
-            }
-            return await output.getDisplayName();
-          })();
-          let type = StreamRemote.OutputType.REMOTE_STREAM;
-          if (id == "Local Recording") {
-            type = StreamRemote.OutputType.LOCAL_RECORDING;
-          }
-          if (id == "XBC_NDIStream") {
-            type = StreamRemote.OutputType.LOCAL_STREAM;
-          }
-          return {
-            id,
-            name,
-            type: type,
-            state: StreamRemote.OutputState.STOPPED,
-          } as StreamRemote.Output;
-        })
-      );
-    })(),
-    XJS.StreamInfo.getActiveStreamChannels(),
+  const [outputs, scenes, config] = await Promise.all([
+    get_outputs(),
     get_scenes(),
     getConfiguration(),
   ]);
-  let retOutputs = allOutputs;
-  activeOutputs.forEach(active => {
-    for (const key in allOutputs) {
-      if (allOutputs[key].id == active.name) {
-        retOutputs[key].state = StreamRemote.OutputState.ACTIVE;
-        break;
-      }
-    }
-  });
-  await StreamRemote.DllCall.setConfig(config, retOutputs, scenes);
+  await StreamRemote.DllCall.setConfig(config, outputs, scenes);
 }
 
 async function loadDll(): Promise<void> {

@@ -111,7 +111,7 @@ asio::awaitable<void> ClientHandler::plaintextRpcMessageReceived(const std::stri
   Logger::debug("Received JsonRPC call {}", method);
 
   if (method == "outputs/get") {
-    const auto outputs = mSoftware->getOutputs();
+    const auto outputs = co_await mSoftware->getOutputs();
     json outputsJson;
     for (const auto& output : outputs) {
       outputsJson[output.id] = output.toJson();
