@@ -168,9 +168,9 @@ asio::awaitable<void> ClientHandler::plaintextRpcMessageReceived(const std::stri
   }
 
   if (method == "scenes/activate") {
-    mSoftware->activateScene(jsonrpc["params"]["id"]);
+    const auto success = co_await mSoftware->activateScene(jsonrpc["params"]["id"]);
     encryptThenSendMessage(
-      {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", json::object()}});
+      {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", success}});
     co_return;
   }
 }

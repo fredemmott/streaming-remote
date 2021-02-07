@@ -29,7 +29,7 @@ class OBS : public QObject, public StreamingSoftware {
   bool setOutputDelay(const std::string& id, int64_t seconds) override;
 
   asio::awaitable<std::vector<Scene>> getScenes() override;
-  bool activateScene(const std::string& id) override;
+  asio::awaitable<bool> activateScene(const std::string& id) override;
 
  private:
   Config getInitialConfiguration();

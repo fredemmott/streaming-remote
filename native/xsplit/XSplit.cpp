@@ -154,18 +154,9 @@ void XSplit::stopOutput(const std::string& id) {
   callJSPlugin("stopOutput", id);
 }
 
-bool XSplit::activateScene(const std::string& id) {
+asio::awaitable<bool> XSplit::activateScene(const std::string& id) {
   LOG_FUNCTION(id);
-  for (const auto& scene: mScenes) {
-    if (scene.active) {
-      continue;
-    }
-    if (scene.id == id) {
-      callJSPlugin("activateScene", id);
-      return true;
-    }
-  }
-  return false;
+  co_return (co_await coCallJSPlugin("activateScene", id)).get<bool>();
 }
 
 void XSplit::sendToXSplitDebugLog(const std::string& what) {

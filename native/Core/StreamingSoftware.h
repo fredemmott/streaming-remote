@@ -33,7 +33,7 @@ class StreamingSoftware {
   virtual bool setOutputDelay(const std::string& id, int64_t seconds);
 
   virtual asio::awaitable<std::vector<Scene>> getScenes();
-  virtual bool activateScene(const std::string& id);
+  virtual asio::awaitable<bool> activateScene(const std::string& id);
 
   Signal<const Config&> initialized;
   Signal<const Config&> configurationChanged;

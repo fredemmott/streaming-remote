@@ -40,7 +40,7 @@ class XSplit final : public StreamingSoftware {
   void stopOutput(const std::string& id) override;
 
   asio::awaitable<std::vector<Scene>> getScenes() override;
-  bool activateScene(const std::string& id) override;
+  asio::awaitable<bool> activateScene(const std::string& id) override;
 
  private:
   struct Promise;
@@ -84,7 +84,7 @@ class XSplit final : public StreamingSoftware {
     mPromises.emplace(id, promise);
 
     asio::windows::object_handle obj(getIoContext(), promise.getEvent());
-    callJSPlugin(func, std::to_string(id), std::forward(args)...);
+    callJSPlugin(func, std::to_string(id), args...);
     co_await obj.async_wait(asio::use_awaitable);
     auto result = promise.result();
     mPromises.erase(id);

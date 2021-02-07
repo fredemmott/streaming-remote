@@ -115,7 +115,7 @@ asio::awaitable<std::vector<Scene>> OBS::getScenes() {
   co_return out;
 }
 
-bool OBS::activateScene(const std::string& id) {
+asio::awaitable<bool> OBS::activateScene(const std::string& id) {
   LOG_FUNCTION();
   Logger::debug("Activating scene '{}'", id);
   const auto current_scene = obs_frontend_get_current_scene();
@@ -135,10 +135,10 @@ bool OBS::activateScene(const std::string& id) {
     const auto name = obs_source_get_name(source);
     if (name == id) {
       obs_frontend_set_current_scene(source);
-      return true;
+      co_return true;
     }
   }
-  return false;
+  co_return false;
 }
 
 void OBS::startOutput(const std::string& id) {

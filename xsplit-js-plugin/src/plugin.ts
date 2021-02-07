@@ -27,13 +27,14 @@ function dll_callback(name: string, impl): void {
   // com.fredemmott.js.streaming-remote/js/, but without invalid chars for JS
   // function names
   const plugin_prefix = "com_fredemmott_streamingremote__js__";
-  window[`OnDll${plugin_prefix}${name}`] = (param) => impl(param);
+  window[`OnDll${plugin_prefix}${name}`] = (...args) => impl(...args);
 }
 
 function dll_function(name: string, impl): void {
   dll_callback(
     name,
     async (call_id: string, ...args: Array<string>) => {
+      console.log('Call', name, call_id, args);
       const result = await impl(...args);
       await StreamRemote.DllCall.returnValue(call_id, result);
     }
@@ -74,9 +75,16 @@ dll_callback('stopOutput', async function (id: string) {
   );
 });
 
-dll_callback('activateScene', async function(id: string) {
+dll_function('activateScene', async function(id: string) {
   const scene = await XJS.Scene.getBySceneUid(id);
+  if (!scene) {
+    return false;
+  }
+  if (scene == await XJS.Scene.getActiveScene()) {
+    return false;
+  }
   await XJS.Scene.setActiveScene(scene);
+  return true;
 });
 
 async function get_scenes(): Promise<Array<StreamRemote.Scene>> {

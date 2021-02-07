@@ -26,8 +26,8 @@ asio::awaitable<std::vector<Scene>> StreamingSoftware::getScenes() {
   co_return std::vector<Scene>();
 }
 
-bool StreamingSoftware::activateScene(const std::string& id) {
-  return false;
+asio::awaitable<bool> StreamingSoftware::activateScene(const std::string& id) {
+  co_return false;
 }
 
 asio::io_context& StreamingSoftware::getIoContext() const noexcept {
