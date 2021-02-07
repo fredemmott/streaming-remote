@@ -37,7 +37,8 @@ int main(int argc, char** argv) {
     }
   };
   // clang-format on
-  Plugin<Dummy> plugin(new Dummy(config, outputs));
+  auto ctx = std::make_shared<asio::io_context>();
+  Plugin<Dummy> plugin(ctx, new Dummy(ctx, config, outputs));
   cout << "Started server with password '" << config.password << "'..." << endl;
   plugin.wait();
   return 0;

@@ -13,11 +13,15 @@
 
 class Dummy : public StreamingSoftware {
  public:
-  Dummy(const Config& config, const std::vector<Output>& outputs);
+  Dummy(
+    std::shared_ptr<asio::io_context> ctx,
+    const Config& config,
+    const std::vector<Output>& outputs
+  );
   ~Dummy();
 
   Config getConfiguration() const override;
-  std::vector<Output> getOutputs() override;
+  asio::awaitable<std::vector<Output>> getOutputs() override;
 
   void startOutput(const std::string& id) override;
   void stopOutput(const std::string& id) override;

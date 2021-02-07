@@ -14,8 +14,11 @@
 
 using namespace std;
 
-Dummy::Dummy(const Config& config, const std::vector<Output>& outputs)
-  : StreamingSoftware(), mConfig(config) {
+Dummy::Dummy(
+  std::shared_ptr<asio::io_context> ctx,
+  const Config& config,
+  const std::vector<Output>& outputs
+): StreamingSoftware(ctx), mConfig(config) {
   for (const auto& output : outputs) {
     mOutputs[output.id] = output;
   }
@@ -29,13 +32,13 @@ Config Dummy::getConfiguration() const {
   return mConfig;
 }
 
-std::vector<Output> Dummy::getOutputs() {
+asio::awaitable<std::vector<Output>> Dummy::getOutputs() {
   std::vector<Output> ret;
   ret.reserve(mOutputs.size());
   for (const auto& [id, output] : mOutputs) {
     ret.push_back(output);
   }
-  return ret;
+  co_return ret;
 }
 
 void Dummy::startOutput(const std::string& id) {
