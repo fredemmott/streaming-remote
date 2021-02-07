@@ -219,3 +219,16 @@ void XSplit::pluginfunc_returnValue(const nlohmann::json& data) {
   mPromises.at(key).resolve(data["value"]);
   mPromises.erase(key);
 }
+
+template<class... Targs>
+asio::awaitable<nlohmann::json> XSplit::coCallJSPlugin(
+  const char* func,
+  Targs... args
+) {
+  Promise promise(getIoContext());
+  auto id = mNextPromiseId++;
+  mPromises.emplace(id, promise);
+
+  callJSPlugin(func, std::to_string(id), args...);
+  co_return co_await promise.async_wait();
+}

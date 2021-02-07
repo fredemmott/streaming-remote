@@ -75,14 +75,7 @@ class XSplit final : public StreamingSoftware {
   asio::awaitable<nlohmann::json> coCallJSPlugin(
     const char* func,
     Targs... args
-  ) {
-    Promise promise(getIoContext());
-    auto id = mNextPromiseId++;
-    mPromises.emplace(id, promise);
-
-    callJSPlugin(func, std::to_string(id), args...);
-    co_return co_await promise.async_wait();
-  }
+  );
 
   void pluginfunc_init(const std::string& proto_version);
   void pluginfunc_outputStateChanged(
