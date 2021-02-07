@@ -124,21 +124,21 @@ asio::awaitable<void> ClientHandler::plaintextRpcMessageReceived(const std::stri
   }
 
   if (method == "outputs/start") {
-    mSoftware->startOutput(jsonrpc["params"]["id"]);
+    co_await mSoftware->startOutput(jsonrpc["params"]["id"]);
     encryptThenSendMessage(
       {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", json::object()}});
     co_return;
   }
 
   if (method == "outputs/stop") {
-    mSoftware->stopOutput(jsonrpc["params"]["id"]);
+    co_await mSoftware->stopOutput(jsonrpc["params"]["id"]);
     encryptThenSendMessage(
       {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", json::object()}});
     co_return;
   }
 
   if (method == "outputs/setDelay") {
-    const bool success = mSoftware->setOutputDelay(
+    const bool success = co_await mSoftware->setOutputDelay(
       jsonrpc["params"]["id"], jsonrpc["params"]["seconds"]);
     json response{
       {"jsonrpc", "2.0"},

@@ -28,9 +28,9 @@ class StreamingSoftware {
 
   virtual asio::awaitable<std::vector<Output>> getOutputs() = 0;
 
-  virtual void startOutput(const std::string& id) = 0;
-  virtual void stopOutput(const std::string& id) = 0;
-  virtual bool setOutputDelay(const std::string& id, int64_t seconds);
+  virtual asio::awaitable<void> startOutput(const std::string& id) = 0;
+  virtual asio::awaitable<void> stopOutput(const std::string& id) = 0;
+  virtual asio::awaitable<bool> setOutputDelay(const std::string& id, int64_t seconds);
 
   virtual asio::awaitable<std::vector<Scene>> getScenes();
   virtual asio::awaitable<bool> activateScene(const std::string& id);

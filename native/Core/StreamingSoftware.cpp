@@ -16,10 +16,10 @@ StreamingSoftware::StreamingSoftware(
 StreamingSoftware::~StreamingSoftware() {
 }
 
-bool StreamingSoftware::setOutputDelay(
+asio::awaitable<bool> StreamingSoftware::setOutputDelay(
   const std::string& name,
   int64_t seconds) {
-  return false;
+  co_return false;
 }
 
 asio::awaitable<std::vector<Scene>> StreamingSoftware::getScenes() {

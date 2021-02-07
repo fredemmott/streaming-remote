@@ -141,25 +141,25 @@ asio::awaitable<bool> OBS::activateScene(const std::string& id) {
   co_return false;
 }
 
-void OBS::startOutput(const std::string& id) {
+asio::awaitable<void> OBS::startOutput(const std::string& id) {
   LOG_FUNCTION();
   Logger::debug("Starting output '{}'", id);
   if (id == s_recording) {
     obs_frontend_recording_start();
-    return;
+    co_return;
   }
   if (id == s_streaming) {
     obs_frontend_streaming_start();
-    return;
+    co_return;
   }
 }
 
-void OBS::stopOutput(const std::string& id) {
+asio::awaitable<void> OBS::stopOutput(const std::string& id) {
   LOG_FUNCTION();
   Logger::debug("Starting output '{}'", id);
   if (id == s_recording) {
     obs_frontend_recording_stop();
-    return;
+    co_return;
   }
   if (id == s_streaming) {
     obs_frontend_streaming_stop();
@@ -170,7 +170,7 @@ void OBS::stopOutput(const std::string& id) {
     if (obs_output_get_active_delay(obs_frontend_get_streaming_output()) > 0) {
       emit this->outputStateChanged(s_streaming, OutputState::STOPPING);
     }
-    return;
+    co_return;
   }
 }
 
@@ -179,18 +179,18 @@ Config OBS::getConfiguration() const {
   return mConfig;
 }
 
-bool OBS::setOutputDelay(const std::string& id, int64_t seconds) {
+asio::awaitable<bool> OBS::setOutputDelay(const std::string& id, int64_t seconds) {
   LOG_FUNCTION();
   if (id != s_streaming) {
-    return false;
+    co_return false;
   }
   auto config = obs_frontend_get_profile_config();
   config_set_bool(config, "Output", "DelayEnable", seconds > 0);
   if (seconds <= 0) {
-    return true;
+    co_return true;
   }
   config_set_int(config, "Output", "DelaySec", seconds);
-  return true;
+  co_return true;
 }
 
 void OBS::setConfiguration(const Config& config) {

@@ -147,14 +147,16 @@ bool XSplit::handleCall(
   return false;
 }
 
-void XSplit::startOutput(const std::string& id) {
+asio::awaitable<void> XSplit::startOutput(const std::string& id) {
   LOG_FUNCTION(id);
   callJSPlugin("startOutput", id);
+  co_return;
 }
 
-void XSplit::stopOutput(const std::string& id) {
+asio::awaitable<void> XSplit::stopOutput(const std::string& id) {
   LOG_FUNCTION(id);
   callJSPlugin("stopOutput", id);
+  co_return;
 }
 
 asio::awaitable<bool> XSplit::activateScene(const std::string& id) {

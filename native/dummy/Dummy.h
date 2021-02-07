@@ -21,10 +21,10 @@ class Dummy : public StreamingSoftware {
   ~Dummy();
 
   Config getConfiguration() const override;
-  asio::awaitable<std::vector<Output>> getOutputs() override;
 
-  void startOutput(const std::string& id) override;
-  void stopOutput(const std::string& id) override;
+  asio::awaitable<std::vector<Output>> getOutputs() override;
+  asio::awaitable<void> startOutput(const std::string& id) override;
+  asio::awaitable<void> stopOutput(const std::string& id) override;
 
  private:
   Config mConfig;

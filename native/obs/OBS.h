@@ -24,9 +24,9 @@ class OBS : public QObject, public StreamingSoftware {
 
   asio::awaitable<std::vector<Output>> getOutputs() override;
 
-  void startOutput(const std::string& id) override;
-  void stopOutput(const std::string& id) override;
-  bool setOutputDelay(const std::string& id, int64_t seconds) override;
+  asio::awaitable<void> startOutput(const std::string& id) override;
+  asio::awaitable<void> stopOutput(const std::string& id) override;
+  asio::awaitable<bool> setOutputDelay(const std::string& id, int64_t seconds) override;
 
   asio::awaitable<std::vector<Scene>> getScenes() override;
   asio::awaitable<bool> activateScene(const std::string& id) override;

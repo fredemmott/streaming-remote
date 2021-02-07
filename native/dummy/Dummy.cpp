@@ -41,16 +41,18 @@ asio::awaitable<std::vector<Output>> Dummy::getOutputs() {
   co_return ret;
 }
 
-void Dummy::startOutput(const std::string& id) {
+asio::awaitable<void> Dummy::startOutput(const std::string& id) {
   cout << "Starting output " << id << endl;
   setOutputState(id, OutputState::STARTING);
   setOutputState(id, OutputState::ACTIVE);
+  co_return;
 }
 
-void Dummy::stopOutput(const std::string& id) {
+asio::awaitable<void> Dummy::stopOutput(const std::string& id) {
   cout << "stopping output: " + id << endl;
   setOutputState(id, OutputState::STOPPING);
   setOutputState(id, OutputState::STOPPED);
+  co_return;
 }
 
 void Dummy::setOutputState(const std::string& id, OutputState state) {
