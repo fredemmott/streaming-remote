@@ -19,14 +19,9 @@
 
 class StreamingSoftware;
 
-template <class T>
 class Plugin final {
-  static_assert(
-    std::is_base_of<StreamingSoftware, T>::value,
-    "T must be StreamingSoftware");
-
  public:
-  Plugin(std::shared_ptr<asio::io_context> context, T* software)
+  Plugin(std::shared_ptr<asio::io_context> context, StreamingSoftware* software)
     : mContext(context), mWork(asio::make_work_guard(*mContext)), mSoftware(software) {
     ScopeLogger log_("{}()", __FUNCTION__);
     init();
@@ -39,8 +34,6 @@ class Plugin final {
     Logger::debug("~Plugin: waiting for thread");
     wait();
     Logger::debug("~Plugin: thread joined");
-    delete mSoftware;
-    mSoftware = nullptr;
   }
 
   asio::io_context& getContext() {
@@ -49,10 +42,6 @@ class Plugin final {
 
   void wait() {
     mThread.join();
-  }
-
-  T* getSoftware() {
-    return mSoftware;
   }
 
  private:
@@ -86,5 +75,5 @@ class Plugin final {
   std::thread mThread;
   std::shared_ptr<asio::io_context> mContext;
   asio::executor_work_guard<asio::io_context::executor_type> mWork;
-  T* mSoftware;
+  StreamingSoftware* mSoftware;
 };

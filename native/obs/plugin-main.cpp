@@ -13,7 +13,7 @@
 #include "OBS.h"
 
 namespace {
-Plugin<OBS>* sPlugin = nullptr;
+Plugin* sPlugin = nullptr;
 }
 
 extern "C" {
