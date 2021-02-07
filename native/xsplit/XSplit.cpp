@@ -34,8 +34,9 @@ struct XSplit::Promise {
       SetEvent(p->event);
     }
 
-    HANDLE getEvent() const noexcept {
-      return p->event;
+    asio::awaitable<void> async_wait(asio::io_context& ctx) {
+      asio::windows::object_handle obj(ctx, p->event);
+      co_await obj.async_wait(asio::use_awaitable);
     }
 
     nlohmann::json result() const {

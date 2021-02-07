@@ -80,9 +80,8 @@ class XSplit final : public StreamingSoftware {
     auto id = mNextPromiseId++;
     mPromises.emplace(id, promise);
 
-    asio::windows::object_handle obj(getIoContext(), promise.getEvent());
     callJSPlugin(func, std::to_string(id), args...);
-    co_await obj.async_wait(asio::use_awaitable);
+    co_await promise.async_wait(getIoContext());
     auto result = promise.result();
     mPromises.erase(id);
     co_return result;
