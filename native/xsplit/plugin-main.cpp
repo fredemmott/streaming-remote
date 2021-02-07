@@ -47,7 +47,6 @@ BOOL WINAPI XSplitScriptPluginCall(
   UINT argc,
   BSTR* ret) {
   LOG_FUNCTION();
-  Logger::debug("Context: {}", (void*)pContext);
   if (!sPlugin) {
     // XJS DLL Developer docs:$
     // - recommend initializing here instead of in the init function

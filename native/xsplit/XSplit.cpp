@@ -133,9 +133,6 @@ bool XSplit::handleCall(
   const auto fun = STDSTRING_FROM_BSTR(wideFunctionName);
 
   DebugPrint("Call: {}", fun);
-  for (UINT i = 0; i < argc; ++i) {
-    DebugPrint("- argv[{}]: {}", i, STDSTRING_FROM_BSTR(argv[i]));
-  }
 
   auto it = mPluginFuncs.find(fun);
   if (it != mPluginFuncs.end()) {

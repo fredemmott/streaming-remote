@@ -34,7 +34,6 @@ function dll_function(name: string, impl): void {
   dll_callback(
     name,
     async (call_id: string, ...args: Array<string>) => {
-      console.log('Call', name, call_id, args);
       const result = await impl(...args);
       await StreamRemote.DllCall.returnValue(call_id, result);
     }
