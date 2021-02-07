@@ -8,7 +8,7 @@ ExternalProject_Add(
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
   PATCH_COMMAND
-    git init && git apply "${CMAKE_CURRENT_LIST_DIR}/asio-7377f941cc9831c4c3cba1e71d3bc29bddf1a700.patch"
+    git init && git apply --ignore-whitespace "${CMAKE_CURRENT_LIST_DIR}/asio-7377f941cc9831c4c3cba1e71d3bc29bddf1a700.patch"
 )
 ExternalProject_Get_Property(asio_source SOURCE_DIR)
 add_library(asio INTERFACE)
