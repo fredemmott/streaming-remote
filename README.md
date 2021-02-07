@@ -125,9 +125,9 @@ sent containing the number of bytes, then CRLF CRLF, then the blob. The next Con
 
 ## License
 
-The contents of this repository is [MIT-licensed](LICENSE).
+This repository is mostly licensed under [the MIT license](LICENSE-MIT), though
+some parts of the OBS plugin are licensed under
+[the GNU General Public License, version 2](LICENSE-GPLv2), as are the OBS plugin
+binaries.
 
-Note that as the OBS plugin includes and links against
-libobs and libobs-frontend-api &emdash; which are licensed under the GNU General
-Public License version 2, or (at your option) any later version &emdash; the OBS
-plugin as a whole (combined work) is under [the same license](LICENSE.OBS_COMBINED_WORK).
+See the [LICENSE](LICENSE file) and individual source files for details.
