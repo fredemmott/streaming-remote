@@ -177,7 +177,9 @@ asio::awaitable<void> ClientHandler::plaintextRpcMessageReceived(const std::stri
   if (method == "scenes/getThumbnail") {
     if (jsonrpc["params"]["content_type"] == "image/png") {
       const auto image = co_await mSoftware->getSceneThumbnailAsBase64Png(jsonrpc["params"]["id"]);
+      Logger::debug("Got thumbnail");
       if (!image.empty()) {
+        Logger::debug("Sending success");
         encryptThenSendMessage({
           {"jsonrpc", "2.0"},
           {"id", jsonrpc["id"]},
@@ -189,6 +191,7 @@ asio::awaitable<void> ClientHandler::plaintextRpcMessageReceived(const std::stri
         });
         co_return;
       }
+      Logger::debug("Sending error");
       encryptThenSendMessage({
         {"jsonrpc", "2.0"},
         {"id", jsonrpc["id"]},

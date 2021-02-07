@@ -5,6 +5,7 @@ add_library(
   obs-streaming-remote
   SHARED
   OBS.cpp
+  OBS_GPLv2.cpp
   OBSConfigDialog.cpp
   plugin-main.cpp
 )

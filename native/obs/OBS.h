@@ -30,6 +30,7 @@ class OBS : public QObject, public StreamingSoftware {
 
   asio::awaitable<std::vector<Scene>> getScenes() override;
   asio::awaitable<bool> activateScene(const std::string& id) override;
+  asio::awaitable<std::string> getSceneThumbnailAsBase64Png(const std::string& id) override;
 
  private:
   Config getInitialConfiguration();
