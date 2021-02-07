@@ -12,7 +12,7 @@
 #include <asio.hpp>
 #include <istream>
 
-TCPConnection::TCPConnection(asio::io_context* ctx)
+TCPConnection::TCPConnection(std::shared_ptr<asio::io_context> ctx)
   : MessageInterface(), mSocket(*ctx) {
 }
 

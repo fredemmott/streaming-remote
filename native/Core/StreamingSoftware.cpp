@@ -8,7 +8,9 @@
 
 #include "StreamingSoftware.h"
 
-StreamingSoftware::StreamingSoftware() {
+StreamingSoftware::StreamingSoftware(
+  std::shared_ptr<asio::io_context> context
+): mContext(context) {
 }
 
 StreamingSoftware::~StreamingSoftware() {
@@ -20,10 +22,14 @@ bool StreamingSoftware::setOutputDelay(
   return false;
 }
 
-std::vector<Scene> StreamingSoftware::getScenes() {
-  return {};
+asio::awaitable<std::vector<Scene>> StreamingSoftware::getScenes() {
+  co_return std::vector<Scene>();
 }
 
 bool StreamingSoftware::activateScene(const std::string& id) {
   return false;
+}
+
+asio::io_context& StreamingSoftware::getIoContext() const noexcept {
+  return *mContext;
 }

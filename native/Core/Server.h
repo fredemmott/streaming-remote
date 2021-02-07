@@ -18,9 +18,11 @@ namespace asio {
 class io_context;
 }
 
+#include <memory>
+
 class Server {
  public:
-  Server(asio::io_context* context, StreamingSoftware* software);
+  Server(std::shared_ptr<asio::io_context> context, StreamingSoftware* software);
   virtual ~Server();
 
   virtual void startListening(const Config& config);
@@ -30,7 +32,7 @@ class Server {
   void newConnection(MessageInterface* connection);
 
  private:
-  asio::io_context* mContext;
+  std::shared_ptr<asio::io_context> mContext;
   StreamingSoftware* mSoftware;
   TCPServer* mTCPServer = nullptr;
   WebSocketServer* mWebSocketServer = nullptr;

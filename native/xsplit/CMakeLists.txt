@@ -17,7 +17,15 @@ add_library(
   SHARED
   ${SOURCES}
 )
-set_target_properties(xsplit-streaming-remote PROPERTIES CXX_STANDARD 17)
+
+set_target_properties(
+	streaming-remote-plugin-core
+	PROPERTIES
+	CXX_STANDARD 20
+	CXX_STANDARD_REQUIRED ON
+	CXX_EXTENSIONS off
+)
+
 install(TARGETS xsplit-streaming-remote)
 target_link_libraries(
   xsplit-streaming-remote

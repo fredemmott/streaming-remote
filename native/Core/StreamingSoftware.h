@@ -13,12 +13,15 @@
 #include "Scene.h"
 #include "Signal.h"
 
+#include <asio/awaitable.hpp>
+
+#include <memory>
 #include <string>
 #include <vector>
 
 class StreamingSoftware {
  public:
-  explicit StreamingSoftware();
+  explicit StreamingSoftware(std::shared_ptr<asio::io_context> mContext);
   virtual ~StreamingSoftware();
 
   virtual Config getConfiguration() const = 0;
@@ -29,11 +32,15 @@ class StreamingSoftware {
   virtual void stopOutput(const std::string& id) = 0;
   virtual bool setOutputDelay(const std::string& id, int64_t seconds);
 
-  virtual std::vector<Scene> getScenes();
+  virtual asio::awaitable<std::vector<Scene>> getScenes();
   virtual bool activateScene(const std::string& id);
 
   Signal<const Config&> initialized;
   Signal<const Config&> configurationChanged;
   Signal<const std::string&, OutputState> outputStateChanged;
   Signal<const std::string&> currentSceneChanged;
+ protected:
+  asio::io_context& getIoContext() const noexcept;
+ private:
+  std::shared_ptr<asio::io_context> mContext;
 };

@@ -14,12 +14,12 @@
 #include "WebSocketConnection.h"
 
 WebSocketServer::WebSocketServer(
-  asio::io_context* context,
+  std::shared_ptr<asio::io_context> context,
   const Config& config)
   : mServer() {
   mServer.clear_access_channels(websocketpp::log::alevel::all);
   mServer.clear_error_channels(websocketpp::log::elevel::all);
-  mServer.init_asio(context);
+  mServer.init_asio(context.get());
   mServer.set_reuse_addr(true);
   mServer.set_open_handler([this](websocketpp::connection_hdl conn) {
     emit newConnection(new WebSocketConnection(&mServer, conn));

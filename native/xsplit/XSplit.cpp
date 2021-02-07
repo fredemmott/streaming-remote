@@ -10,6 +10,7 @@
 
 #include <fmt/format.h>
 
+#include <memory>
 #include <set>
 #include <thread>
 
@@ -21,14 +22,45 @@
 
 using json = nlohmann::json;
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+struct XSplit::Promise {
+  public:
+    Promise(): p(new Impl { CreateEventA(NULL, true, false, nullptr) }) {}
+
+    void resolve(const nlohmann::json& data) noexcept {
+      p->data = data;
+      SetEvent(p->event);
+    }
+
+    HANDLE getEvent() const noexcept {
+      return p->event;
+    }
+
+    nlohmann::json result() const {
+      return p->data;
+    }
+  private:
+    struct Impl {
+      HANDLE event;
+      nlohmann::json data;
+
+      ~Impl() {
+        CloseHandle(event);
+      }
+    };
+    std::shared_ptr<Impl> p;
+};
+
 #define XSPLIT_CHECK(x) \
   if (!(x)) { \
     DebugPrint("Assertion failed at {}:{}: {}" __FILE__, __LINE__, #x); \
     return false; \
   }
 
-XSplit::XSplit(IXSplitScriptDllContext* context)
-  : StreamingSoftware(),
+XSplit::XSplit(std::shared_ptr<asio::io_context> io_context, IXSplitScriptDllContext* context)
+  : StreamingSoftware(io_context),
     mCallbackImpl(context),
     mLoggerImpl([this](const std::string& message) {
       this->sendToXSplitDebugLog(message);
@@ -42,6 +74,7 @@ XSplit::XSplit(IXSplitScriptDllContext* context)
     "getDefaultConfiguration", &XSplit::pluginfunc_getDefaultConfiguration);
   registerPluginFunc("setConfiguration", &XSplit::pluginfunc_setConfiguration);
   registerPluginFunc("currentSceneChanged", &XSplit::pluginfunc_currentSceneChanged);
+  registerPluginFunc("returnValue", &XSplit::pluginfunc_returnValue);
 }
 
 XSplit::~XSplit() {
@@ -58,9 +91,23 @@ std::vector<Output> XSplit::getOutputs() {
   return mOutputs;
 }
 
-std::vector<Scene> XSplit::getScenes() {
+asio::awaitable<std::vector<Scene>> XSplit::getScenes() {
   LOG_FUNCTION();
-  return mScenes;
+  Promise promise;
+  auto id = mNextPromiseId++;
+  mPromises.emplace(id, promise);
+  asio::windows::object_handle obj(getIoContext(), promise.getEvent());
+  callJSPlugin("getScenes", std::to_string(id));
+  co_await obj.async_wait(asio::use_awaitable);
+  const auto scenes = promise.result();
+  mPromises.erase(id);
+  Logger::debug("Retrieved scenes from promise: {}", scenes.dump());
+
+  std::vector<Scene> out;
+  for (const auto& scene : scenes) {
+    out.push_back(Scene::fromJson(scene));
+  }
+  co_return out;
 }
 
 void XSplit::setJsonConfig(const nlohmann::json& doc) {
@@ -197,4 +244,9 @@ void XSplit::pluginfunc_setConfiguration(const nlohmann::json& config) {
   DebugPrint("new configuration: {}", config.dump());
   setJsonConfig(config);
   emit configurationChanged(mConfig);
+}
+
+void XSplit::pluginfunc_returnValue(const nlohmann::json& data) {
+  LOG_FUNCTION();
+  mPromises[std::stoull(data["call_id"].get<std::string>())].resolve(data["value"]);
 }

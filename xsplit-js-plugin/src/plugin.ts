@@ -26,7 +26,10 @@ function dll_callback(name: string, impl): void {
   // com.fredemmott.js.streaming-remote/js/, but without invalid chars for JS
   // function names
   const plugin_prefix = "com_fredemmott_streamingremote__js__";
-  window[`OnDll${plugin_prefix}${name}`] = impl;
+  window[`OnDll${plugin_prefix}${name}`] = async (param: string) => {
+    console.log('Settinging timeout', name, param);
+    setTimeout(() => { console.log('calling impl', name, param); impl(param); }, 0);
+  };
 }
 
 dll_callback('debugLog', async function(what: string) {
@@ -65,6 +68,27 @@ dll_callback('stopOutput', async function (id: string) {
 dll_callback('activateScene', async function(id: string) {
   const scene = await XJS.Scene.getBySceneUid(id);
   await XJS.Scene.setActiveScene(scene);
+});
+
+async function get_scenes(): Promise<Array<StreamRemote.Scene>> {
+  const [count, active] = await Promise.all([
+    XJS.Scene.getSceneCount(),
+    XJS.Scene.getActiveScene(),
+  ]);
+  const scenes = await Promise.all([...Array(count).keys()].map(
+    (i) => XJS.Scene.getBySceneIndex(i)
+  ));
+  const active_id = await active.getSceneUid();
+  return await Promise.all(scenes.map(
+    async (scene) => { return {
+      id: await scene.getSceneUid(),
+      name: await scene.getName(),
+      active: active_id == await scene.getSceneUid(),
+  }; }));
+}
+
+dll_callback('getScenes', async function(call_id: string) {
+  await StreamRemote.DllCall.returnValue(call_id, await get_scenes());
 });
 
 dll_callback('init', async function (dll_proto: string) {
@@ -113,22 +137,7 @@ async function sendInitialDataToDll() {
       );
     })(),
     XJS.StreamInfo.getActiveStreamChannels(),
-    (async () => {
-      const [count, active] = await Promise.all([
-        XJS.Scene.getSceneCount(),
-        XJS.Scene.getActiveScene(),
-      ]);
-      const scenes = await Promise.all([...Array(count).keys()].map(
-        (i) => XJS.Scene.getBySceneIndex(i)
-      ));
-      const active_id = await active.getSceneUid();
-      return await Promise.all(scenes.map(
-        async (scene) => { return {
-          id: await scene.getSceneUid(),
-          name: await scene.getName(),
-          active: active_id == await scene.getSceneUid(),
-      }; }));
-    })(),
+    get_scenes(),
     getConfiguration(),
   ]);
   let retOutputs = allOutputs;

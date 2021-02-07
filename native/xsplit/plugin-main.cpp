@@ -53,7 +53,8 @@ BOOL WINAPI XSplitScriptPluginCall(
     // - note that the context can be stored and re-used
     //
     // So, init here, and store the context as a member :)
-    sPlugin = new Plugin(new XSplit(pContext));
+    auto io_context = std::make_shared<asio::io_context>();
+    sPlugin = new Plugin(io_context, new XSplit(io_context, pContext));
   }
   std::promise<bool> success;
   // Execute in the worker thread, but block on it succeeding

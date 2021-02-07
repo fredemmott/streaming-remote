@@ -8,11 +8,13 @@
 
 #include "ClientHandler.h"
 
+#include <asio.hpp>
 #include <sodium.h>
 
 #include <cassert>
 #include <memory>
 
+#include "Logger.h"
 #include "MessageInterface.h"
 #include "StreamingSoftware.h"
 
@@ -27,17 +29,37 @@ using json = nlohmann::json;
     clean_and_return(); \
   }
 
+#define clean_and_coreturn() \
+  delete this; \
+  co_return;
+
+#define clean_and_coreturn_unless(x) \
+  if (!(x)) { \
+    clean_and_coreturn(); \
+  }
+
 ClientHandler::ClientHandler(
+  std::shared_ptr<asio::io_context> context,
   StreamingSoftware* software,
   MessageInterface* connection)
-  : mSoftware(software),
+  :
+    mIoContext(context),
+    mSoftware(software),
     mConnection(connection),
     mState(ClientState::UNINITIALIZED) {
   mSoftware->outputStateChanged.connect(
     this, &ClientHandler::outputStateChanged);
   mSoftware->currentSceneChanged.connect(
     this, &ClientHandler::currentSceneChanged);
-  mConnection->messageReceived.connect(this, &ClientHandler::messageReceived);
+  mConnection->messageReceived.connect(
+    [this](const std::string& message) {
+      asio::co_spawn(
+        *this->mIoContext,
+        this->messageReceived(message),
+        asio::detached
+      );
+    }
+   );
   mConnection->disconnected.connect([this]() {
     mConnection = nullptr;
     delete this;
@@ -49,21 +71,21 @@ ClientHandler::~ClientHandler() {
   cleanCrypto();
 }
 
-void ClientHandler::messageReceived(const std::string& message) {
+asio::awaitable<void> ClientHandler::messageReceived(const std::string message) {
   switch (mState) {
     case ClientState::UNINITIALIZED:
       handshakeClientHelloMessageReceived(message);
-      return;
+      co_return;
     case ClientState::WAITING_FOR_CLIENT_READY:
       handshakeClientReadyMessageReceived(message);
-      return;
+      co_return;
     case ClientState::AUTHENTICATED:
-      encryptedRpcMessageReceived(message);
-      return;
+      co_await encryptedRpcMessageReceived(message);
+      co_return;
   }
 }
 
-void ClientHandler::encryptedRpcMessageReceived(const std::string& c) {
+asio::awaitable<void> ClientHandler::encryptedRpcMessageReceived(const std::string& c) {
   // No variable length arrays on MSVC :'(
   const size_t psize = c.size() - crypto_secretstream_xchacha20poly1305_ABYTES;
   auto p = std::unique_ptr<unsigned char>(new unsigned char[psize]);
@@ -72,19 +94,21 @@ void ClientHandler::encryptedRpcMessageReceived(const std::string& c) {
   const auto result = crypto_secretstream_xchacha20poly1305_pull(
     &this->mCryptoPullState, p.get(), &plen, &tag,
     reinterpret_cast<const unsigned char*>(c.data()), c.size(), nullptr, 0);
-  clean_and_return_unless(result == 0);
+  clean_and_coreturn_unless(result == 0);
   assert(plen <= psize);
-  plaintextRpcMessageReceived(
+  co_await plaintextRpcMessageReceived(
     std::string(reinterpret_cast<const char*>(p.get()), plen));
 }
 
-void ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
+asio::awaitable<void> ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
+  LOG_FUNCTION();
   auto jsonrpc = json::parse(message);
   if (jsonrpc["jsonrpc"] != "2.0") {
-    clean_and_return();
+    clean_and_coreturn();
   }
 
   std::string method = jsonrpc["method"];
+  Logger::debug("Received JsonRPC call {}", method);
 
   if (method == "outputs/get") {
     const auto outputs = mSoftware->getOutputs();
@@ -96,21 +120,21 @@ void ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
     encryptThenSendMessage(
       (json{{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", outputsJson}})
         .dump());
-    return;
+    co_return;
   }
 
   if (method == "outputs/start") {
     mSoftware->startOutput(jsonrpc["params"]["id"]);
     encryptThenSendMessage(
       {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", json::object()}});
-    return;
+    co_return;
   }
 
   if (method == "outputs/stop") {
     mSoftware->stopOutput(jsonrpc["params"]["id"]);
     encryptThenSendMessage(
       {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", json::object()}});
-    return;
+    co_return;
   }
 
   if (method == "outputs/setDelay") {
@@ -127,11 +151,11 @@ void ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
         {"code", 0}, {"message", "The software failed to set the delay"}};
     }
     encryptThenSendMessage(response);
-    return;
+    co_return;
   }
 
   if (method == "scenes/get") {
-    const auto scenes = mSoftware->getScenes();
+    const auto scenes = co_await mSoftware->getScenes();
     json scenesJson;
     for (const auto& scene : scenes) {
       scenesJson[scene.id] = scene.toJson();
@@ -140,14 +164,14 @@ void ClientHandler::plaintextRpcMessageReceived(const std::string& message) {
     encryptThenSendMessage(
       (json{{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", scenesJson}})
         .dump());
-    return;
+    co_return;
   }
 
   if (method == "scenes/activate") {
     mSoftware->activateScene(jsonrpc["params"]["id"]);
     encryptThenSendMessage(
       {{"jsonrpc", "2.0"}, {"id", jsonrpc["id"]}, {"result", json::object()}});
-    return;
+    co_return;
   }
 }
 

@@ -10,6 +10,7 @@
 
 #include <asio.hpp>
 #include <functional>
+#include <future>
 #include <map>
 
 #include "Core/Config.h"
@@ -21,7 +22,7 @@
 
 class XSplit final : public StreamingSoftware {
  public:
-  XSplit(IXSplitScriptDllContext* context);
+  XSplit(std::shared_ptr<asio::io_context> io_context, IXSplitScriptDllContext* context);
   ~XSplit();
 
   Config getConfiguration() const override;
@@ -38,12 +39,16 @@ class XSplit final : public StreamingSoftware {
   void startOutput(const std::string& id) override;
   void stopOutput(const std::string& id) override;
 
-  std::vector<Scene> getScenes() override;
+  asio::awaitable<std::vector<Scene>> getScenes() override;
   bool activateScene(const std::string& id) override;
 
  private:
+  struct Promise;
   Config mConfig;
   CComPtr<IXSplitScriptDllContext> mCallbackImpl;
+  uint64_t mNextPromiseId = 0;
+  std::map<uint64_t, Promise> mPromises;
+
   std::vector<Output> mOutputs;
   std::vector<Scene> mScenes;
   Logger::ImplRegistration mLoggerImpl;
@@ -79,6 +84,7 @@ class XSplit final : public StreamingSoftware {
   void pluginfunc_currentSceneChanged(const std::string& id);
   nlohmann::json pluginfunc_getDefaultConfiguration();
   void pluginfunc_setConfiguration(const nlohmann::json& config);
+  void pluginfunc_returnValue(const nlohmann::json& data);
 
   /////////////////////////////////////////////////
   //// THERE BE C++17 DRAGONS BEYOND THIS LINE ////
@@ -122,12 +128,12 @@ class XSplit final : public StreamingSoftware {
   }
 
   template <class... Targs>
-	auto call_plugin_func(
-		BSTR* ret,
-		nlohmann::json (XSplit::*impl)(const Targs&...),
-		Targs... args) {
-		*ret = NEW_BSTR_FROM_STDSTRING((this->*impl)(convert_plugin_func_arg<Targs>(args)...).dump());
-	}
+  auto call_plugin_func(
+    BSTR* ret,
+    nlohmann::json (XSplit::*impl)(const Targs&...),
+    Targs... args) {
+    *ret = NEW_BSTR_FROM_STDSTRING((this->*impl)(convert_plugin_func_arg<Targs>(args)...).dump());
+  }
 
   template <class... Targs>
   auto call_plugin_func(

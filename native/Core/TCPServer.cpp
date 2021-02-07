@@ -14,7 +14,7 @@
 #include "Logger.h"
 #include "TCPConnection.h"
 
-TCPServer::TCPServer(asio::io_context* context, const Config& config)
+TCPServer::TCPServer(std::shared_ptr<asio::io_context> context, const Config& config)
   : mContext(context),
     mAcceptor(asio::ip::tcp::acceptor(
       *context,

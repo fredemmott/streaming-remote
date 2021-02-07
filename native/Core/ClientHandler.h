@@ -11,34 +11,41 @@
 #include "ClientState.h"
 #include "StreamingSoftware.h"
 
+#include <asio/awaitable.hpp>
 #include <sodium.h>
 #include <nlohmann/json.hpp>
 
 class MessageInterface;
 
+namespace asio {
+class io_context;
+}
+
 class ClientHandler {
  public:
   explicit ClientHandler(
+    std::shared_ptr<asio::io_context> context,
     StreamingSoftware* software,
     MessageInterface* connection);
   ~ClientHandler();
 
  private:
-  void messageReceived(const std::string& message);
+  asio::awaitable<void> messageReceived(const std::string message);
 
   void outputStateChanged(const std::string& id, OutputState state);
   void currentSceneChanged(const std::string& id);
 
   void handshakeClientHelloMessageReceived(const std::string& message);
   void handshakeClientReadyMessageReceived(const std::string& message);
-  void encryptedRpcMessageReceived(const std::string& message);
-  void plaintextRpcMessageReceived(const std::string& message);
+  asio::awaitable<void> encryptedRpcMessageReceived(const std::string& message);
+  asio::awaitable<void> plaintextRpcMessageReceived(const std::string& message);
   void encryptThenSendMessage(const std::string& message);
   void encryptThenSendMessage(const nlohmann::json& message);
   void cleanCrypto();
   void cleanCryptoKeysButLeaveCryptoState();
-  StreamingSoftware* mSoftware;
   ClientState mState;
+  std::shared_ptr<asio::io_context> mIoContext;
+  StreamingSoftware* mSoftware;
   MessageInterface* mConnection;
   unsigned char mAuthenticationKey[crypto_auth_KEYBYTES];
   unsigned char mPullKey[crypto_secretstream_xchacha20poly1305_KEYBYTES];

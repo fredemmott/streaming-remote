@@ -114,12 +114,14 @@ class WebUIClient {
     }
 
     private async updateScenes(): Promise<void> {
+      console.log('Update scenes start');
       this.scenes = await this.updateCollection(
         await this.rpc.getScenes(),
         document.querySelector('#sceneContainer'),
         this.scenes,
         (scene) => this.createSceneElement(scene),
       );
+      console.log('Update scenes end');
     }
 
     private createOutputElement(output: Output): HTMLElement {

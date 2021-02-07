@@ -17,7 +17,7 @@ class MessageInterface;
 
 class TCPServer final {
  public:
-  TCPServer(asio::io_context* context, const Config& config);
+  TCPServer(std::shared_ptr<asio::io_context> context, const Config& config);
   ~TCPServer();
 
   Signal<MessageInterface*> newConnection;
@@ -25,5 +25,5 @@ class TCPServer final {
  private:
   void startAccept();
   asio::ip::tcp::acceptor mAcceptor;
-  asio::io_context* mContext;
+  std::shared_ptr<asio::io_context> mContext;
 };

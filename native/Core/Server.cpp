@@ -18,7 +18,7 @@
 
 #include "Server.h"
 
-Server::Server(asio::io_context* context, StreamingSoftware* software)
+Server::Server(std::shared_ptr<asio::io_context> context, StreamingSoftware* software)
   : mContext(context), mSoftware(software) {
   const auto result = sodium_init();
   assert(result == 0 /* init */ || result == 1 /* already done */);
@@ -70,5 +70,5 @@ void Server::stopListening() {
 }
 
 void Server::newConnection(MessageInterface* connection) {
-  new ClientHandler(mSoftware, connection);
+  new ClientHandler(mContext, mSoftware, connection);
 }

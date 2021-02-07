@@ -14,7 +14,7 @@
 
 class TCPConnection : public MessageInterface {
  public:
-  TCPConnection(asio::io_context* ctx);
+  TCPConnection(std::shared_ptr<asio::io_context> ctx);
 
   void startWaitingForMessage();
 

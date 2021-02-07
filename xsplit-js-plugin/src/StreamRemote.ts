@@ -87,4 +87,8 @@ export namespace DllCall {
   export async function currentSceneChanged(id: string): Promise<void> {
     await XJS.Dll.callEx(cpp_fun('currentSceneChanged'), id);
   }
+
+  export async function returnValue(call_id: string, value: Object): Promise<void> {
+    await XJS.Dll.callEx(cpp_fun('returnValue'), JSON.stringify({call_id, value}));
+  }
 }

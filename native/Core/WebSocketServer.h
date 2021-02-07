@@ -16,7 +16,7 @@ class MessageInterface;
 
 class WebSocketServer final {
  public:
-  WebSocketServer(asio::io_context* context, const Config& config);
+  WebSocketServer(std::shared_ptr<asio::io_context> context, const Config& config);
   ~WebSocketServer();
 
   Signal<MessageInterface*> newConnection;
