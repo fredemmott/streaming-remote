@@ -446,8 +446,7 @@ Example request:
   "id": 1,
   "params": {
     "id": "scene1234",
-    "content_type":
-    "image/png"
+    "content_type": "image/png"
   }
 }
 ```
