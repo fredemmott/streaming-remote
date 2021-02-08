@@ -60,7 +60,7 @@ ClientHandler::ClientHandler(
    );
   mConnection->disconnected.connect([this]() {
     Logger::debug("Client disconnected");
-    delete this;
+    asio::post([this]() { delete this; });
   });
 }
 

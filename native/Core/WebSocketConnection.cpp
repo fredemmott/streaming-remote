@@ -8,6 +8,8 @@
 
 #include "WebSocketConnection.h"
 
+#include "Core/Logger.h"
+
 #include <fmt/format.h>
 #include <asio.hpp>
 #include <istream>
@@ -16,6 +18,7 @@ WebSocketConnection::WebSocketConnection(
   WebSocketServerImpl* server,
   websocketpp::connection_hdl hdl)
   : MessageInterface(), mServer(server), mConnection(hdl) {
+  LOG_FUNCTION();
   auto conn = server->get_con_from_hdl(hdl);
   conn->set_message_handler(
     [this](
@@ -29,10 +32,14 @@ WebSocketConnection::WebSocketConnection(
       const auto data = message->get_payload();
       emit messageReceived(data);
     });
-  conn->set_close_handler([this](websocketpp::connection_hdl) { emit disconnected(); });
+  conn->set_close_handler([this](websocketpp::connection_hdl) {
+    Logger::debug("Websocket connection closed.");
+    emit this->disconnected();
+  });
 }
 
 WebSocketConnection::~WebSocketConnection() {
+  LOG_FUNCTION();
 }
 
 void WebSocketConnection::sendMessage(const std::string& message) {
