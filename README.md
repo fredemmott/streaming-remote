@@ -91,7 +91,7 @@ affect the `StreamingSoftware` class on a non-Windows machine.
 ## Protocol
 
 There are two message-based protocols:
-- a binary [handshake protocol](handshake_protocol.md)
+- a binary [handshake protocol](handshake_protocol.md) providing authentication and initialization encryption
 - an encrypted JSON-RPC-based [RPC protocol](rpc_protocol.md)
 
 ### Message Passing

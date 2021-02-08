@@ -1,5 +1,7 @@
 # Binary Handshake Protocol
 
+This protocol provides authentication and initializes stream encryption for later protocols.
+
 1. server confirms the client knows the password (don't allow random people to start broadcasting your webcam to the internet)
 2. client confirms the server knows the password (probably not neccessary for this case, but why not)
 3. establish a secure client-to-server stream
