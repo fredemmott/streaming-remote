@@ -53,14 +53,15 @@ class WebUIClient {
     try {
       cryptoState = await Client.handshake(this.ws, config.password);
     } catch (e) {
-      const error = document.querySelector('#error');
+      const error = document.getElementById('error');
       error.classList.remove('uninit');
       if (typeof e == 'string') {
         error.textContent = e;
       } else if (e instanceof Error) {
         error.textContent = e.message;
       }
-      document.querySelector('#connectionParameters').classList.remove('hide');
+      document.getElementById('connectionParameters').classList.remove('hide');
+      document.getElementById('connecting').classList.add('hide');
       return;
     }
     this.rpc = new Client.RPC(this.ws, cryptoState);
