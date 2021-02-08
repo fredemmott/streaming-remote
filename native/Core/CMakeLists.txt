@@ -6,6 +6,7 @@ add_library(
   Logger.cpp
   MessageInterface.cpp
   Output.cpp
+  Plugin.cpp
   Scene.cpp
   Server.cpp
   StreamingSoftware.cpp

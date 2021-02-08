@@ -9,69 +9,20 @@
 #pragma once
 
 #include <asio.hpp>
-#include <future>
 #include <thread>
-#include <type_traits>
-
-#include "Logger.h"
-#include "Server.h"
-#include "StreamingSoftware.h"
 
 class StreamingSoftware;
 
 class Plugin final {
  public:
-  Plugin(std::shared_ptr<asio::io_context> context, StreamingSoftware* software)
-    : mContext(context), mWork(asio::make_work_guard(*mContext)), mSoftware(software) {
-    ScopeLogger log_("{}()", __FUNCTION__);
-    init();
-  }
+  Plugin(std::shared_ptr<asio::io_context> context, StreamingSoftware* software);
+  ~Plugin();
 
-  ~Plugin() {
-    LOG_FUNCTION();
-    mWork.reset();
-    mContext->stop();
-    Logger::debug("~Plugin: waiting for thread");
-    wait();
-    Logger::debug("~Plugin: thread joined");
-  }
+  asio::io_context& getContext();
 
-  asio::io_context& getContext() {
-    return *mContext;
-  }
-
-  void wait() {
-    mThread.join();
-  }
+  void wait();
 
  private:
-  void init() {
-    std::promise<void> running;
-    asio::post(*mContext, [&running] { running.set_value(); });
-    mThread = std::thread([this]() {
-      auto server = new Server(mContext, this->mSoftware);
-      if (mSoftware->initialized.wasEmitted()) {
-        server->startListening(mSoftware->getConfiguration());
-      } else {
-        mSoftware->initialized.connect(server, &Server::startListening);
-      }
-      Logger::debug("Starting ASIO context");
-      try {
-        mContext->run();
-        Logger::debug("ASIO context cleanly finished");
-      } catch (const std::exception& e) {
-        Logger::debug("Unclean exit from ASIO context: {}", e.what());
-        throw;
-      } catch (...) {
-        Logger::debug("Unclean exit from ASIO context");
-        throw;
-      }
-      delete server;
-    });
-    auto future = running.get_future();
-    future.wait();
-  }
-
   std::thread mThread;
   std::shared_ptr<asio::io_context> mContext;
   asio::executor_work_guard<asio::io_context::executor_type> mWork;
