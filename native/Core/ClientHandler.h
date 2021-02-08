@@ -21,7 +21,7 @@ namespace asio {
 class io_context;
 }
 
-class ClientHandler {
+class ClientHandler : private ConnectionOwner {
  public:
   explicit ClientHandler(
     std::shared_ptr<asio::io_context> context,
@@ -43,6 +43,7 @@ class ClientHandler {
   void encryptThenSendMessage(const nlohmann::json& message);
   void cleanCrypto();
   void cleanCryptoKeysButLeaveCryptoState();
+
   ClientState mState;
   std::shared_ptr<asio::io_context> mIoContext;
   StreamingSoftware* mSoftware;

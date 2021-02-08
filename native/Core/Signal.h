@@ -9,14 +9,32 @@
 #pragma once
 
 #include <functional>
-#include <vector>
+#include <map>
 
 namespace {
 template <typename...>
 struct is_empty : std::true_type {};
 template <typename Tfirst, typename... Trest>
 struct is_empty<Tfirst, Trest...> : std::false_type {};
+
 }// namespace
+
+class ConnectionImplBase {
+  public:
+    virtual void disconnect() = 0;
+    virtual ~ConnectionImplBase();
+};
+
+typedef std::unique_ptr<ConnectionImplBase> Connection;
+
+class ScopedConnection {
+  public:
+    ScopedConnection(Connection);
+    ScopedConnection(ScopedConnection&& other) = default;
+    ~ScopedConnection();
+  private:
+    Connection mConnection;
+};
 
 template <typename... Targs>
 class Signal {
@@ -28,18 +46,20 @@ class Signal {
 
   void operator()(Targs... args) {
     mEmitted = true;
-    for (auto& callback : mCallbacks) {
+    for (auto& [id, callback] : mCallbacks) {
       callback(args...);
     }
   }
 
-  void connect(const Callback& callback) {
-    mCallbacks.push_back(callback);
+  Connection connect(const Callback& callback) {
+    const auto key = mNextKey++;
+    mCallbacks.emplace(key, callback);
+    return std::make_unique<ConnectionImpl>(this, key);
   }
 
   template <typename TClass, typename TRet>
-  void connect(TClass* instance, TRet (TClass::*method)(Targs...)) {
-    connect([=](Targs... args) { (instance->*method)(args...); });
+  Connection connect(TClass* instance, TRet (TClass::*method)(Targs...)) {
+    return connect([=](Targs... args) { (instance->*method)(args...); });
   }
 
   template <
@@ -48,8 +68,8 @@ class Signal {
     // disable if Targs is empty, otherwise this conflicts with the above
     // definition
     typename = std::enable_if<!is_empty<Targs...>::value>>
-  void connect(TClass* instance, TRet (TClass::*method)()) {
-    connect([=](Targs... args) { (instance->*method)(); });
+  Connection connect(TClass* instance, TRet (TClass::*method)()) {
+    return connect([=](Targs... args) { (instance->*method)(); });
   }
 
   bool wasEmitted() {
@@ -57,8 +77,44 @@ class Signal {
   }
 
  private:
-  std::vector<Callback> mCallbacks;
+  uint64_t mNextKey = 0;
+  std::map<uint64_t, Callback> mCallbacks;
   bool mEmitted = false;
+
+  class ConnectionImpl final : public ConnectionImplBase {
+    public:
+      ConnectionImpl(
+        Signal<Targs...>* signal,
+        uint64_t key
+      ): mSignal(signal), mKey(key) {}
+
+      virtual void disconnect() override {
+        mSignal->mCallbacks.erase(mKey);
+      }
+
+      ~ConnectionImpl() {
+      }
+    private:
+      Signal<Targs...>* mSignal;
+      uint64_t mKey;
+  };
 };
 
 #define emit /* emit */
+
+class ConnectionOwner {
+  public:
+    ~ConnectionOwner();
+  protected:
+    template<typename... Targs>
+    void connect(Signal<Targs...>& signal, typename Signal<Targs...>::Callback callback) {
+      mConnections.push_back(std::move(ScopedConnection(std::move(signal.connect(callback)))));
+    }
+
+    template <typename TClass, typename TRet, typename ...Targs>
+    void connect(Signal<Targs...>& signal, TClass* instance, TRet (TClass::*method)(Targs...)) {
+      connect(signal, [=](Targs... args) { (instance->*method)(args...); });
+    }
+  private:
+    std::vector<ScopedConnection> mConnections;
+};

@@ -47,10 +47,8 @@ ClientHandler::ClientHandler(
     mSoftware(software),
     mConnection(connection),
     mState(ClientState::UNINITIALIZED) {
-  mSoftware->outputStateChanged.connect(
-    this, &ClientHandler::outputStateChanged);
-  mSoftware->currentSceneChanged.connect(
-    this, &ClientHandler::currentSceneChanged);
+  connect(mSoftware->outputStateChanged, this, &ClientHandler::outputStateChanged);
+  connect(mSoftware->currentSceneChanged, this, &ClientHandler::currentSceneChanged);
   mConnection->messageReceived.connect(
     [this](const std::string& message) {
       asio::co_spawn(
@@ -61,13 +59,15 @@ ClientHandler::ClientHandler(
     }
    );
   mConnection->disconnected.connect([this]() {
-    mConnection = nullptr;
+    Logger::debug("Client disconnected");
     delete this;
   });
 }
 
 ClientHandler::~ClientHandler() {
+  LOG_FUNCTION();
   delete mConnection;
+  mConnection = nullptr;
   cleanCrypto();
 }
 

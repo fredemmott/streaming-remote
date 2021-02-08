@@ -9,6 +9,7 @@ add_library(
   Plugin.cpp
   Scene.cpp
   Server.cpp
+  Signal.cpp
   StreamingSoftware.cpp
   TCPConnection.cpp
   TCPServer.cpp
