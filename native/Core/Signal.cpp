@@ -22,5 +22,8 @@ ScopedConnection::~ScopedConnection() {
   }
 }
 
+ConnectionOwner::ConnectionOwner() {
+}
+
 ConnectionOwner::~ConnectionOwner() {
 }

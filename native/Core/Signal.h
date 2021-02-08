@@ -10,6 +10,7 @@
 
 #include <functional>
 #include <map>
+#include <vector>
 
 namespace {
 template <typename...>
@@ -104,6 +105,7 @@ class Signal {
 
 class ConnectionOwner {
   public:
+    ConnectionOwner();
     ~ConnectionOwner();
   protected:
     template<typename... Targs>
