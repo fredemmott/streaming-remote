@@ -24,7 +24,9 @@
 
 using json = nlohmann::json;
 
-struct XSplit::Promise : public AwaitablePromise<nlohmann::json> {};
+struct XSplit::Promise : public AwaitablePromise<nlohmann::json> {
+  Promise(asio::io_context& ctx): AwaitablePromise(ctx) {}
+};
 
 #define XSPLIT_CHECK(x) \
   if (!(x)) { \
