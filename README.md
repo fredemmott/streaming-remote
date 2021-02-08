@@ -58,7 +58,7 @@ We expect to expand the capabilities in the future.
 - [OBS Studio](https://obsproject.com) - built from source - if building the OBS plugin
 - Visual Studio 2019 or recent XCode
 
-### Instructions
+### Building
 
 ```
 streaming-remote$ mkdir build
@@ -68,24 +68,12 @@ build$ cmake .. \
   -DWITH_OBS_ON \
   -DOBS_SOURCE_DIR=/path/to/obs-studio \
   -DOBS_BUILD_DIR=/path/to/obs-studio/build
-build$ make
+build$ cmake --build . --parallel
 ```
 
 The XSplit plugin can be built on all platforms, even though XSplit itself
 is only available on Windows. This is useful when working on changes that
 affect the `StreamingSoftware` class on a non-Windows machine.
-
-
-1. Copy the DLLs for QtCore, QtNetwork, QtWebsockets, and sodium into the
-   root directory of your XSplit installation - likely
-   `C:\Program Files (x86)\StreamLabs\XSplit\x64\`
-1. Inside the root directory, there is a `ScriptDlls` directory. Create a
-   `Local` directory inside that path.
-1.  Copy `xsplit-streaming-remote.dll` to the new `Local` directory
-1.  You will need to enable developer mode in XSplit to run self-built DLLs
-1. in XSplit, open the 'Extensions' menu, then 'Add Extension'; select the
-   `plugins/xsplit/js/index.html` file
-
 
 ## Building TypeScript Components from source
 
