@@ -27,6 +27,8 @@ set_target_properties(
 )
 
 install(TARGETS xsplit-streaming-remote)
+install(FILES "$<TARGET_PDB_FILE:xsplit-streaming-remote>" TYPE BIN OPTIONAL)
+
 target_link_libraries(
   xsplit-streaming-remote
   PRIVATE
