@@ -16,6 +16,7 @@ class MessageInterface {
  public:
   virtual ~MessageInterface();
   virtual void sendMessage(const std::string& message) = 0;
+  virtual void disconnect() = 0;
   Signal<const std::string&> messageReceived;
   Signal<> disconnected;
 

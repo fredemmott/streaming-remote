@@ -62,6 +62,11 @@ void TCPConnection::sendMessage(const std::string& message) {
   asio::write(mSocket, asio::buffer(buf), asio::transfer_exactly(buf.size()));
 }
 
+void TCPConnection::disconnect() {
+  asio::error_code ec;
+  mSocket.close(ec);
+}
+
 asio::ip::tcp::socket& TCPConnection::socket() {
   return mSocket;
 }

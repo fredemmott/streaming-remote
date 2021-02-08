@@ -26,7 +26,7 @@ class ClientHandler : private ConnectionOwner {
   explicit ClientHandler(
     std::shared_ptr<asio::io_context> context,
     StreamingSoftware* software,
-    MessageInterface* connection);
+    std::unique_ptr<MessageInterface> connection);
   ~ClientHandler();
 
  private:
@@ -47,7 +47,7 @@ class ClientHandler : private ConnectionOwner {
   ClientState mState;
   std::shared_ptr<asio::io_context> mIoContext;
   StreamingSoftware* mSoftware;
-  MessageInterface* mConnection;
+  std::unique_ptr<MessageInterface> mConnection;
   unsigned char mAuthenticationKey[crypto_auth_KEYBYTES];
   unsigned char mPullKey[crypto_secretstream_xchacha20poly1305_KEYBYTES];
   crypto_secretstream_xchacha20poly1305_state mCryptoPullState;

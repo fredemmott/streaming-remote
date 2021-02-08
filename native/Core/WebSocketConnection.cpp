@@ -40,6 +40,17 @@ WebSocketConnection::WebSocketConnection(
 
 WebSocketConnection::~WebSocketConnection() {
   LOG_FUNCTION();
+  asio::error_code ec;
+  auto conn = mServer->get_con_from_hdl(mConnection, ec);
+  if (!ec) {
+    Logger::debug("WebSocketConnection destroyed with live connection!");
+  }
+}
+
+void WebSocketConnection::disconnect() {
+  asio::error_code ec;
+  auto conn = mServer->get_con_from_hdl(mConnection);
+  conn->close(websocketpp::close::status::normal, std::string(), ec);
 }
 
 void WebSocketConnection::sendMessage(const std::string& message) {

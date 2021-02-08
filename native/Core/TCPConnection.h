@@ -18,7 +18,8 @@ class TCPConnection : public MessageInterface {
 
   void startWaitingForMessage();
 
-  void sendMessage(const std::string& message);
+  void sendMessage(const std::string& message) override;
+  void disconnect() override;
   asio::ip::tcp::socket& socket();
 
  private:

@@ -70,5 +70,5 @@ void Server::stopListening() {
 }
 
 void Server::newConnection(MessageInterface* connection) {
-  new ClientHandler(mContext, mSoftware, connection);
+  new ClientHandler(mContext, mSoftware, std::unique_ptr<MessageInterface>(connection));
 }

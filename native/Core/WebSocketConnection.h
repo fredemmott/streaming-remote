@@ -18,7 +18,8 @@ class WebSocketConnection : public MessageInterface {
     websocketpp::connection_hdl connection);
   ~WebSocketConnection();
 
-  void sendMessage(const std::string& message);
+  void sendMessage(const std::string& message) override;
+  void disconnect() override;
 
  private:
   WebSocketServerImpl* mServer;

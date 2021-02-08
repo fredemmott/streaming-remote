@@ -20,8 +20,11 @@
 
 using json = nlohmann::json;
 
+#define clean_later() \
+  asio::post(*mIoContext, [this]() { mConnection->disconnect(); });
+
 #define clean_and_return() \
-  delete this; \
+  clean_later(); \
   return;
 
 #define clean_and_return_unless(x) \
@@ -30,7 +33,7 @@ using json = nlohmann::json;
   }
 
 #define clean_and_coreturn() \
-  delete this; \
+  clean_later(); \
   co_return;
 
 #define clean_and_coreturn_unless(x) \
@@ -41,11 +44,11 @@ using json = nlohmann::json;
 ClientHandler::ClientHandler(
   std::shared_ptr<asio::io_context> context,
   StreamingSoftware* software,
-  MessageInterface* connection)
+  std::unique_ptr<MessageInterface> connection)
   :
     mIoContext(context),
     mSoftware(software),
-    mConnection(connection),
+    mConnection(std::move(connection)),
     mState(ClientState::UNINITIALIZED) {
   connect(mSoftware->outputStateChanged, this, &ClientHandler::outputStateChanged);
   connect(mSoftware->currentSceneChanged, this, &ClientHandler::currentSceneChanged);
@@ -60,14 +63,12 @@ ClientHandler::ClientHandler(
    );
   mConnection->disconnected.connect([this]() {
     Logger::debug("Client disconnected");
-    asio::post([this]() { delete this; });
+    asio::post(*mIoContext, [this]() { delete this; });
   });
 }
 
 ClientHandler::~ClientHandler() {
   LOG_FUNCTION();
-  delete mConnection;
-  mConnection = nullptr;
   cleanCrypto();
 }
 
@@ -241,14 +242,21 @@ void ClientHandler::handshakeClientHelloMessageReceived(
     const auto result = crypto_pwhash(
       psk, crypto_secretbox_KEYBYTES, password.data(), password.size(),
       request->pwhashSalt, crypto_pwhash_OPSLIMIT_INTERACTIVE,
-      crypto_pwhash_MEMLIMIT_INTERACTIVE, crypto_pwhash_ALG_DEFAULT);
+      crypto_pwhash_MEMLIMIT_INTERACTIVE, crypto_pwhash_ALG_DEFAULT
+    );
     clean_and_return_unless(result == 0);
   }
   {
     const auto result = crypto_secretbox_open_easy(
       reinterpret_cast<uint8_t*>(&requestBox), request->secretBox,
       sizeof(request->secretBox), request->secretBoxNonce, psk);
+    if (result != 0) {
+      Logger::debug("Invalid password, closing");
+    }
     clean_and_return_unless(result == 0);
+    if (result != 0) {
+      Logger::debug("Still here?");
+    }
   }
 
   // Process and respond
