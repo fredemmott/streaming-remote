@@ -456,12 +456,12 @@ Example response:
 
 ```
 {
-	"jsonrpc": "2.0",
-	"id": 1,
-	"result": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
     "id": "scene1234",
     "base64_data": "abcdef",
     "content_type": "image/png"
-	}
+  }
 }
 ```
