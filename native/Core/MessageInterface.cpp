@@ -12,5 +12,4 @@ MessageInterface::MessageInterface() {
 }
 
 MessageInterface::~MessageInterface() {
-  emit disconnected();
 }

@@ -19,7 +19,12 @@ TCPConnection::TCPConnection(std::shared_ptr<asio::io_context> ctx)
 void TCPConnection::startWaitingForMessage() {
   mSocket.async_wait(
     asio::socket_base::wait_type::wait_read,
-    std::bind(&TCPConnection::readyRead, this));
+    std::bind(&TCPConnection::readyRead, this)
+  );
+  mSocket.async_wait(
+    asio::socket_base::wait_type::wait_error,
+    [this](asio::error_code) { emit this->disconnected(); }
+  );
 }
 
 void TCPConnection::readyRead() {

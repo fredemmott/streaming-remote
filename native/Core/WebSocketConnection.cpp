@@ -29,7 +29,7 @@ WebSocketConnection::WebSocketConnection(
       const auto data = message->get_payload();
       emit messageReceived(data);
     });
-  conn->set_close_handler([this](websocketpp::connection_hdl) { delete this; });
+  conn->set_close_handler([this](websocketpp::connection_hdl) { emit disconnected(); });
 }
 
 WebSocketConnection::~WebSocketConnection() {
