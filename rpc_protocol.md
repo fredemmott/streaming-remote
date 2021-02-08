@@ -429,13 +429,17 @@ Example response and notifications:
 
 ### `scenes/getThumbnail`
 
-This method is sent by the client when it wants to switch scenes.
+This method is sent by the client when it wants a screenshot of a scene.
 
 This method takes `{ id: string, content_type: string }` for its' parameters.
 
 This method returns the content type and base64-encoded data.
 
-Implementations *should* support `image/png` as a content type.
+Servers *should* support `image/png` as a content type.
+
+Note that screenshotting a scene that is not currently active might produce an
+image that is not particularly useful if the elements of that scene are not in
+use in an active scene.
 
 Example request:
 
