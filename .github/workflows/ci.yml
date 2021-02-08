@@ -225,7 +225,7 @@ jobs:
     strategy:
       matrix:
         os: [macos, windows]
-        build-type: [Release, Debug]
+        build-type: [RelWithDebInfo, Debug]
         obs-version: [26.1.2]
         # Qt versions taken from OBS Studio's `.github/workflow/main.yml`
         include:
@@ -288,7 +288,7 @@ jobs:
     strategy:
       matrix:
         os: [macos, windows]
-        build-type: [Release, Debug]
+        build-type: [RelWithDebInfo, Debug]
   prepare-packages:
     name: Prepare packages
     needs: [obs, xsplit-native, streamdeck, webui, xsplit-ts]
@@ -319,15 +319,15 @@ jobs:
     - name: Prepare OBS plugins
       working-directory: ${{runner.temp}}/artifacts
       run: |
-        ( cd obs-windows-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-win64.zip *)
-        ( cd obs-macos-Release/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-macos.zip  *)
+        ( cd obs-windows-RelWithDebInfo/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-win64.zip *)
+        ( cd obs-macos-RelWithDebInfo/obs/; 7z a ${{runner.temp}}/final/obs-streaming-remote-macos.zip  *)
         ( cd obs-windows-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-win64.zip *)
         ( cd obs-macos-Debug/obs/; 7z a ${{runner.temp}}/final/debug-obs-streaming-remote-macos.zip *)
     - name: Prepare combined XSplit plugins
       working-directory: ${{runner.temp}}/artifacts
       run: |
         mkdir -p ${{runner.temp}}/xsplit-debug/plugin ${{runner.temp}}/xsplit-release/plugin
-        ( cd xsplit-native-windows-Release/xsplit/; install * ${{runner.temp}}/xsplit-release )
+        ( cd xsplit-native-windows-RelWithDebInfo/xsplit/; install * ${{runner.temp}}/xsplit-release )
         ( cd xsplit-native-windows-Debug/xsplit/; install * ${{runner.temp}}/xsplit-debug )
         ( cd xsplit-ts-production; rsync -av ./ ${{runner.temp}}/xsplit-release/plugin/ )
         ( cd xsplit-ts-development; rsync -av ./ ${{runner.temp}}/xsplit-debug/plugin/ )
