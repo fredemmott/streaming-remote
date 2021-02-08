@@ -348,6 +348,7 @@ Example response:
   "id": "setDelay/1",
   "result": { "seconds": 300 }
 }
+```
 
 ### `scenes/get`
 
