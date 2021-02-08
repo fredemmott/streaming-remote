@@ -23,6 +23,8 @@ is licensed only under version 2 of the GNU General Public License,
 
 #include "OBS.h"
 
+#include "Core/AwaitablePromise.h"
+
 #include <obs.h>
 #include <obs.hpp>
 
@@ -36,25 +38,45 @@ is licensed only under version 2 of the GNU General Public License,
 #define SCOPE_EXIT(x) SCOPE_EXIT_IMPL_WRAP(__COUNTER__, x)
 
 namespace {
+  typedef AwaitablePromise<float> TickPromise;
+
+  void resolve_promise_on_tick(void* untyped_promise, float seconds) {
+    reinterpret_cast<TickPromise*>(untyped_promise)->resolve(seconds);
+  }
+
+  asio::awaitable<void> next_tick(asio::io_context& ctx) {
+    TickPromise p(ctx);
+
+    obs_add_tick_callback(&resolve_promise_on_tick, &p);
+    SCOPE_EXIT([&]() { obs_remove_tick_callback(&resolve_promise_on_tick, &p); });
+    co_await p.async_wait();
+  }
+
   // Based on obs-studio/UI/window-basic-main-screenshot.cpp
-  std::string make_source_thumbnail(OBSSource source) {
+  asio::awaitable<std::string> make_source_thumbnail(asio::io_context& ctx, OBSSource source) {
     LOG_FUNCTION();
-    obs_enter_graphics();
-    SCOPE_EXIT([]() { obs_leave_graphics(); });
+    gs_texrender_t* texrender = nullptr;
+    SCOPE_EXIT([&]() { gs_texrender_destroy(texrender); });
+    gs_stagesurf_t* stagesurface = nullptr;
+    SCOPE_EXIT([&]() { gs_stagesurface_destroy(stagesurface); });
 
     const auto width = obs_source_get_base_width(source);
     const auto height = obs_source_get_base_height(source);
 
-    auto texrender = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
-    SCOPE_EXIT([&]() { gs_texrender_destroy(texrender); });
-    auto stagesurface = gs_stagesurface_create(width, height, GS_RGBA);
-    SCOPE_EXIT([&]() { gs_stagesurface_destroy(stagesurface); });
-
-    if (!gs_texrender_begin(texrender, width, height)) {
-      Logger::debug("Failed to begin texrender");
-      return std::string();
-    }
+    co_await next_tick(ctx);
     {
+      obs_enter_graphics();
+      SCOPE_EXIT([]() { obs_leave_graphics(); });
+
+
+      texrender = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
+      stagesurface = gs_stagesurface_create(width, height, GS_RGBA);
+      gs_texrender_reset(texrender);
+
+      if (!gs_texrender_begin(texrender, width, height)) {
+        Logger::debug("Failed to begin texrender");
+        co_return std::string();
+      }
       SCOPE_EXIT([&]() { gs_texrender_end(texrender); });
       vec4 zero;
       vec4_zero(&zero);
@@ -68,17 +90,25 @@ namespace {
       SCOPE_EXIT([=]() { obs_source_dec_showing(source); });
       obs_source_video_render(source);
     }
+    co_await next_tick(ctx);
     {
+      obs_enter_graphics();
+      SCOPE_EXIT([]() { obs_leave_graphics(); });
       gs_stage_texture(stagesurface, gs_texrender_get_texture(texrender));
-
+    }
+    co_await next_tick(ctx);
+    {
+      obs_enter_graphics();
+      SCOPE_EXIT([]() { obs_leave_graphics(); });
       uint8_t* video_data = nullptr;
       uint32_t video_linesize = 0;
       if (!gs_stagesurface_map(stagesurface, &video_data, &video_linesize)) {
         Logger::debug("Failed to map stagesurface");
-        return std::string();
+        co_return std::string();
       }
       SCOPE_EXIT([&]() { gs_stagesurface_unmap(stagesurface); });
       QImage image(width, height, QImage::Format::Format_RGBX8888);
+      image.fill(0);
       int linesize = image.bytesPerLine();
       for (int y = 0; y < (int)height; y++) {
         memcpy(
@@ -88,14 +118,12 @@ namespace {
         );
       }
 
-      Logger::debug("Returning png data");
       QByteArray buf;
       QBuffer buf_device(&buf);
       image.save(&buf_device, "PNG");
-      return buf.toBase64().toStdString();
+      co_return buf.toBase64().toStdString();
     }
-    Logger::debug("Reached end?");
-    return std::string();
+    co_return std::string();
   }
 }
 
@@ -109,7 +137,7 @@ asio::awaitable<std::string> OBS::getSceneThumbnailAsBase64Png(const std::string
     if (id != obs_source_get_name(source)) {
       continue;
     }
-    co_return make_source_thumbnail(source);
+    co_return co_await make_source_thumbnail(getIoContext(), source);
   }
 
   co_return std::string();

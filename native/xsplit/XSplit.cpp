@@ -15,6 +15,7 @@
 #include <set>
 #include <thread>
 
+#include "Core/AwaitablePromise.h"
 #include "Core/Config.h"
 #include "Core/Logger.h"
 #include "version.h"
@@ -23,39 +24,7 @@
 
 using json = nlohmann::json;
 
-struct XSplit::Promise {
-  public:
-    Promise(
-      asio::io_context& ctx
-    ): p(
-      new Impl {
-        .timer = asio::steady_timer(ctx, std::chrono::steady_clock::time_point::max()),
-      }
-    ) {
-    }
-
-    void resolve(const nlohmann::json& data) noexcept {
-      p->data = data;
-      p->timer.cancel();
-    }
-
-    asio::awaitable<nlohmann::json> async_wait() {
-      asio::error_code ec;
-      co_await p->timer.async_wait(asio::redirect_error(asio::use_awaitable, ec));
-      assert(ec == asio::error::operation_aborted);
-      co_return result();
-    }
-
-    nlohmann::json result() const {
-      return p->data;
-    }
-  private:
-    struct Impl {
-      asio::steady_timer timer;
-      nlohmann::json data;
-    };
-    std::shared_ptr<Impl> p;
-};
+struct XSplit::Promise : public AwaitablePromise<nlohmann::json> {};
 
 #define XSPLIT_CHECK(x) \
   if (!(x)) { \
