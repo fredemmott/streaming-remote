@@ -27,7 +27,9 @@ set_target_properties(
 )
 
 install(TARGETS xsplit-streaming-remote)
-install(FILES "$<TARGET_PDB_FILE:xsplit-streaming-remote>" TYPE BIN OPTIONAL)
+if(WIN32)
+  install(FILES "$<TARGET_PDB_FILE:xsplit-streaming-remote>" TYPE BIN OPTIONAL)
+endif()
 
 target_link_libraries(
   xsplit-streaming-remote

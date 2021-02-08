@@ -22,7 +22,9 @@ set_target_properties(
   AUTOMOC ON
 )
 install(TARGETS obs-streaming-remote)
-install(FILES "$<TARGET_PDB_FILE:obs-streaming-remote>" TYPE BIN OPTIONAL)
+if(WIN32)
+  install(FILES "$<TARGET_PDB_FILE:obs-streaming-remote>" TYPE BIN OPTIONAL)
+endif()
 
 if(APPLE)
   set_target_properties(obs-streaming-remote PROPERTIES PREFIX "" SUFFIX ".so")
