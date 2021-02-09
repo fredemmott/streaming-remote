@@ -17,11 +17,11 @@
   ],
   "Author": "Fred Emmott",
   "CodePath": "app.html",
-  "Description": "Remotely control OBS and XSplit; you will need an OBS or XSplit plugin from https://github.com/fredemmott/streaming-remote/releases/v2.2.4 to use this plugin.",
+  "Description": "Remotely control OBS and XSplit; you will need an OBS or XSplit plugin from https://github.com/fredemmott/streaming-remote/releases/v3.0.0 to use this plugin.",
   "Name": "Streaming Remote",
   "Icon": "plugin-icon",
   "URL": "https://github.com/fredemmott/streaming-remote/",
-  "Version": "2.2.4",
+  "Version": "3.0.0",
   "SDKVersion": 2,
   "Software": {
     "MinimumVersion": "4.1"
