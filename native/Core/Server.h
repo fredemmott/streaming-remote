@@ -20,16 +20,16 @@ class io_context;
 
 #include <memory>
 
-class Server {
+class Server final {
  public:
   Server(
     std::shared_ptr<asio::io_context> context,
     std::shared_ptr<StreamingSoftware> software
   );
-  virtual ~Server();
+  ~Server();
 
-  virtual void startListening(const Config& config);
-  virtual void stopListening();
+  void startListening(const Config& config);
+  void stopListening();
 
  protected:
   void newConnection(MessageInterface* connection);
