@@ -173,13 +173,6 @@ asio::awaitable<void> OBS::stopOutput(const std::string& id) {
   }
   if (id == s_streaming) {
     obs_frontend_streaming_stop();
-    // Clients may depend on the state change to indicate that stopping did
-    // anything; emit the event if there's a delay.
-    //
-    // OBS fix: https://github.com/obsproject/obs-studio/pull/1518
-    if (obs_output_get_active_delay(obs_frontend_get_streaming_output()) > 0) {
-      emit this->outputStateChanged(s_streaming, OutputState::STOPPING);
-    }
     co_return;
   }
 }
