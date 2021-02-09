@@ -22,7 +22,10 @@ class io_context;
 
 class Server {
  public:
-  Server(std::shared_ptr<asio::io_context> context, StreamingSoftware* software);
+  Server(
+    std::shared_ptr<asio::io_context> context,
+    std::shared_ptr<StreamingSoftware> software
+  );
   virtual ~Server();
 
   virtual void startListening(const Config& config);
@@ -33,7 +36,7 @@ class Server {
 
  private:
   std::shared_ptr<asio::io_context> mContext;
-  StreamingSoftware* mSoftware;
+  std::shared_ptr<StreamingSoftware> mSoftware;
   TCPServer* mTCPServer = nullptr;
   WebSocketServer* mWebSocketServer = nullptr;
 };

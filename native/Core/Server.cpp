@@ -18,8 +18,10 @@
 
 #include "Server.h"
 
-Server::Server(std::shared_ptr<asio::io_context> context, StreamingSoftware* software)
-  : mContext(context), mSoftware(software) {
+Server::Server(
+  std::shared_ptr<asio::io_context> context,
+  std::shared_ptr<StreamingSoftware> software
+): mContext(context), mSoftware(software) {
   const auto result = sodium_init();
   assert(result == 0 /* init */ || result == 1 /* already done */);
   software->configurationChanged.connect(this, &Server::startListening);

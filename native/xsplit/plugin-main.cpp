@@ -28,7 +28,7 @@ DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
 
 namespace {
 Plugin* sPlugin = nullptr;
-XSplit* sImpl = nullptr;
+std::weak_ptr<XSplit> sImpl;
 }// namespace
 
 extern "C" {
@@ -54,13 +54,19 @@ BOOL WINAPI XSplitScriptPluginCall(
     //
     // So, init here, and store the context as a member :)
     auto io_context = std::make_shared<asio::io_context>();
-    sImpl = new XSplit(io_context, pContext);
-    sPlugin = new Plugin(io_context, sImpl);
+    auto impl = std::make_shared<XSplit>(io_context, pContext);
+    sPlugin = new Plugin(io_context, impl);
+    sImpl = impl;
   }
   std::promise<bool> success;
   // Execute in the worker thread, but block on it succeeding
   asio::post(sPlugin->getContext(), [=, &success]() {
-    success.set_value(sImpl->handleCall(
+    auto impl = sImpl.lock();
+    if (!impl) {
+      Logger::debug("{}() - null impl", __FUNCTION__);
+      return;
+    }
+    success.set_value(impl->handleCall(
       pContext, functionName, argv, argc, ret));
   });
   auto f = success.get_future();
@@ -76,7 +82,5 @@ void WINAPI XSplitScriptPluginDestroy() {
   ScopeLogger _log(__FUNCTION__);
   delete sPlugin;
   sPlugin = nullptr;
-  delete sImpl;
-  sImpl = nullptr;
 }
 }

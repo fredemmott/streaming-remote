@@ -43,7 +43,7 @@ using json = nlohmann::json;
 
 ClientHandler::ClientHandler(
   std::shared_ptr<asio::io_context> context,
-  StreamingSoftware* software,
+  std::shared_ptr<StreamingSoftware> software,
   std::unique_ptr<MessageInterface> connection)
   :
     mIoContext(context),

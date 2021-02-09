@@ -12,8 +12,14 @@
 #include "Server.h"
 #include "StreamingSoftware.h"
 
-Plugin::Plugin(std::shared_ptr<asio::io_context> context, StreamingSoftware* software)
-  : mContext(context), mWork(asio::make_work_guard(*mContext)), mSoftware(software) {
+Plugin::Plugin(
+  std::shared_ptr<asio::io_context> context,
+  std::shared_ptr<StreamingSoftware> software
+):
+  mContext(context),
+  mWork(asio::make_work_guard(*mContext)),
+  mSoftware(software)
+{
   LOG_FUNCTION();
 
   std::promise<void> running;

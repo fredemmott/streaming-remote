@@ -15,7 +15,10 @@ class StreamingSoftware;
 
 class Plugin final {
  public:
-  Plugin(std::shared_ptr<asio::io_context> context, StreamingSoftware* software);
+  Plugin(
+    std::shared_ptr<asio::io_context> context,
+    std::shared_ptr<StreamingSoftware> software
+  );
   ~Plugin();
 
   asio::io_context& getContext();
@@ -25,6 +28,6 @@ class Plugin final {
  private:
   std::thread mThread;
   std::shared_ptr<asio::io_context> mContext;
+  std::shared_ptr<StreamingSoftware> mSoftware;
   asio::executor_work_guard<asio::io_context::executor_type> mWork;
-  StreamingSoftware* mSoftware;
 };
