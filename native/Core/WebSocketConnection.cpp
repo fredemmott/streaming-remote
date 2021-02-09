@@ -58,6 +58,6 @@ void WebSocketConnection::sendMessage(const std::string& message) {
   mServer->send(
     mConnection, message, websocketpp::frame::opcode::binary, error);
   if (error) {
-    delete this;
+    disconnect();
   }
 }

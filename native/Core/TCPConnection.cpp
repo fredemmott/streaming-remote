@@ -36,14 +36,14 @@ void TCPConnection::readyRead() {
   std::string line;
   bufreader >> line;
   if (!line.starts_with("Content-Length: ")) {
-    delete this;
+    disconnect();
     return;
   }
   asio::read_until(s, buf, "\r\n");
   std::string next;
   bufreader >> next;
   if (next != "\r\n") {
-    delete this;
+    disconnect();
     return;
   }
 
