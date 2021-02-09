@@ -34,7 +34,7 @@ void Server::startListening(const Config& config) {
   stopListening();
   if (config.tcpPort) {
     try {
-      mTCPServer = new TCPServer(mContext, config);
+      mTCPServer = std::make_unique<TCPServer>(mContext, config);
       mTCPServer->newConnection.connect(this, &Server::newConnection);
     } catch (const std::system_error& e) {
       if (e.code() == std::errc::address_in_use) {
@@ -49,7 +49,7 @@ void Server::startListening(const Config& config) {
   }
   if (config.webSocketPort) {
     try {
-      mWebSocketServer = new WebSocketServer(mContext, config);
+      mWebSocketServer = std::make_unique<WebSocketServer>(mContext, config);
       mWebSocketServer->newConnection.connect(this, &Server::newConnection);
     } catch (const websocketpp::exception& e) {
       if (e.code() == asio::error::address_in_use) {
@@ -65,10 +65,8 @@ void Server::startListening(const Config& config) {
 }
 
 void Server::stopListening() {
-  delete mTCPServer;
-  mTCPServer = nullptr;
-  delete mWebSocketServer;
-  mWebSocketServer = nullptr;
+  mTCPServer.reset();
+  mWebSocketServer.reset();
 }
 
 void Server::newConnection(MessageInterface* connection) {

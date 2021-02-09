@@ -37,6 +37,7 @@ class Server {
  private:
   std::shared_ptr<asio::io_context> mContext;
   std::shared_ptr<StreamingSoftware> mSoftware;
-  TCPServer* mTCPServer = nullptr;
-  WebSocketServer* mWebSocketServer = nullptr;
+
+  std::unique_ptr<TCPServer> mTCPServer = nullptr;
+  std::unique_ptr<WebSocketServer> mWebSocketServer = nullptr;
 };
