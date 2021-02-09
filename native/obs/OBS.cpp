@@ -24,14 +24,26 @@ const char* CONFIG_ID_PASSWORD = "password";
 const char* CONFIG_ID_TCP_PORT = "tcpPort";
 const char* CONFIG_ID_WEBSOCKET_PORT = "webSocketPort";
 
-struct OBSSourceListScopeGuard {
-  obs_frontend_source_list* sources = nullptr;
-  ~OBSSourceListScopeGuard() {
-    if (sources) {
-      obs_frontend_source_list_free(sources);
+class OBSFrontendSourceList {
+  public:
+    OBSFrontendSourceList() : p({}) {
     }
-    sources = nullptr;
-  }
+    ~OBSFrontendSourceList() {
+      obs_frontend_source_list_free(&p);
+    }
+
+    operator obs_frontend_source_list*() {
+      return &p;
+    }
+
+    obs_frontend_source_list* operator->() {
+      return &p;
+    }
+
+    OBSFrontendSourceList(const OBSFrontendSourceList& other) = delete;
+    void operator=(const OBSFrontendSourceList& other) = delete;
+  private:
+    obs_frontend_source_list p;
 };
 
 }// namespace
@@ -96,13 +108,12 @@ asio::awaitable<std::vector<Scene>> OBS::getScenes() {
 
   const auto active_scene = obs_frontend_get_current_scene();
 
-  obs_frontend_source_list sources = {};
-  OBSSourceListScopeGuard guard = {&sources};
+  OBSFrontendSourceList sources;
 
-  obs_frontend_get_scenes(&sources);
+  obs_frontend_get_scenes(sources);
   std::vector<Scene> out;
-  for (size_t i = 0; i < sources.sources.num; i++) {
-    const auto source = sources.sources.array[i];
+  for (size_t i = 0; i < sources->sources.num; i++) {
+    const auto source = sources->sources.array[i];
     // OBS sources also have an 'id' property, but it always 'scene' for
     // every scene, so not useful as a unique identifier
     const auto name = obs_source_get_name(source);
@@ -120,13 +131,12 @@ asio::awaitable<bool> OBS::activateScene(const std::string& id) {
   Logger::debug("Activating scene '{}'", id);
   const auto current_scene = obs_frontend_get_current_scene();
 
-  obs_frontend_source_list sources = {};
-  OBSSourceListScopeGuard guard = {&sources};
+  OBSFrontendSourceList sources;
 
-  obs_frontend_get_scenes(&sources);
+  obs_frontend_get_scenes(sources);
 
-  for (size_t i = 0; i < sources.sources.num; i++) {
-    const auto source = sources.sources.array[i];
+  for (size_t i = 0; i < sources->sources.num; i++) {
+    const auto source = sources->sources.array[i];
     if (source == current_scene) {
       continue;
     }
