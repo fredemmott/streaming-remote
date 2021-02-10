@@ -8,7 +8,7 @@
   <script src="common.js"></script>
 </head>
 
-<body>
+<body class="unknown-action">
   <div class="sdpi-wrapper hidden" id="mainWrapper">
     <div class="sdpi-item">
       <div class="sdpi-item-label">Server</div>
@@ -19,7 +19,7 @@
       <div class="sdpi-item-label">Password</div>
       <input class="sdpi-item-value" type="password" id="password" onchange="saveSettings();" required />
     </div>
-    <div class="sdpi-item">
+    <div class="sdpi-item output-action action-specific">
       <div class="sdpi-item-label" onchange="saveSettings()">Output</div>
       <select class="sdpi-item-value select" id="output" disabled onchange="saveSettings();">
       </select>
@@ -43,7 +43,7 @@
     });
     $SD.on('sendToPropertyInspector', function (jsonObj) {
       const { event } = jsonObj.payload;
-      if (event != 'data') {
+      if (event != 'startStopOutputData') {
         return;
       }
       const { outputs, settings } = jsonObj.payload;

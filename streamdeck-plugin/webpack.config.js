@@ -10,7 +10,7 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    bundle: './src/index.ts'
+    plugin_bundle: './src/plugin_main.ts'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
