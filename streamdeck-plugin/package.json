@@ -2,7 +2,7 @@
   "name": "streaming-remote-streamdeck-plugin",
   "version": "1.0.0",
   "description": "StreamDeck plugin for streaming-remote",
-  "main": "dist/bundle.js",
+  "main": "dist/plugin_bundle.js",
   "author": "Fred Emmott",
   "license": "MIT",
   "dependencies": {
