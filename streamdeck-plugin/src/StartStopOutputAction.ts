@@ -10,38 +10,16 @@ import { EventData, StreamDeckAction } from "./StreamDeckAction";
 import * as Client from "StreamingRemoteClient";
 import images from "./Images";
 import * as ESD from "./ESDTypes";
+import {StreamingRemoteClientActionSettings as BaseSettings, StreamingRemoteClientAction} from "./StreamingRemoteClientAction";
 
-function create_streamingremote_client(uri: string, password: string): Promise<[Client.RPC, WebSocket]> {
-  const ws = new WebSocket(uri);
-  ws.binaryType = 'arraybuffer';
-  return new Promise((resolve, reject) => {
-    ws.addEventListener('open', async () => {
-      const handshakeState = await Client.handshake(ws, password);
-      const rpc = new Client.RPC(ws, handshakeState);
-      rpc.onHelloNotification(() => resolve([rpc, ws]));
-    });
-    ws.addEventListener('close', () => {
-      reject();
-    });
-  });
-}
-
-type StartStopSettings = {
+interface StartStopSettings extends BaseSettings {
   output: string;
-  password: string;
-  uri: string;
 };
 
-export class StartStopOutputAction extends StreamDeckAction<StartStopSettings> {
+export class StartStopOutputAction extends StreamingRemoteClientAction<StartStopSettings> {
   public static readonly UUID = "com.fredemmott.streamingremote.action";
 
-  private rpc: Client.RPC;
   private output: Client.Output;
-
-  constructor(context: ESD.Context, ws: WebSocket) {
-    super(context, ws);
-    setInterval(() => this.displayAndRetryBadConnection(), 1000);
-  }
 
   public async keyUp(_data: EventData): Promise<void> {
     const state = this.output.state;
@@ -53,11 +31,35 @@ export class StartStopOutputAction extends StreamDeckAction<StartStopSettings> {
     }
   }
 
+  protected async onConnect(): Promise<void> {
+    this.rpc.onOutputStateChanged(
+      (id: string, state: Client.OutputState) => {
+        if (id != this.output.id) {
+          return;
+        }
+        this.output.state = state;
+        this.updateImage();
+      }
+    )
+    await this.updateStateAndImage();
+  }
+
+  protected async onWebSocketClose(): Promise<void> {
+    this.output = null;
+  }
+
+  protected async onWebSocketError(): Promise<void> {
+    this.onWebSocketClose();
+  }
 
   private async updateStateAndImage(): Promise<void> {
+    const key = this.getSettings().output;
+    if (!key) {
+      return;
+    }
     const outputs = await this.rpc.getOutputs();
-    this.output = outputs[this.getSettings().output];
-    if (!this.output.type) {
+    this.output = outputs[key];
+    if (!(this.output && this.output.type)) {
       return;
     }
     this.updateImage();
@@ -87,72 +89,9 @@ export class StartStopOutputAction extends StreamDeckAction<StartStopSettings> {
   }
 
 
-  public async willAppear(_data: EventData): Promise<void> {
-    if (this.rpc) {
-      await this.updateImage();
-      return;
-    }
-
-    this.websocket.send(JSON.stringify({
-      event: 'showAlert',
-      context: this.context,
-    }));
-    await this.connectRemote();
+  public async willAppear(data: EventData): Promise<void> {
+    await super.willAppear(data);
     await this.updateStateAndImage();
-  }
-
-  private streamingRemoteWebSocket: WebSocket;
-
-  private async connectRemote(): Promise<void> {
-    const { uri, password, output } = this.getSettings();
-    if (this.streamingRemoteWebSocket) {
-      this.streamingRemoteWebSocket.close();
-      this.streamingRemoteWebSocket = null;
-    }
-    const [rpc, ws] = await create_streamingremote_client(uri, password);
-    this.streamingRemoteWebSocket = ws;
-    this.rpc = rpc;
-    this.output = undefined;
-    ws.addEventListener('close', () => {
-      this.websocket.send(JSON.stringify({
-        event: 'showAlert',
-        context: this.context,
-      }));
-      this.rpc = undefined;
-      this.output = undefined;
-    });
-    ws.addEventListener('error', () => {
-      this.websocket.send(JSON.stringify({
-        event: 'showAlert',
-        context: this.context,
-      }));
-      this.rpc = undefined;
-      this.output = undefined;
-    });
-    rpc.onOutputStateChanged((id: string, state: Client.OutputState) => {
-      if (id == output) {
-        this.output.state = state;
-        this.updateImage();
-      }
-    });
-  }
-
-  private async displayAndRetryBadConnection(): Promise<void> {
-    if (this.rpc && this.output) {
-      return;
-    }
-    this.websocket.send(JSON.stringify({
-      event: 'showAlert',
-      context: this.context,
-    }));
-    if (this.rpc) {
-      return;
-    }
-    try {
-      await this.connectRemote();
-      await this.updateStateAndImage();
-    } catch (e) {
-    }
   }
 
   public async sendToPlugin(untypedPayload: any): Promise<void> {
@@ -174,7 +113,7 @@ export class StartStopOutputAction extends StreamDeckAction<StartStopSettings> {
       const json = {
         event: "sendToPropertyInspector",
         context: this.context,
-        payload: { event: "data", outputs, settings }
+        payload: { event: "startStopOutputData", outputs, settings }
       };
       this.websocket.send(JSON.stringify(json));
       return;
@@ -184,11 +123,7 @@ export class StartStopOutputAction extends StreamDeckAction<StartStopSettings> {
   }
 
   public async settingsDidChange(old: StartStopSettings, settings: StartStopSettings) {
-    if ((!old) || old.uri != settings.uri || old.password != settings.password) {
-      this.rpc = null;
-      await this.connectRemote();
-    }
-    await this.updateStateAndImage();
+    await super.settingsDidChange(old, settings);
 
     let outputs: { [id: string]: Client.Output } = {};
     try {
@@ -198,7 +133,7 @@ export class StartStopOutputAction extends StreamDeckAction<StartStopSettings> {
     this.websocket.send(JSON.stringify({
       event: 'sendToPropertyInspector',
       context: this.context,
-      payload: { event: 'data', outputs, settings }
+      payload: { event: 'startStopOutputData', outputs, settings }
     }));
   }
 }
