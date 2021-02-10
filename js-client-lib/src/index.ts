@@ -11,6 +11,7 @@ import RPC from './RPC';
 import Config from './Config';
 import CryptoState from './CryptoState';
 import {Output, OutputState, OutputType, Scene} from './Types'
+import {Version} from './Version';
 
 export {
   handshake,
@@ -21,4 +22,5 @@ export {
   OutputState,
   OutputType,
   Scene,
+  Version,
 };
