@@ -10,7 +10,8 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    plugin_bundle: './src/plugin_main.ts'
+    pi_bundle: './src/pi_main.ts',
+    plugin_bundle: './src/plugin_main.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

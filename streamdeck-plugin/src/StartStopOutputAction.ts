@@ -11,13 +11,14 @@ import * as Client from "StreamingRemoteClient";
 import images from "./Images";
 import * as ESD from "./ESDTypes";
 import {StreamingRemoteClientActionSettings as BaseSettings, StreamingRemoteClientAction} from "./StreamingRemoteClientAction";
+import { ActionIDs } from "./ActionIDs";
 
 interface StartStopSettings extends BaseSettings {
   output: string;
 };
 
 export class StartStopOutputAction extends StreamingRemoteClientAction<StartStopSettings> {
-  public static readonly UUID = "com.fredemmott.streamingremote.action";
+  public static readonly UUID = ActionIDs.StartStopOutput;
 
   private output: Client.Output;
 

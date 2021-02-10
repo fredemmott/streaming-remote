@@ -6,10 +6,21 @@
   <title>com.fredemmott.streamingremote PI</title>
   <link rel="stylesheet" href="sdpi.css">
   <script src="common.js"></script>
+  <script src="../dist/pi_bundle.js"></script>
+  <style type="text/css">
+  <!--
+    .action-specific {
+      display: none;
+    }
+    .output-action .output-action-specific {
+      display: flex;
+    }
+  -->
+  </style>
 </head>
 
-<body class="unknown-action">
-  <div class="sdpi-wrapper hidden" id="mainWrapper">
+<body>
+  <div class="sdpi-wrapper unknown-action hidden" id="mainWrapper">
     <div class="sdpi-item">
       <div class="sdpi-item-label">Server</div>
       <input class="sdpi-item-value" placeholder="ws://<host>:<port>" value='ws://localhost:9002'
@@ -19,7 +30,7 @@
       <div class="sdpi-item-label">Password</div>
       <input class="sdpi-item-value" type="password" id="password" onchange="saveSettings();" required />
     </div>
-    <div class="sdpi-item output-action action-specific">
+    <div class="sdpi-item output-action-specific action-specific">
       <div class="sdpi-item-label" onchange="saveSettings()">Output</div>
       <select class="sdpi-item-value select" id="output" disabled onchange="saveSettings();">
       </select>
@@ -40,6 +51,12 @@
       actionInfo = jsonObj.actionInfo.action;
       ctx = jsonObj.actionInfo.context;
       $SD.api.sendToPlugin(uuid, actionInfo, { event: 'getData' });
+
+      const mainWrapper = document.getElementById('mainWrapper');
+      mainWrapper.classList.remove('unknown-action');
+      if (actionInfo == window.ActionIDs.StartStopOutput) {
+        mainWrapper.classList.add('output-action');
+      }
     });
     $SD.on('sendToPropertyInspector', function (jsonObj) {
       const { event } = jsonObj.payload;
