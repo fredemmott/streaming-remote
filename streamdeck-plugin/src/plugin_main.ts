@@ -6,9 +6,9 @@
  * in the root directory of this source tree.
  */
 
-import StreamingRemotePlugin from './sdplugin/StreamingRemotePlugin';
+import StreamingRemotePlugin from './plugin/StreamingRemotePlugin';
 
-import images from "./sdplugin/Images";
+import images from "./plugin/Images";
 
 // Prime cache
 window.addEventListener('load', () => images());
