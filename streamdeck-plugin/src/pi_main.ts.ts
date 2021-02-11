@@ -16,6 +16,5 @@ window.addEventListener(
   () => {
     const link = document.getElementById('plugin-download') as HTMLAnchorElement;
     link.href = 'https://github.com/fredemmott/streaming-remote/releases/v'+Version;
-    console.log(link.href);
   }
 );

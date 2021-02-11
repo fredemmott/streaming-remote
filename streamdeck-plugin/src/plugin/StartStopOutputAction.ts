@@ -6,12 +6,11 @@
  * in the root directory of this source tree.
  */
 
-import { EventData, StreamDeckAction } from "./StreamDeckAction";
+import { EventData } from "./StreamDeckAction";
 import * as Client from "StreamingRemoteClient";
 import images from "./Images";
-import * as ESD from "./ESDTypes";
 import {StreamingRemoteClientActionSettings as BaseSettings, StreamingRemoteClientAction} from "./StreamingRemoteClientAction";
-import { ActionIDs } from "./ActionIDs";
+import { ActionIDs } from "../ActionIDs";
 
 interface StartStopSettings extends BaseSettings {
   output: string;
