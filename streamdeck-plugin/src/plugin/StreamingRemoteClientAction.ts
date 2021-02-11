@@ -65,6 +65,10 @@ export abstract class StreamingRemoteClientAction<TSettings extends StreamingRem
       this.streamingRemoteWebSocket.close();
       this.streamingRemoteWebSocket = null;
     }
+
+    if (!(uri && password)) {
+      return;
+    }
     const [rpc, ws] = await create_streamingremote_client(uri, password);
     this.streamingRemoteWebSocket = ws;
     this.rpc = rpc;

@@ -11,6 +11,7 @@ import * as Client from "StreamingRemoteClient";
 import images from "./Images";
 import {StreamingRemoteClientActionSettings as BaseSettings, StreamingRemoteClientAction} from "./StreamingRemoteClientAction";
 import { ActionIDs } from "../ActionIDs";
+import { PIEvents, PluginEvents } from "../EventIDs";
 
 interface StartStopSettings extends BaseSettings {
   output: string;
@@ -41,7 +42,10 @@ export class StartStopOutputAction extends StreamingRemoteClientAction<StartStop
         this.updateImage();
       }
     )
-    await this.updateStateAndImage();
+    await Promise.all([
+      this.updateStateAndImage(),
+      this.sendData(),
+    ]);
   }
 
   protected async onWebSocketClose(): Promise<void> {
@@ -100,22 +104,8 @@ export class StartStopOutputAction extends StreamingRemoteClientAction<StartStop
     };
     const event = payload.event;
 
-    if (event == 'getData') {
-      const settings = this.getSettings();
-      var outputs;
-      try {
-        outputs = await this.rpc.getOutputs();
-      }
-      catch (e) {
-        outputs = {};
-      }
-
-      const json = {
-        event: "sendToPropertyInspector",
-        context: this.context,
-        payload: { event: "startStopOutputData", outputs, settings }
-      };
-      this.websocket.send(JSON.stringify(json));
+    if (event == PIEvents.GetData) {
+      await this.sendData();
       return;
     }
 
@@ -124,17 +114,21 @@ export class StartStopOutputAction extends StreamingRemoteClientAction<StartStop
 
   public async settingsDidChange(old: StartStopSettings, settings: StartStopSettings) {
     await super.settingsDidChange(old, settings);
+    await this.sendData();
+  }
 
-    let outputs: { [id: string]: Client.Output } = {};
-    try {
-      outputs = await this.rpc.getOutputs();
-    } catch (e) {
-    }
-    this.websocket.send(JSON.stringify({
-      event: 'sendToPropertyInspector',
-      context: this.context,
-      payload: { event: 'startStopOutputData', outputs, settings }
-    }));
+  private async sendData(): Promise<void> {
+		let outputs: { [id: string]: Client.Output } = {};
+		try {
+			outputs = await this.rpc.getOutputs();
+		} catch (e) {
+		}
+		this.websocket.send(JSON.stringify({
+			event: 'sendToPropertyInspector',
+			context: this.context,
+			payload: { event: PluginEvents.SetData, outputs, settings: this.getSettings() }
+		}));
+
   }
 }
 

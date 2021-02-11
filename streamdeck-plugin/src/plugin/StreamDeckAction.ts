@@ -42,7 +42,7 @@ export abstract class StreamDeckAction<TSettings> {
 
   private settings: TSettings;
 
-  public getSettings(): TSettings {
+  protected getSettings(): TSettings {
     return this.settings;
   }
 

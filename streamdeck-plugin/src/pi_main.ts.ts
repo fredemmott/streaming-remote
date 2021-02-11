@@ -7,6 +7,7 @@
  */
 
 import { ActionIDs } from "./ActionIDs";
+import { PIEvents, PluginEvents } from "./EventIDs";
 import { Version } from "StreamingRemoteClient";
 
 declare var $SD : {
@@ -64,12 +65,11 @@ class StartStopActionPI extends PropertyInspector {
 
     this.outputSelect = document.getElementById('output') as HTMLSelectElement;
 
-    this.sendToPlugin({event: 'getData'});
+    this.sendToPlugin({event: PIEvents.GetData});
   }
 
   protected receivedPluginMessage(message: Message): void {
-    const {event, payload} = message;
-    if (event != 'startStopOutputData') {
+    if (message.payload.event != PluginEvents.SetData) {
       return;
     }
 
@@ -77,7 +77,7 @@ class StartStopActionPI extends PropertyInspector {
       this.outputSelect.removeChild(this.outputSelect.firstChild);
     }
 
-    const { outputs, settings } = payload;
+    const { outputs, settings } = message.payload;
 
     Object.keys(outputs).map(id => {
       const { name, state, type } = outputs[id];
