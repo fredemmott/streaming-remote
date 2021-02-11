@@ -42,65 +42,6 @@
   </p>
 
   </div>
-
-  <script>
-    var uuid, actionInfo, ctx;
-
-    $SD.on('connected', function (jsonObj) {
-      uuid = jsonObj.uuid;
-      actionInfo = jsonObj.actionInfo.action;
-      ctx = jsonObj.actionInfo.context;
-      $SD.api.sendToPlugin(uuid, actionInfo, { event: 'getData' });
-
-      const mainWrapper = document.getElementById('mainWrapper');
-      mainWrapper.classList.remove('unknown-action');
-      if (actionInfo == window.ActionIDs.StartStopOutput) {
-        mainWrapper.classList.add('output-action');
-      }
-    });
-    $SD.on('sendToPropertyInspector', function (jsonObj) {
-      const { event } = jsonObj.payload;
-      if (event != 'startStopOutputData') {
-        return;
-      }
-      const { outputs, settings } = jsonObj.payload;
-
-      const outputSelect = document.getElementById('output');
-      while (outputSelect.firstChild) {
-        outputSelect.removeChild(outputSelect.firstChild);
-      }
-      Object.keys(outputs).map(id => {
-        const { name, state, type } = outputs[id];
-        const option = document.createElement('option');
-        option.setAttribute('value', id);
-        option.setAttribute('label', name);
-        if (id == settings.output) {
-          option.setAttribute('selected', true);
-        }
-        outputSelect.appendChild(option);
-      });
-      outputSelect.disabled = false;
-
-      document.getElementById('uri').value = typeof settings.uri == 'string' ? settings.uri : '';
-      document.getElementById('password').value = typeof settings.password == 'string' ? settings.password : '';
-
-      if (settings.output == "" && outputSelect.value != settings.output) {
-        saveSettings();
-      }
-
-      document.getElementById('mainWrapper').classList.remove('hidden');
-    });
-
-    function saveSettings() {
-      const settings = {
-        uri: document.getElementById('uri').value,
-        password: document.getElementById('password').value,
-        output: document.getElementById('output').value,
-      };
-      $SD.api.setSettings(uuid, settings);
-    }
-  </script>
-
 </body>
 
 </html>
