@@ -2,7 +2,7 @@
   "Actions": [
     {
       "Icon": "plugin-icon",
-      "Name": "Streaming Remote",
+      "Name": "Start/Stop Output",
       "States": [
         {
           "Image": "plugin-icon",
@@ -11,14 +11,31 @@
         }
       ],
       "SupportedInMultiActions": false,
-      "Tooltip": "Remotely control OBS and XSplit",
+      "Tooltip": "Start/stop streaming/recording in OBS or XSplit on another computer",
       "UUID": "com.fredemmott.streamingremote.action"
-    }
+    },
+		{
+			"Icon": "plugin-icon",
+			"Name": "Switch to Scene",
+			"States": [
+				{
+					"Image": "plugin-icon",
+					"TitleAlignment": "middle",
+					"FontSize": "16"
+				}
+			],
+			"SupportedInMultiActions": true,
+			"Tooltip": "Switch to a scene in OBS or XSplit on another computer",
+			"UUID": "com.fredemmott.streamingremote.actions.set_current_scene"
+		}
+
   ],
   "Author": "Fred Emmott",
   "CodePath": "app.html",
   "Description": "Remotely control OBS and XSplit; you will need an OBS or XSplit plugin from https://github.com/fredemmott/streaming-remote/releases/v3.0.0 to use this plugin.",
   "Name": "Streaming Remote",
+  "Category": "Streaming Remote",
+  "CategoryIcon": "plugin-icon",
   "Icon": "plugin-icon",
   "URL": "https://github.com/fredemmott/streaming-remote/",
   "Version": "3.0.0",

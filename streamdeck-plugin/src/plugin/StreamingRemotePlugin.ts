@@ -11,13 +11,16 @@ import StreamDeckAction from "./StreamDeckAction";
 import StreamDeckPlugin from "./StreamDeckPlugin";
 
 import StartStopOutputAction from "./StartStopOutputAction";
+import SetCurrentSceneAction from "./SetCurrentSceneAction";
 
 export default class StreamingRemotePlugin extends StreamDeckPlugin {
   public createAction(context: ESD.Context, action: string, websocket: WebSocket): StreamDeckAction<any> {
-    if (action != StartStopOutputAction.UUID) {
-      console.log(`Unknown action type ${action}`);
-      return;
+    switch(action) {
+      case StartStopOutputAction.UUID:
+        return new StartStopOutputAction(context, websocket);
+      case SetCurrentSceneAction.UUID:
+        return new SetCurrentSceneAction(context, websocket);
     }
-    return new StartStopOutputAction(context, websocket);
+    console.log(`Plugin created with unknown action type ${action}`);
   }
 }

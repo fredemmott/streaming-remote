@@ -12,7 +12,10 @@
     .action-specific {
       display: none;
     }
-    .output-action .output-action-specific {
+    .output-action #output-item {
+      display: flex;
+    }
+    .scene-action #scene-item {
       display: flex;
     }
   -->
@@ -30,11 +33,17 @@
       <div class="sdpi-item-label">Password</div>
       <input class="sdpi-item-value" type="password" id="password" onchange="saveSettings();" required />
     </div>
-    <div class="sdpi-item output-action-specific action-specific">
+    <div class="sdpi-item action-specific" id="output-item">
       <div class="sdpi-item-label" onchange="saveSettings()">Output</div>
       <select class="sdpi-item-value select" id="output" disabled onchange="saveSettings();">
       </select>
     </div>
+		<div class="sdpi-item action-specific" id="scene-item">
+			<div class="sdpi-item-label" onchange="saveSettings()">Scene</div>
+			<select class="sdpi-item-value select" id="scene" disabled onchange="saveSettings();">
+			</select>
+		</div>
+
   <p>
     <a id="plugin-download" target="_blank">
       Download compatible plugins for OBS and XSplit
