@@ -9,7 +9,7 @@
 declare var $SD : {
 	on(method: string, handler: (data: any) => void|Promise<void>): void
 	readonly api: {
-		sendToPlugin(uuid: string, action: string, message: any);
-		setSettings(uuid: string, settings: any);
+		sendToPlugin(uuid: string, action: string, message: any): void;
+		setSettings(uuid: string, settings: any): void;
 	};
 }
