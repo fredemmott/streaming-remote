@@ -27,7 +27,7 @@
       ],
       "SupportedInMultiActions": true,
       "Tooltip": "Switch to a scene in OBS or XSplit on another computer",
-      "UUID": "com.fredemmott.streamingremote.actions.set_current_scene"
+      "UUID": "com.fredemmott.streamingremote.actions.setcurrentscene"
     }
 
   ],

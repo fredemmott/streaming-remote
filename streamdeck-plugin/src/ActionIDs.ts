@@ -8,5 +8,5 @@
 
 export enum ActionIDs {
     StartStopOutput = "com.fredemmott.streamingremote.action",
-    SetCurrentScene = "com.fredemmott.streamingremote.actions.set_current_scene",
+    SetCurrentScene = "com.fredemmott.streamingremote.actions.setcurrentscene",
 }
