@@ -7,7 +7,6 @@
  */
 
 import { EventData } from "./StreamDeckAction";
-import * as Client from "StreamingRemoteClient";
 import {StreamingRemoteClientActionSettings as BaseSettings, StreamingRemoteClientAction} from "./StreamingRemoteClientAction";
 import { ActionIDs } from "../ActionIDs";
 import { PIEvents, PluginEvents } from "../EventIDs";
@@ -16,7 +15,7 @@ interface SetCurrentSceneSettings extends BaseSettings {
   scene: { id: string, label: string },
 };
 
-export class SetCurrentSceneAction extends StreamingRemoteClientAction<SetCurrentSceneSettings> {
+export default class SetCurrentSceneAction extends StreamingRemoteClientAction<SetCurrentSceneSettings> {
   public static readonly UUID = ActionIDs.SetCurrentScene;
 
   private sceneID: string;
@@ -28,10 +27,13 @@ export class SetCurrentSceneAction extends StreamingRemoteClientAction<SetCurren
   protected async onConnect(): Promise<void> {
     this.rpc.onSceneChanged(
       (id: string) => {
-        if (id != this.sceneID) {
-          return;
-        }
-        this.sendData();
+        this.websocket.send(JSON.stringify({
+          event: 'setState',
+          context: this.context,
+          payload: {
+            state: id == this.sceneID ? 0 : 1
+          }
+        }));
       }
     )
     this.sendData();
@@ -71,8 +73,5 @@ export class SetCurrentSceneAction extends StreamingRemoteClientAction<SetCurren
       context: this.context,
       payload: { event: PluginEvents.SetData, scenes, settings: this.getSettings() }
     }));
-
   }
 }
-
-export default SetCurrentSceneAction;

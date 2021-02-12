@@ -10,7 +10,11 @@ import * as ESD from "./ESDTypes";
 import { EventData, StreamDeckAction } from "./StreamDeckAction";
 
 export abstract class StreamDeckPlugin {
-  protected abstract createAction(context: ESD.Context, action: string, ws: WebSocket): StreamDeckAction<any>;
+  protected abstract createAction(
+    context: ESD.Context,
+    action: string,
+    ws: WebSocket
+  ): StreamDeckAction<any>;
 
   constructor(
     port: string,

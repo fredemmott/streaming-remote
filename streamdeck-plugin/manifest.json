@@ -14,20 +14,21 @@
       "Tooltip": "Start/stop streaming/recording in OBS or XSplit on another computer",
       "UUID": "com.fredemmott.streamingremote.action"
     },
-		{
-			"Icon": "plugin-icon",
-			"Name": "Switch to Scene",
-			"States": [
-				{
-					"Image": "plugin-icon",
-					"TitleAlignment": "middle",
-					"FontSize": "16"
-				}
-			],
-			"SupportedInMultiActions": true,
-			"Tooltip": "Switch to a scene in OBS or XSplit on another computer",
-			"UUID": "com.fredemmott.streamingremote.actions.set_current_scene"
-		}
+    {
+      "Icon": "plugin-icon",
+      "Name": "Switch to Scene",
+      "States": [
+        {
+          "Image": "plugin-icon"
+        },
+        {
+          "Image": "plugin-icon"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Switch to a scene in OBS or XSplit on another computer",
+      "UUID": "com.fredemmott.streamingremote.actions.set_current_scene"
+    }
 
   ],
   "Author": "Fred Emmott",
