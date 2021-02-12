@@ -1,7 +1,7 @@
 {
   "Actions": [
     {
-      "Icon": "plugin-icon",
+      "Icon": "action-icon-start-stop-output",
       "Name": "Start/Stop Output",
       "States": [
         {
@@ -15,14 +15,14 @@
       "UUID": "com.fredemmott.streamingremote.action"
     },
     {
-      "Icon": "plugin-icon",
+      "Icon": "action-icon-set-scene",
       "Name": "Switch to Scene",
       "States": [
         {
-          "Image": "plugin-icon"
+          "Image": "rendered-keys/scene-active"
         },
         {
-          "Image": "plugin-icon"
+          "Image": "rendered-keys/scene-inactive"
         }
       ],
       "SupportedInMultiActions": true,
@@ -36,7 +36,7 @@
   "Description": "Remotely control OBS and XSplit; you will need an OBS or XSplit plugin from https://github.com/fredemmott/streaming-remote/releases/v3.0.0 to use this plugin.",
   "Name": "Streaming Remote",
   "Category": "Streaming Remote",
-  "CategoryIcon": "plugin-icon",
+  "CategoryIcon": "category",
   "Icon": "plugin-icon",
   "URL": "https://github.com/fredemmott/streaming-remote/",
   "Version": "3.0.0",

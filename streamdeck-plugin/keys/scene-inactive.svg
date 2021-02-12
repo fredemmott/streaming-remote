@@ -1,0 +1,81 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="black" />
+  <style>
+path {
+  stroke: #ccc;
+  stroke-width: 10;
+  fill: none;
+}
+
+#sceneBox {
+  stroke: #ccc;
+  stroke-width: 5;
+}
+
+.strokeState {
+  stroke: #ccc;
+}
+
+.fillState {
+  fill: #ccc;
+}
+
+.active .fillState {
+  fill: red !important;
+}
+
+.active .strokeState{
+  stroke: red !important;
+}
+
+.starting .fillState, .stopping .fillState {
+  fill: orange !important;
+}
+
+.starting .strokeState, .stopping .strokeState {
+  stroke: orange !important;
+}
+  </style>
+  <rect width="70" height="70" id="sceneBox" rx="10" ry="10" x="15" y="15" />
+  <svg viewBox="0 0 200 200" width="40" height="40" x="40" y="40">
+    <circle cx="100" cy="100" r="10" class="fillState" />
+    <!-- inner most -->
+    <path d="
+    M 87.5 78.35
+    A 25 25 0 0 0 87.5 121.65
+  " />
+    <path d="
+    M 87.5 78.35
+    A 25 25 0 0 0 87.5 121.65
+  " transform="rotate(180, 100, 100)" />
+    <!-- next ring -->
+    <path class="strokeState" d="
+    M 77.5 61.03
+    A 45 45 0 0 0 77.5 138.97
+  " />
+    <path class="strokeState" d="
+    M 77.5 61.03
+    A 45 45 0 0 0 77.5 138.97
+  " transform="rotate(180, 100, 100)" />
+    <!-- next ring -->
+    <path class="strokeState" d="
+    M 67.5 43.71
+    A 65 65 0 0 0 67.5 156.29
+  " />
+    <path class="strokeState" d="
+    M 67.5 43.71
+    A 65 65 0 0 0 67.5 156.29
+  " transform="rotate(180, 100, 100)" />
+    <!-- outer -->
+    <path d="
+    M 57.5 27.39
+    A 85 85 0 0 0 57.5 173.61
+  " />
+    <path d="
+    M 57.5 27.39
+    A 85 85 0 0 0 57.5 173.61
+  " transform="rotate(180, 100, 100)" />
+  </svg>
+</svg>
