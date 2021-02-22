@@ -61,6 +61,7 @@ export abstract class StreamDeckPlugin {
       device: data.device as string,
       coordinates: payload.coordinates as ESD.Coordinates,
       state: payload.state as number,
+      settings: payload.settings,
       isInMultiAction: payload.isInMultiAction as boolean,
       userDesiredState: payload.userDesiredState as number,
     };

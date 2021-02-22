@@ -12,16 +12,30 @@ import PropertyInspector from "./PropertyInspector"
 export default class StartStopActionPI extends PropertyInspector {
   protected readonly outputSelect: HTMLSelectElement;
 
-  constructor(uuid: string, action: string, context: string) {
-    super(uuid, action, context);
+  constructor(uuid: string, action: string, context: string, settings: any) {
+    super(uuid, action, context, settings);
     this.mainWrapper.classList.add('output-action');
 
     this.outputSelect = document.getElementById('output') as HTMLSelectElement;
+    if (settings.outputName) {
+      const output = document.createElement('option');
+      output.textContent = settings.outputName;
+      output.value = settings.output;
+      output.selected = true;
+      output.setAttribute('data-outputType', settings.outputType);
+      this.outputSelect.append(output);
+      this.mainWrapper.classList.remove('hidden');
+    }
 
     this.sendToPlugin({event: PIEvents.GetData});
   }
 
   protected receivedPluginMessage(message: any): void {
+    if (message.payload.event == PluginEvents.Disconnected) {
+      this.outputSelect.disabled = true;
+      return;
+    }
+
     if (message.payload.event != PluginEvents.SetData) {
       return;
     }
@@ -35,11 +49,12 @@ export default class StartStopActionPI extends PropertyInspector {
     Object.keys(outputs).map(id => {
       const { name, state, type } = outputs[id];
       const option = document.createElement('option');
-      option.setAttribute('value', id);
-      option.setAttribute('label', name);
+      option.value = id;
+      option.textContent = name;
       if (id == settings.output) {
         option.setAttribute('selected', 'selected');
       }
+      option.setAttribute('data-outputType', type);
       this.outputSelect.appendChild(option);
     });
     this.outputSelect.disabled = false;
@@ -47,6 +62,8 @@ export default class StartStopActionPI extends PropertyInspector {
     this.passwordInput.value = typeof settings.password == 'string' ? settings.password : '';
 
     if (settings.output == "" && this.outputSelect.value != settings.output) {
+      this.saveSettings();
+    } else if (!settings.outputName) {
       this.saveSettings();
     }
 
@@ -57,8 +74,13 @@ export default class StartStopActionPI extends PropertyInspector {
     const settings = {
       uri: this.uriInput.value,
       password: this.passwordInput.value,
-      output: this.outputSelect.value,
     };
+    const selected = document.querySelector("#output option:checked") as HTMLOptionElement;
+    if (selected) {
+      settings['output'] = selected.value;
+      settings['outputName'] = selected.textContent;
+      settings['outputType'] = selected.getAttribute('data-outputType');
+    }
     super.setSettings(settings);
   }
 }

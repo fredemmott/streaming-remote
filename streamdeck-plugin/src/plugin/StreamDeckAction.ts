@@ -14,6 +14,7 @@ export type EventData = {
   state: number;
   isInMultiAction: boolean;
   userDesiredState?: number;
+  settings?: any;
 };
 
 export abstract class StreamDeckAction<TSettings> {

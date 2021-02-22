@@ -13,15 +13,15 @@ import SetCurrentSceneActionPI from "./pi/SetCurrentSceneActionPI"
 
 $SD.on('connected', function (jsonObj) {
   const { uuid , actionInfo } = jsonObj;
-  const { action, context } = actionInfo;
+  const { action, context, payload } = actionInfo;
 
   if (action == ActionIDs.StartStopOutput) {
-    new StartStopActionPI(uuid, action, context);
+    new StartStopActionPI(uuid, action, context, payload.settings);
     return;
   }
 
   if (action == ActionIDs.SetCurrentScene) {
-    new SetCurrentSceneActionPI(uuid, action, context);
+    new SetCurrentSceneActionPI(uuid, action, context, payload.settings);
     return;
   }
 

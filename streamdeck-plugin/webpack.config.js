@@ -8,7 +8,7 @@
 
 const path = require('path');
 
-module.exports = {
+const config = {
   entry: {
     pi_bundle: './src/pi_main.ts',
     plugin_bundle: './src/plugin_main.ts',
@@ -38,4 +38,11 @@ module.exports = {
       }
     ]
   }
+};
+
+module.exports = (env, argv) => {
+  if (argv.mode == 'development') {
+    config.devtool = 'eval-source-map';
+  }
+  return config;
 };

@@ -15,8 +15,8 @@ export default class SetCurrentScenePI extends PropertyInspector {
   private scene: { id: string, name: string };
   private scenes: { [id: string]: Client.Scene };
 
-  constructor(uuid: string, action: string, context: string) {
-    super(uuid, action, context);
+  constructor(uuid: string, action: string, context: string, settings: any) {
+    super(uuid, action, context, settings);
     this.mainWrapper.classList.add('scene-action');
 
     this.sceneSelect = document.getElementById('scene') as HTMLSelectElement;

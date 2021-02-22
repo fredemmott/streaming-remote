@@ -12,4 +12,5 @@ export enum PIEvents {
 
 export enum PluginEvents {
   SetData = "setData",
+  Disconnected = "disconnected",
 }

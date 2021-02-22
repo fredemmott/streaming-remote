@@ -9,6 +9,7 @@
 import { EventData, StreamDeckAction } from "./StreamDeckAction";
 import * as Client from "StreamingRemoteClient";
 import * as ESD from "./ESDTypes";
+import {PluginEvents} from "../EventIDs"
 
 function create_streamingremote_client(uri: string, password: string): Promise<[Client.RPC, WebSocket]> {
   const ws = new WebSocket(uri);
@@ -19,8 +20,8 @@ function create_streamingremote_client(uri: string, password: string): Promise<[
       const rpc = new Client.RPC(ws, handshakeState);
       rpc.onHelloNotification(() => resolve([rpc, ws]));
     });
-    ws.addEventListener('close', () => {
-      reject();
+    ws.addEventListener('close', (e: CloseEvent) => {
+      reject(`Websocket connection closed: ${e.code} ("${e.reason}")`);
     });
   });
 }
@@ -73,6 +74,13 @@ export abstract class StreamingRemoteClientAction<TSettings extends StreamingRem
     this.streamingRemoteWebSocket = ws;
     this.rpc = rpc;
     ws.addEventListener('close', () => {
+      this.websocket.send(JSON.stringify({
+        event: 'sendToPropertyInspector',
+        context: this.context,
+        payload: { event: PluginEvents.Disconnected },
+      }));
+      console.log('sent disconnected event');
+
       this.websocket.send(JSON.stringify({
         event: 'showAlert',
         context: this.context,

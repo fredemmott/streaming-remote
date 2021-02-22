@@ -15,12 +15,20 @@ import { PIEvents, PluginEvents } from "../EventIDs";
 
 interface StartStopSettings extends BaseSettings {
   output: string;
+  outputName: string;
+  outputType: string;
 };
 
 export class StartStopOutputAction extends StreamingRemoteClientAction<StartStopSettings> {
   public static readonly UUID = ActionIDs.StartStopOutput;
 
   private output: Client.Output;
+
+  public async willAppear(data: EventData): Promise<void> {
+    if (!this.output) {
+      await this.initOutputFromSettings(data.settings);
+    }
+  }
 
   public async keyUp(_data: EventData): Promise<void> {
     const state = this.output.state;
@@ -58,7 +66,7 @@ export class StartStopOutputAction extends StreamingRemoteClientAction<StartStop
 
   private async updateStateAndImage(): Promise<void> {
     const key = this.getSettings().output;
-    if (!key) {
+    if (!(this.rpc && key)) {
       return;
     }
     const outputs = await this.rpc.getOutputs();
@@ -93,11 +101,6 @@ export class StartStopOutputAction extends StreamingRemoteClientAction<StartStop
   }
 
 
-  public async willAppear(data: EventData): Promise<void> {
-    await super.willAppear(data);
-    await this.updateStateAndImage();
-  }
-
   public async sendToPlugin(untypedPayload: any): Promise<void> {
     const payload = untypedPayload as {
       event: string;
@@ -113,22 +116,38 @@ export class StartStopOutputAction extends StreamingRemoteClientAction<StartStop
   }
 
   public async settingsDidChange(old: StartStopSettings, settings: StartStopSettings) {
-    await super.settingsDidChange(old, settings);
+    try {
+      await super.settingsDidChange(old, settings);
+    } catch (ignored) {
+    }
+
+    if (settings.outputName) {
+      await this.initOutputFromSettings(settings);
+    }
+
     await this.sendData();
   }
 
-  private async sendData(): Promise<void> {
-		let outputs: { [id: string]: Client.Output } = {};
-		try {
-			outputs = await this.rpc.getOutputs();
-		} catch (e) {
-		}
-		this.websocket.send(JSON.stringify({
-			event: 'sendToPropertyInspector',
-			context: this.context,
-			payload: { event: PluginEvents.SetData, outputs, settings: this.getSettings() }
-		}));
+  private async initOutputFromSettings(settings: StartStopSettings) {
+    const {output, outputName, outputType} = settings;
+    this.output = { id: output, name: outputName, type: outputType as Client.OutputType, state: Client.OutputState.STOPPED };
+    await this.updateImage();
+  }
 
+  private async sendData(): Promise<void> {
+    if (!this.rpc) {
+      return;
+    }
+    let outputs: { [id: string]: Client.Output } = {};
+    try {
+      outputs = await this.rpc.getOutputs();
+    } catch (e) {
+    }
+    this.websocket.send(JSON.stringify({
+      event: 'sendToPropertyInspector',
+      context: this.context,
+      payload: { event: PluginEvents.SetData, outputs, settings: this.getSettings() }
+    }));
   }
 }
 

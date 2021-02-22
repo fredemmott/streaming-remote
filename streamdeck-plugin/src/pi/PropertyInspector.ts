@@ -13,12 +13,18 @@ export default abstract class PropertyInspector {
   protected readonly uriInput: HTMLInputElement;
   protected readonly passwordInput: HTMLInputElement;
 
-  constructor(uuid: string, action: string, context: string) {
+  constructor(uuid: string, action: string, context: string, settings: any) {
     this.uuid = uuid;
     this.action = action;
 
     this.uriInput = document.getElementById('uri') as HTMLInputElement;
     this.passwordInput = document.getElementById('password') as HTMLInputElement;
+    if (settings.uri) {
+      this.uriInput.value = settings.uri;
+    }
+    if (settings.password) {
+      this.passwordInput.value = settings.password;
+    }
 
     this.mainWrapper = document.getElementById('mainWrapper');
     this.mainWrapper.classList.remove('unknown-action');
